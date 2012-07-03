@@ -84,7 +84,6 @@ import org.eclipse.jdt.internal.corext.dom.ModifierRewrite;
 import org.eclipse.jdt.internal.corext.refactoring.Checks;
 import org.eclipse.jdt.internal.corext.refactoring.JDTRefactoringDescriptorComment;
 import org.eclipse.jdt.internal.corext.refactoring.JavaRefactoringDescriptorUtil;
-import org.eclipse.jdt.internal.corext.refactoring.RefactoringCoreMessages;
 import org.eclipse.jdt.internal.corext.refactoring.changes.DynamicValidationRefactoringChange;
 import org.eclipse.jdt.internal.corext.refactoring.changes.TextChangeCompatibility;
 import org.eclipse.jdt.internal.corext.refactoring.util.CompilationUnitSourceContext;
@@ -934,12 +933,12 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		//TODO need to properly initialize the arguments so that this refactoring becomes recordable
 		final Map<String, String> arguments= new HashMap<String, String>();
 		String description= ConcurrencyRefactorings.ConvertToFJTaskRefactoring_name_user;
-		final JDTRefactoringDescriptorComment comment= new JDTRefactoringDescriptorComment(project, this, Messages.format(RefactoringCoreMessages.IntroduceIndirectionRefactoring_descriptor_description, new String[] { JavaElementLabels.getTextLabel(fMethod, JavaElementLabels.ALL_FULLY_QUALIFIED), JavaElementLabels.getTextLabel(declaring, JavaElementLabels.ALL_FULLY_QUALIFIED)}));
-		comment.addSetting(Messages.format(RefactoringCoreMessages.IntroduceIndirectionRefactoring_method_pattern, BasicElementLabels.getJavaElementName(fMethod.getElementName())));
+		final JDTRefactoringDescriptorComment comment= new JDTRefactoringDescriptorComment(project, this, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_descriptor_description, new String[] { JavaElementLabels.getTextLabel(fMethod, JavaElementLabels.ALL_FULLY_QUALIFIED), JavaElementLabels.getTextLabel(declaring, JavaElementLabels.ALL_FULLY_QUALIFIED)}));
+		comment.addSetting(Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_method_pattern, BasicElementLabels.getJavaElementName(fMethod.getElementName())));
 		
-		final FJTaskRefactoringDescriptor descriptor= new FJTaskRefactoringDescriptor("my refactoring id", project, description, comment.asString(), arguments, flags);  //TODO See below as well
+		final FJTaskRefactoringDescriptor descriptor= new FJTaskRefactoringDescriptor("my refactoring id", project, description, comment.asString(), arguments, flags); //TODO Refactoring id?
 		
-		arguments.put(JavaRefactoringDescriptorUtil.ATTRIBUTE_INPUT, JavaRefactoringDescriptorUtil.elementToHandle(project, fMethod));  //TODO Use JavaRefactoringDescriptor instead but it is protected
+		arguments.put(JavaRefactoringDescriptorUtil.ATTRIBUTE_INPUT, JavaRefactoringDescriptorUtil.elementToHandle(project, fMethod));
 		arguments.put(JavaRefactoringDescriptorUtil.ATTRIBUTE_NAME, fMethod.getElementName());
 //		arguments.put(JavaRefactoringDescriptorUtil.ATTRIBUTE_REFERENCES, Boolean.valueOf(fUpdateReferences).toString());		
 		
