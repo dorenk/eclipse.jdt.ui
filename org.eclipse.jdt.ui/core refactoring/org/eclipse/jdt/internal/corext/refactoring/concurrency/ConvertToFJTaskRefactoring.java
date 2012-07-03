@@ -382,11 +382,10 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 								ListRewrite listRewriteForBlock= scratchRewriter.getListRewrite(blockWithReturn, Block.STATEMENTS_PROPERTY);
 								List<ASTNode> statementsInBlockWithReturn= blockWithReturn.statements();
 								Statement lastStatementInBlock= (Statement) statementsInBlockWithReturn.get(statementsInBlockWithReturn.size() - 1);
-								if (lastStatementInBlock instanceof ReturnStatement) {  //TODO Do I need this check?
+								if (lastStatementInBlock instanceof ReturnStatement) {
 									listRewriteForBlock.insertBefore(taskDeclStatement, lastStatementInBlock, editGroup);
 								}
 							} else if (tempNode instanceof IfStatement) {
-								//TODO Init singleElseStatement there
 								IfStatement ifStatement= (IfStatement) tempNode;
 								Statement elseStatement= ifStatement.getElseStatement();
 								if(elseStatement != null) {
@@ -450,8 +449,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			ListRewrite listRewriteForBlock= scratchRewriter.getListRewrite(blockContainingTaskDecl, Block.STATEMENTS_PROPERTY);
 			
 			MethodInvocation forkJoinInvocation= ast.newMethodInvocation();
-			//TODO the code below assumes that there are just two tasks passed to the
-			// invokeAll. Need to implement the scenario with more than two tasks - COMPLETED (I think, seemed like was too easy...)
+			//TODO the code below assumes that there are at least two task, do I implement for only 1?
 			forkJoinInvocation.setName(ast.newSimpleName("invokeAll")); //$NON-NLS-1$
 			List<Expression> argumentsForkJoin= forkJoinInvocation.arguments();
 			for (int i= 1; i <= taskNumber[0]; i++) {
@@ -713,7 +711,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 						return false;
 					}
 					ASTNode lastStatement= statements.get(statements.size() - 1);
-					if ((lastStatement instanceof ReturnStatement)) {  //TODO is this !(lastStatement instanceof ReturnStatement) ?
+					if ((lastStatement instanceof ReturnStatement)) {
 						return true;
 					}
 				} else if (statement instanceof ReturnStatement) {
@@ -1098,5 +1096,3 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		return options;
 	}
 }
-
-//TODO fix warnings
