@@ -429,7 +429,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			if(fSingleElseStatement == null) {
 				do {
 					tempNode= tempNode.getParent();
-				} while (tempNode != null && !Block.class.isInstance(tempNode) && !IfStatement.class.isInstance(tempNode));
+				} while (tempNode != null && !Block.class.isInstance(tempNode));
 				if (tempNode == null) {
 					RefactoringStatus fatalError= new RefactoringStatus();
 					fatalError.addFatalError(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_recursion_error_1 
@@ -460,7 +460,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			}
 			Statement lastStatementWithRecursiveCall;
 			if (fSingleElseStatement == null) {
-				lastStatementWithRecursiveCall= lastStatementWithRecursiveMethodInvocation.get(lastStatementWithRecursiveMethodInvocation.size() - 1);  //TODO Check to make sure this node exists?  Lines 427, 434, 486, 488
+				lastStatementWithRecursiveCall= lastStatementWithRecursiveMethodInvocation.get(lastStatementWithRecursiveMethodInvocation.size() - 1);
 			} else {
 				lastStatementWithRecursiveCall= fSingleElseStatement;
 			}
