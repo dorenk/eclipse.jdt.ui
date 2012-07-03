@@ -683,6 +683,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 	private Statement identifyRecursionBaseCaseBranch(Block computeBodyBlock) {
 		
 		final Statement[] baseCase= new Statement[] {null};
+		final int[] counter= new int[] {0};
 		computeBodyBlock.accept(new ASTVisitor() {
 			@Override
 			public boolean visit(IfStatement ifStatement) {
@@ -690,9 +691,11 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				Statement elseStatement= ifStatement.getElseStatement();
 				if (statementIsBaseCase(thenStatement)) {
 					baseCase[0]= thenStatement;
+					counter[0]++;
 				}
-				else if ((elseStatement!= null) && (statementIsBaseCase(elseStatement))) {
+				else if ((elseStatement != null) && (statementIsBaseCase(elseStatement))) {
 					baseCase[0]= elseStatement;
+					counter[0]++;
 				}
 				return false;
 			}
@@ -720,7 +723,11 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				return false;
 			}
 		});
-		return baseCase[0];
+		if (counter[0] == 1) {
+			return baseCase[0];
+		} else {
+			return null;
+		}
 	}
 
 	private boolean statementContainsRecursiveCall(Statement statement) {
