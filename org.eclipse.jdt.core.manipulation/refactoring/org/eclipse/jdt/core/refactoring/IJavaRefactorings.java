@@ -27,6 +27,7 @@ import org.eclipse.jdt.core.refactoring.descriptors.ExtractInterfaceDescriptor;
 import org.eclipse.jdt.core.refactoring.descriptors.ExtractLocalDescriptor;
 import org.eclipse.jdt.core.refactoring.descriptors.ExtractMethodDescriptor;
 import org.eclipse.jdt.core.refactoring.descriptors.ExtractSuperclassDescriptor;
+import org.eclipse.jdt.core.refactoring.descriptors.FJTaskRefactoringDescriptor;
 import org.eclipse.jdt.core.refactoring.descriptors.GeneralizeTypeDescriptor;
 import org.eclipse.jdt.core.refactoring.descriptors.InferTypeArgumentsDescriptor;
 import org.eclipse.jdt.core.refactoring.descriptors.InlineConstantDescriptor;
@@ -203,6 +204,17 @@ public interface IJavaRefactorings {
 	 * </p>
 	 */
 	public static final String EXTRACT_SUPERCLASS= "org.eclipse.jdt.ui.extract.superclass"; //$NON-NLS-1$
+	
+	/**
+	 * Refactoring id of the 'Convert to ForkJoinTask' refactoring (value:
+	 * <code>org.eclipse.jdt.ui.fork.join.task</code>).
+	 * <p>
+	 * Clients may safely cast the obtained refactoring descriptor to
+	 * {@link FJTaskRefactoringDescriptor}.
+	 * </p>
+	 * @since 1.6
+	 */
+	public static final String FORK_JOIN_TASK= "org.eclipse.jdt.ui.fork.join.task"; //$NON-NLS-1$
 
 	/**
 	 * Refactoring id of the 'Generalize Declared Type' refactoring (value:
