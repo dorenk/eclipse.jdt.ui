@@ -1298,4 +1298,27 @@ public final class RefactoringAvailabilityTester {
 			return false;
 		return ReorgUtils.isInsideCompilationUnit(type) && type.isClass() && !type.isAnonymous();
 	}
+	
+	public static boolean isConvertToFJTaskAvailable(final IMethod method) throws JavaModelException {
+		return method != null && method.exists() && method.isStructureKnown() && !method.getDeclaringType().isAnnotation();
+	}
+
+	public static boolean isConvertToFJTaskAvailable(final IStructuredSelection selection) throws JavaModelException {
+		if (selection.size() == 1) {
+			if (selection.getFirstElement() instanceof IMethod) {
+				final IMethod method= (IMethod) selection.getFirstElement();
+				return isConvertToFJTaskAvailable(method);
+			}
+		}
+		return false;
+	}
+
+	public static boolean isConvertToFJTaskAvailable(final JavaTextSelection selection) throws JavaModelException {
+		final IJavaElement[] elements= selection.resolveElementAtOffset();
+		if (elements.length == 1 && (elements[0] instanceof IMethod))
+			return isConvertToFJTaskAvailable((IMethod) elements[0]);
+		final IJavaElement element= selection.resolveEnclosingElement();
+		return (element instanceof IMethod) && isConvertToFJTaskAvailable((IMethod) element);
+	}
+	
 }

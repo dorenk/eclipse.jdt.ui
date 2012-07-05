@@ -1,95 +1,158 @@
 package org.eclipse.jdt.ui.actions;
 
-import org.eclipse.swt.widgets.Shell;
-
-import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 
-import org.eclipse.ui.IActionDelegate;
-import org.eclipse.ui.IObjectActionDelegate;
-import org.eclipse.ui.IWorkbenchPart;
+import org.eclipse.jface.text.ITextSelection;
 
-import org.eclipse.ltk.ui.refactoring.RefactoringWizard;
-import org.eclipse.ltk.ui.refactoring.RefactoringWizardOpenOperation;
+import org.eclipse.ui.IWorkbenchSite;
+import org.eclipse.ui.PlatformUI;
 
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.JavaModelException;
 
-import org.eclipse.jdt.internal.corext.refactoring.concurrency.ConvertToFJTaskRefactoring;
+import org.eclipse.jdt.internal.corext.refactoring.RefactoringAvailabilityTester;
+import org.eclipse.jdt.internal.corext.refactoring.RefactoringExecutionStarter;
+import org.eclipse.jdt.internal.corext.util.JavaModelUtil;
 
-import org.eclipse.jdt.internal.ui.refactoring.concurrency.ConvertToFJTaskWizard;
+import org.eclipse.jdt.internal.ui.IJavaHelpContextIds;
+import org.eclipse.jdt.internal.ui.JavaPlugin;
+import org.eclipse.jdt.internal.ui.actions.ActionUtil;
+import org.eclipse.jdt.internal.ui.actions.SelectionConverter;
+import org.eclipse.jdt.internal.ui.javaeditor.JavaEditor;
+import org.eclipse.jdt.internal.ui.javaeditor.JavaTextSelection;
+import org.eclipse.jdt.internal.ui.refactoring.RefactoringMessages;
+import org.eclipse.jdt.internal.ui.util.ExceptionHandler;
 
 /**
  * @since 3.9
  */
-public class ConvertToFJTaskAction implements IObjectActionDelegate {
+public class ConvertToFJTaskAction extends SelectionDispatchAction {
 
-	private Shell shell;
-	private IMethod fRecursiveMethod;
+	private JavaEditor fEditor;
 
 	/**
-	 * Constructor for Action1.
+	 * Note: This constructor is for internal use only. Clients should not call this constructor.
+	 * @param editor the java editor
+	 *
+	 * @noreference This constructor is not intended to be referenced by clients.
 	 */
-	public ConvertToFJTaskAction() {
-		super();
+	public ConvertToFJTaskAction(JavaEditor editor) {
+		this(editor.getEditorSite());
+		fEditor= editor;
+		setEnabled(SelectionConverter.canOperateOn(fEditor));
 	}
 
 	/**
-	 * @see IObjectActionDelegate#setActivePart(IAction, IWorkbenchPart)
+	 * Creates a new <code>ConvertToFJTaskAction</code>. The action requires
+	 * that the selection provided by the site's selection provider is of type
+	 * <code>org.eclipse.jface.viewers.IStructuredSelection</code>.
+	 *
+	 * @param site the site providing context information for this action
 	 */
-	public void setActivePart(IAction action, IWorkbenchPart targetPart) {
-		shell = targetPart.getSite().getShell();
+	public ConvertToFJTaskAction(IWorkbenchSite site) {
+		super(site);
+		setText("Convert recursion to ForkJoinTask"); //$NON-NLS-1$
+		PlatformUI.getWorkbench().getHelpSystem().setHelp(this, IJavaHelpContextIds.FORK_JOIN_TASK_ACTION);
 	}
-
+	
+	/* (non-Javadoc)
+	 * Method declared on SelectionDispatchAction.
+	 */
+	@Override
+	public void selectionChanged(ITextSelection selection) {
+		setEnabled(true);
+	}
 	
 	/**
-	 * @see IActionDelegate#run(IAction)
+	 * Note: This method is for internal use only. Clients should not call this method.
+	 * 
+	 * @param selection the Java text selection
+	 * @noreference This method is not intended to be referenced by clients.
 	 */
-	public void run(IAction action) {
+	@Override
+	public void selectionChanged(JavaTextSelection selection) {
 		try {
-			if (fRecursiveMethod != null && shell != null && isConvertToFJTaskAvailable()) {
-				ConvertToFJTaskRefactoring refactoring= new ConvertToFJTaskRefactoring(fRecursiveMethod);
-				run(new ConvertToFJTaskWizard(refactoring, "Convert to FJTask"), shell, "Convert to FJTask"); //$NON-NLS-1$ //$NON-NLS-2$
-			} else
-				MessageDialog.openError(shell, "Error ConvertToFJTask", "ConvertToFJTask not applicable for current selection");  //$NON-NLS-1$ //$NON-NLS-2$
-			
+			setEnabled(RefactoringAvailabilityTester.isConvertToFJTaskAvailable(selection));
 		} catch (JavaModelException e) {
-			e.printStackTrace();
+			// http://bugs.eclipse.org/bugs/show_bug.cgi?id=19253
+			if (JavaModelUtil.isExceptionToBeLogged(e))
+				JavaPlugin.log(e);
+			setEnabled(false);//no UI
 		}
 	}
 	
-	public void run(RefactoringWizard wizard, Shell parent, String dialogTitle) {
+	@Override
+	public void selectionChanged(IStructuredSelection selection) {
 		try {
-			RefactoringWizardOpenOperation operation= new RefactoringWizardOpenOperation(wizard);
-			operation.run(parent, dialogTitle);
-		} catch (InterruptedException exception) {
-			// Do nothing
+			setEnabled(RefactoringAvailabilityTester.isConvertToFJTaskAvailable(selection));
+		} catch (JavaModelException e) {
+			if (JavaModelUtil.isExceptionToBeLogged(e))
+				JavaPlugin.log(e);
+			setEnabled(false);
 		}
 	}
-
-	/**
-	 * @see IActionDelegate#selectionChanged(IAction, ISelection)
+	
+	/*
+	 * @see SelectionDispatchAction#run(IStructuredSelection)
 	 */
-	public void selectionChanged(IAction action, ISelection selection) {
-		fRecursiveMethod= null;
-		if (selection instanceof IStructuredSelection) {
-			IStructuredSelection extended= (IStructuredSelection) selection;
-			Object[] elements= extended.toArray();
-			if (elements.length == 1 && elements[0] instanceof IMethod) {
-				fRecursiveMethod= (IMethod) elements[0];
+	@Override
+	public void run(IStructuredSelection selection) {
+		try {
+			// we have to call this here - no selection changed event is sent after a refactoring but it may still invalidate enablement
+			if (RefactoringAvailabilityTester.isConvertToFJTaskAvailable(selection)) {
+				IMethod method= getSingleSelectedMethod(selection);
+				if (! ActionUtil.isEditable(getShell(), method))
+					return;
+				RefactoringExecutionStarter.startForkJoinTaskRefactoring(method, getShell());
 			}
+		} catch (JavaModelException e) {
+			ExceptionHandler.handle(e, RefactoringMessages.OpenRefactoringWizardAction_refactoring, RefactoringMessages.OpenRefactoringWizardAction_exception);
 		}
-//		try {
-//			action.setEnabled(isConvertToConcurrentHashMapAvailable());
-//		} catch (JavaModelException exception) {
-//			action.setEnabled(false);
-//		}
 	}
 
-	private boolean isConvertToFJTaskAvailable()
-			throws JavaModelException {
-		return fRecursiveMethod != null && fRecursiveMethod.exists() && fRecursiveMethod.isStructureKnown() && !fRecursiveMethod.getDeclaringType().isAnnotation();
+    /*
+     * @see SelectionDispatchAction#run(ITextSelection)
+     */
+	@Override
+	public void run(ITextSelection selection) {
+		try {
+			if (! ActionUtil.isEditable(fEditor))
+				return;
+			IMethod method= getSingleSelectedMethod(selection);
+			if (RefactoringAvailabilityTester.isConvertToFJTaskAvailable(method)){
+				RefactoringExecutionStarter.startForkJoinTaskRefactoring(method, getShell());
+			} else {
+				MessageDialog.openInformation(getShell(), RefactoringMessages.OpenRefactoringWizardAction_unavailable, RefactoringMessages.ModifyParametersAction_unavailable);
+			}
+		} catch (JavaModelException e) {
+			ExceptionHandler.handle(e, RefactoringMessages.OpenRefactoringWizardAction_refactoring, RefactoringMessages.OpenRefactoringWizardAction_exception);
+		}
+	}
+
+	private static IMethod getSingleSelectedMethod(IStructuredSelection selection){
+		if (selection.isEmpty() || selection.size() != 1)
+			return null;
+		if (selection.getFirstElement() instanceof IMethod)
+			return (IMethod)selection.getFirstElement();
+		return null;
+	}
+
+	private IMethod getSingleSelectedMethod(ITextSelection selection) throws JavaModelException{
+		//- when caret/selection on method name (call or declaration) -> that method
+		//- otherwise: caret position's enclosing method declaration
+		//  - when caret inside argument list of method declaration -> enclosing method declaration
+		//  - when caret inside argument list of method call -> enclosing method declaration (and NOT method call)
+		IJavaElement[] elements= SelectionConverter.codeResolve(fEditor);
+		if (elements.length > 1)
+			return null;
+		if (elements.length == 1 && elements[0] instanceof IMethod)
+			return (IMethod)elements[0];
+		IJavaElement elementAt= SelectionConverter.getInputAsCompilationUnit(fEditor).getElementAt(selection.getOffset());
+		if (elementAt instanceof IMethod)
+			return (IMethod)elementAt;
+		return null;
 	}
 }
+
