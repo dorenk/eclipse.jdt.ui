@@ -262,6 +262,10 @@ public final class ActionMessages extends NLS {
 	public static String SelfEncapsulateFieldAction_dialog_title;
 	public static String SelfEncapsulateFieldAction_dialog_unavailable;
 	public static String SelfEncapsulateFieldAction_dialog_cannot_perform;
+	public static String ForkJoinTaskAction_label;
+	public static String ForkJoinTaskAction_dialog_title;
+	public static String ForkJoinTaskAction_dialog_unavailable;
+	public static String ForkJoinTaskAction_dialog_cannot_perform;
 	public static String OrganizeImportsAction_label;
 	public static String OrganizeImportsAction_tooltip;
 	public static String OrganizeImportsAction_description;
