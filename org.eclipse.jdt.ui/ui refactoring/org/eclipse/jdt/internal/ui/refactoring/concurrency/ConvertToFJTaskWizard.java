@@ -20,7 +20,7 @@ public class ConvertToFJTaskWizard extends RefactoringWizard {
 
 	@Override
 	protected void addUserInputPages() {
-		addPage(new ConvertToFJTaskInputPage("ConvertToFJTask")); //$NON-NLS-1$
+		addPage(new ConvertToFJTaskInputPage("ConvertToForkJoinTask")); //$NON-NLS-1$
 	}
 
 }
