@@ -73,6 +73,7 @@ import org.eclipse.jdt.internal.corext.refactoring.code.IntroduceFactoryRefactor
 import org.eclipse.jdt.internal.corext.refactoring.code.IntroduceIndirectionRefactoring;
 import org.eclipse.jdt.internal.corext.refactoring.code.IntroduceParameterRefactoring;
 import org.eclipse.jdt.internal.corext.refactoring.code.ReplaceInvocationsRefactoring;
+import org.eclipse.jdt.internal.corext.refactoring.concurrency.ConvertToFJTaskRefactoring;
 import org.eclipse.jdt.internal.corext.refactoring.generics.InferTypeArgumentsRefactoring;
 import org.eclipse.jdt.internal.corext.refactoring.reorg.JavaCopyProcessor;
 import org.eclipse.jdt.internal.corext.refactoring.reorg.JavaDeleteProcessor;
@@ -127,6 +128,7 @@ import org.eclipse.jdt.internal.ui.refactoring.UseSupertypeWizard;
 import org.eclipse.jdt.internal.ui.refactoring.actions.RefactoringStarter;
 import org.eclipse.jdt.internal.ui.refactoring.code.InlineMethodWizard;
 import org.eclipse.jdt.internal.ui.refactoring.code.ReplaceInvocationsWizard;
+import org.eclipse.jdt.internal.ui.refactoring.concurrency.ConvertToFJTaskWizard;
 import org.eclipse.jdt.internal.ui.refactoring.reorg.CreateTargetQueries;
 import org.eclipse.jdt.internal.ui.refactoring.reorg.DeleteUserInterfaceManager;
 import org.eclipse.jdt.internal.ui.refactoring.reorg.NewNameQueries;
@@ -529,4 +531,15 @@ public final class RefactoringExecutionStarter {
 		new RefactoringStarter().activate(wizard, shell, RefactoringMessages.OpenRefactoringWizardAction_refactoring, RefactoringSaveHelper.SAVE_REFACTORING);
 	}
 
+	public static void startForkJoinTaskRefactoring(IMethod method, Shell shell) {
+		try {
+			if (!RefactoringAvailabilityTester.isConvertToFJTaskAvailable(method))
+				return;
+			ConvertToFJTaskRefactoring refactoring= new ConvertToFJTaskRefactoring(method);
+			ConvertToFJTaskWizard wizard= new ConvertToFJTaskWizard(refactoring, 0);
+			new RefactoringStarter().activate(wizard, shell, RefactoringMessages.OpenRefactoringWizardAction_refactoring, RefactoringSaveHelper.SAVE_REFACTORING);
+		} catch (JavaModelException e) {
+			ExceptionHandler.handle(e, "Convert To ForkJoinTask", "This operation is unavailable at this time.  Please select a recursive method."); //$NON-NLS-1$ //$NON-NLS-2$
+		}
+	}
 }
