@@ -180,6 +180,8 @@ public interface IJavaHelpContextIds {
 	 * @since 3.6
 	 */
 	public static final String OPEN_IMPLEMENTATION_ACTION= 					PREFIX + "open_implementation_action"; //$NON-NLS-1$
+	
+	public static final String FORK_JOIN_TASK_ACTION=					PREFIX + "fork_join_task_action"; //$NON-NLS-1$
 
 	/**
 	 * @since 3.2
