@@ -8,7 +8,8 @@ public class TestFibonacciCombination {
 	public int fibonacciCombination(int end) {
 		int processorCount = Runtime.getRuntime().availableProcessors();
 		ForkJoinPool pool = new ForkJoinPool(processorCount);
-		FibonacciCombinationImpl aFibonacciCombinationImpl = new FibonacciCombinationImpl(end);
+		FibonacciCombinationImpl aFibonacciCombinationImpl = new FibonacciCombinationImpl(
+				end);
 		pool.invoke(aFibonacciCombinationImpl);
 		return aFibonacciCombinationImpl.result;
 	}
@@ -24,8 +25,10 @@ public class TestFibonacciCombination {
 				result = fibonacciCombination(end);
 				return;
 			} else {
-				FibonacciCombinationImpl task1 = new FibonacciCombinationImpl(end - 1);
-				FibonacciCombinationImpl task2 = new FibonacciCombinationImpl(end - 2);
+				FibonacciCombinationImpl task1 = new FibonacciCombinationImpl(
+						end - 1);
+				FibonacciCombinationImpl task2 = new FibonacciCombinationImpl(
+						end - 2);
 				invokeAll(task1, task2);
 				result = task1.result + task2.result;
 			}

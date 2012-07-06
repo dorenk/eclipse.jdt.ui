@@ -8,7 +8,8 @@ public class TestSumCombination {
 	public int recursionSumCombination(int end) {
 		int processorCount = Runtime.getRuntime().availableProcessors();
 		ForkJoinPool pool = new ForkJoinPool(processorCount);
-		RecursionSumCombinationImpl aRecursionSumCombinationImpl = new RecursionSumCombinationImpl(end);
+		RecursionSumCombinationImpl aRecursionSumCombinationImpl = new RecursionSumCombinationImpl(
+				end);
 		pool.invoke(aRecursionSumCombinationImpl);
 		return aRecursionSumCombinationImpl.result;
 	}
@@ -23,8 +24,10 @@ public class TestSumCombination {
 				result = recursionSumCombination(end);
 				return;
 			} else {
-				RecursionSumCombinationImpl task1 = new RecursionSumCombinationImpl(end - 1);
-				RecursionSumCombinationImpl task2 = new RecursionSumCombinationImpl(end - 2);
+				RecursionSumCombinationImpl task1 = new RecursionSumCombinationImpl(
+						end - 1);
+				RecursionSumCombinationImpl task2 = new RecursionSumCombinationImpl(
+						end - 2);
 				invokeAll(task1, task2);
 				result = sumCombination(task1.result, task2.result);
 			}

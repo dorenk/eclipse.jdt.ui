@@ -82,7 +82,8 @@ public class MaxSumTest {
 				if (rightBorderSum > maxRightBorderSum)
 					maxRightBorderSum = rightBorderSum;
 			}
-			result = max3(maxLeftSum, maxRightSum, maxLeftBorderSum + maxRightBorderSum);
+			result = max3(maxLeftSum, maxRightSum, maxLeftBorderSum
+					+ maxRightBorderSum);
 		}
 		/**
 		 * Recursive maximum contiguous subsequence sum algorithm. Finds maximum sum in subarray spanning a[left..right]. Does not attempt to maintain actual best sequence.
@@ -105,7 +106,8 @@ public class MaxSumTest {
 				if (rightBorderSum > maxRightBorderSum)
 					maxRightBorderSum = rightBorderSum;
 			}
-			return max3(maxLeftSum, maxRightSum, maxLeftBorderSum + maxRightBorderSum);
+			return max3(maxLeftSum, maxRightSum, maxLeftBorderSum
+					+ maxRightBorderSum);
 		}
 	}
 
