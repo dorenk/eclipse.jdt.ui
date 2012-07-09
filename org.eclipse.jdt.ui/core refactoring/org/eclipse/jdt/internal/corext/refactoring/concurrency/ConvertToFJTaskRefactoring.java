@@ -431,58 +431,9 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 					lastStatementInBlock= fSingleElseStatement;
 				}
 				if (lastStatementInBlock instanceof ReturnStatement) {
-					if (fInfixExpressionFlag) {
-						Assignment assignToResult= ast.newAssignment();
-						assignToResult.setLeftHandSide(ast.newSimpleName("result")); //$NON-NLS-1$
-						InfixExpression infixExpression= ((InfixExpression)(ASTNode.copySubtree(ast, ((ReturnStatement)lastStatementInBlock).getExpression())));
-						int taskNum= 1;
-						infixExpression.setLeftOperand(ast.newQualifiedName(ast.newSimpleName("task" + taskNum++), ast.newSimpleName("result"))); //$NON-NLS-1$ //$NON-NLS-2$
-						infixExpression.setRightOperand(ast.newQualifiedName(ast.newSimpleName("task" + taskNum++), ast.newSimpleName("result"))); //$NON-NLS-1$ //$NON-NLS-2$
-						List<Expression> extendedOperands = infixExpression.extendedOperands();
-						for (int i= 0; i < extendedOperands.size(); ) {
-							extendedOperands.set(i, ast.newQualifiedName(ast.newSimpleName("task" + taskNum++), ast.newSimpleName("result"))); //$NON-NLS-1$ //$NON-NLS-2$
-							i++;
-						}
-						assignToResult.setRightHandSide(infixExpression);
-						if (fSingleElseStatement == null) {
-							scratchRewriter.replace(lastStatementInBlock, ast.newExpressionStatement(assignToResult), editGroup);
-						} else {
-							listRewriteForBlock.insertLast(ast.newExpressionStatement(assignToResult), editGroup);
-						}
-					}
-					else if (fMethodInvocationFlag) {
-						Assignment assignToResult= ast.newAssignment();
-						assignToResult.setLeftHandSide(ast.newSimpleName("result")); //$NON-NLS-1$
-						ASTNode tempAST= ASTNode.copySubtree(ast, ((ReturnStatement)lastStatementInBlock).getExpression());
-						if (!(tempAST instanceof MethodInvocation)) {
-							RefactoringStatus fatalError= new RefactoringStatus();
-							fatalError.addFatalError(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_analyze_error 
-											+ fMethod.getElementName());
-							result.merge(fatalError);
-							return;
-						}
-						MethodInvocation methodInvocation= ((MethodInvocation) tempAST);
-						int taskNum= 1;
-						List<Expression> methodArguments= methodInvocation.arguments();
-						for (int index= 0; index < methodArguments.size(); ) {
-							methodArguments.set(index++, ast.newQualifiedName(ast.newSimpleName("task" + taskNum++), ast.newSimpleName("result"))); //$NON-NLS-1$ //$NON-NLS-2$
-						}
-						assignToResult.setRightHandSide(methodInvocation);
-						if (fSingleElseStatement == null) {
-							scratchRewriter.replace(lastStatementInBlock, ast.newExpressionStatement(assignToResult), editGroup);
-						} else {
-							listRewriteForBlock.insertLast(ast.newExpressionStatement(assignToResult), editGroup);
-						}
-					}
-					else {
-						Assignment assignToResult= ast.newAssignment();
-						assignToResult.setLeftHandSide(ast.newSimpleName("result")); //$NON-NLS-1$
-						assignToResult.setRightHandSide((Expression) ASTNode.copySubtree(ast, ((ReturnStatement) lastStatementInBlock).getExpression()));
-						if (fSingleElseStatement == null) {
-							scratchRewriter.replace(lastStatementInBlock, ast.newExpressionStatement(assignToResult), editGroup);
-						} else {
-							listRewriteForBlock.insertLast(ast.newExpressionStatement(assignToResult), editGroup);
-						}
+					int errorFlag= createLastStatement(ast, result, editGroup, scratchRewriter, listRewriteForBlock, lastStatementInBlock);
+					if(errorFlag == -1) {
+						return;
 					}
 				}
 			}
@@ -538,6 +489,63 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			e.printStackTrace();
 		}
 		recursiveActionSubtype.bodyDeclarations().add(computeMethod);
+	}
+
+	private int createLastStatement(AST ast, RefactoringStatus result, final TextEditGroup editGroup, final ASTRewrite scratchRewriter, ListRewrite listRewriteForBlock, Statement lastStatementInBlock) {
+		if (fInfixExpressionFlag) {
+			Assignment assignToResult= ast.newAssignment();
+			assignToResult.setLeftHandSide(ast.newSimpleName("result")); //$NON-NLS-1$
+			InfixExpression infixExpression= ((InfixExpression)(ASTNode.copySubtree(ast, ((ReturnStatement)lastStatementInBlock).getExpression())));
+			int taskNum= 1;
+			infixExpression.setLeftOperand(ast.newQualifiedName(ast.newSimpleName("task" + taskNum++), ast.newSimpleName("result"))); //$NON-NLS-1$ //$NON-NLS-2$
+			infixExpression.setRightOperand(ast.newQualifiedName(ast.newSimpleName("task" + taskNum++), ast.newSimpleName("result"))); //$NON-NLS-1$ //$NON-NLS-2$
+			List<Expression> extendedOperands = infixExpression.extendedOperands();
+			for (int i= 0; i < extendedOperands.size(); ) {
+				extendedOperands.set(i, ast.newQualifiedName(ast.newSimpleName("task" + taskNum++), ast.newSimpleName("result"))); //$NON-NLS-1$ //$NON-NLS-2$
+				i++;
+			}
+			assignToResult.setRightHandSide(infixExpression);
+			if (fSingleElseStatement == null) {
+				scratchRewriter.replace(lastStatementInBlock, ast.newExpressionStatement(assignToResult), editGroup);
+			} else {
+				listRewriteForBlock.insertLast(ast.newExpressionStatement(assignToResult), editGroup);
+			}
+		}
+		else if (fMethodInvocationFlag) {
+			Assignment assignToResult= ast.newAssignment();
+			assignToResult.setLeftHandSide(ast.newSimpleName("result")); //$NON-NLS-1$
+			ASTNode tempAST= ASTNode.copySubtree(ast, ((ReturnStatement)lastStatementInBlock).getExpression());
+			if (!(tempAST instanceof MethodInvocation)) {
+				RefactoringStatus fatalError= new RefactoringStatus();
+				fatalError.addFatalError(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_analyze_error 
+								+ fMethod.getElementName());
+				result.merge(fatalError);
+				return -1;
+			}
+			MethodInvocation methodInvocation= ((MethodInvocation) tempAST);
+			int taskNum= 1;
+			List<Expression> methodArguments= methodInvocation.arguments();
+			for (int index= 0; index < methodArguments.size(); ) {
+				methodArguments.set(index++, ast.newQualifiedName(ast.newSimpleName("task" + taskNum++), ast.newSimpleName("result"))); //$NON-NLS-1$ //$NON-NLS-2$
+			}
+			assignToResult.setRightHandSide(methodInvocation);
+			if (fSingleElseStatement == null) {
+				scratchRewriter.replace(lastStatementInBlock, ast.newExpressionStatement(assignToResult), editGroup);
+			} else {
+				listRewriteForBlock.insertLast(ast.newExpressionStatement(assignToResult), editGroup);
+			}
+		}
+		else {
+			Assignment assignToResult= ast.newAssignment();
+			assignToResult.setLeftHandSide(ast.newSimpleName("result")); //$NON-NLS-1$
+			assignToResult.setRightHandSide((Expression) ASTNode.copySubtree(ast, ((ReturnStatement) lastStatementInBlock).getExpression()));
+			if (fSingleElseStatement == null) {
+				scratchRewriter.replace(lastStatementInBlock, ast.newExpressionStatement(assignToResult), editGroup);
+			} else {
+				listRewriteForBlock.insertLast(ast.newExpressionStatement(assignToResult), editGroup);
+			}
+		}
+		return 0;
 	}
 
 	private void createPartialComputations(final TextEditGroup editGroup, final ASTRewrite scratchRewriter, final List<String> partialComputationsNames, final List<String> typesOfComputations,
