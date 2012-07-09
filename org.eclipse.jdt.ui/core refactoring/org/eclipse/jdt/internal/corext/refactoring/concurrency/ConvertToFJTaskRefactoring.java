@@ -743,7 +743,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				return false;
 			}
 		});
-		if (counter[0] == 1) {
+		if (counter[0] == 1 && !isFirst[0]) {
 			return baseCase[0];
 		} else {
 			return null;
