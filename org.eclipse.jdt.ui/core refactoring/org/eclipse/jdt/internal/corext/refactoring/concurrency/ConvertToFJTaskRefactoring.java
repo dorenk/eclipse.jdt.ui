@@ -70,6 +70,7 @@ import org.eclipse.jdt.core.dom.ReturnStatement;
 import org.eclipse.jdt.core.dom.SimpleName;
 import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
 import org.eclipse.jdt.core.dom.Statement;
+import org.eclipse.jdt.core.dom.SwitchStatement;
 import org.eclipse.jdt.core.dom.Type;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
@@ -317,7 +318,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 						scratchRewriter.replace(parentOfMethodCall, taskDeclStatement, editGroup);
 					}
 					else {
-						if (parentOfMethodCall == null) {
+						if (parentOfMethodCall == null || SwitchStatement.class.isInstance(parentOfMethodCall.getParent())) {
 							return false;
 						}
 						else if (parentOfMethodCall instanceof VariableDeclarationStatement){
