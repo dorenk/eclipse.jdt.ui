@@ -197,4 +197,8 @@ public class ConvertToFJTaskTests extends AbstractSelectionTestCase {
 	public void testTooManyBaseCaseOptions() throws Exception {
 		invalidTest("method");
 	}
+	
+	public void testBaseCaseAfterReturn() throws Exception {
+		invalidTest("getQualifiedName");
+	}
 }

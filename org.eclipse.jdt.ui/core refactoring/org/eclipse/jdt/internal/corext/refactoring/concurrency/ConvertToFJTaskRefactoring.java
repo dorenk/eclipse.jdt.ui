@@ -699,6 +699,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		
 		final Statement[] baseCase= new Statement[] {null};
 		final int[] counter= new int[] {0};
+		final boolean[] isFirst= new boolean[] {false};
 		computeBodyBlock.accept(new ASTVisitor() {
 			@Override
 			public boolean visit(IfStatement ifStatement) {
@@ -711,6 +712,11 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				else if ((elseStatement != null) && (statementIsBaseCase(elseStatement))) {
 					baseCase[0]= elseStatement;
 					counter[0]++;
+				} else {
+					if (!isFirst[0]) {
+						isFirst[0]= true;
+						counter[0]++;
+					}
 				}
 				return false;
 			}
