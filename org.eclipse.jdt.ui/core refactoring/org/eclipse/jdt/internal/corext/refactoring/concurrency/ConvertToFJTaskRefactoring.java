@@ -282,20 +282,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		if (recursionBaseCaseBranch instanceof Block) {
 			doRecursionBaseCaseBlock(ast, editGroup, recursionBaseCaseBranch, scratchRewriter);
 		} else if (recursionBaseCaseBranch instanceof ReturnStatement) {
-			Block basecaseBlock= ast.newBlock();
-			List<ASTNode> basecaseStatements= basecaseBlock.statements();
-			if (recursiveMethodReturnsVoid()) {
-				ExpressionStatement sequentialMethodInvocation= ast.newExpressionStatement(createSequentialMethodInvocation(ast));
-				basecaseStatements.add(sequentialMethodInvocation);
-			} else {
-				Assignment assignmentToResult= ast.newAssignment();
-				assignmentToResult.setLeftHandSide(ast.newSimpleName("result")); //$NON-NLS-1$
-				assignmentToResult.setRightHandSide(createSequentialMethodInvocation(ast));
-				ExpressionStatement newExpressionStatement= ast.newExpressionStatement(assignmentToResult);
-				basecaseStatements.add(newExpressionStatement);
-			}
-			basecaseStatements.add(ast.newReturnStatement());
-			scratchRewriter.replace(recursionBaseCaseBranch, basecaseBlock, editGroup);
+			doRecursionBaseCaseReturn(ast, editGroup, recursionBaseCaseBranch, scratchRewriter);
 		}
 		
 		final List<Statement> lastStatementWithRecursiveMethodInvocation= new ArrayList<Statement>();
@@ -573,6 +560,23 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			e.printStackTrace();
 		}
 		recursiveActionSubtype.bodyDeclarations().add(computeMethod);
+	}
+
+	private void doRecursionBaseCaseReturn(AST ast, final TextEditGroup editGroup, Statement recursionBaseCaseBranch, final ASTRewrite scratchRewriter) {
+		Block basecaseBlock= ast.newBlock();
+		List<ASTNode> basecaseStatements= basecaseBlock.statements();
+		if (recursiveMethodReturnsVoid()) {
+			ExpressionStatement sequentialMethodInvocation= ast.newExpressionStatement(createSequentialMethodInvocation(ast));
+			basecaseStatements.add(sequentialMethodInvocation);
+		} else {
+			Assignment assignmentToResult= ast.newAssignment();
+			assignmentToResult.setLeftHandSide(ast.newSimpleName("result")); //$NON-NLS-1$
+			assignmentToResult.setRightHandSide(createSequentialMethodInvocation(ast));
+			ExpressionStatement newExpressionStatement= ast.newExpressionStatement(assignmentToResult);
+			basecaseStatements.add(newExpressionStatement);
+		}
+		basecaseStatements.add(ast.newReturnStatement());
+		scratchRewriter.replace(recursionBaseCaseBranch, basecaseBlock, editGroup);
 	}
 
 	private void doRecursionBaseCaseBlock(AST ast, final TextEditGroup editGroup, Statement recursionBaseCaseBranch, final ASTRewrite scratchRewriter) {
