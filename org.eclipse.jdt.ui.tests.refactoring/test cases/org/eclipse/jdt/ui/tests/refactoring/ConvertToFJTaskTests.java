@@ -205,4 +205,8 @@ public class ConvertToFJTaskTests extends AbstractSelectionTestCase {
 	public void testSwitchStatements() throws Exception {
 		invalidTest("state");
 	}
+	
+	public void testBooleanReturn() throws Exception {
+		invalidTest("elementAncestor");
+	}
 }
