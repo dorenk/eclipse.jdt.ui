@@ -420,29 +420,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			
 			if (!recursiveMethodReturnsVoid()) {
 				if (partialComputationsNames.size() >= 1) {
-					if (lastStatementWithRecursiveCall instanceof VariableDeclarationStatement) {
-						for (int i= partialComputationsNames.size() - 1; i >= 0 ; ) {
-							String varStatement= typesOfComputations.get(i) + " " + partialComputationsNames.get(i) + " = task" + (i + 1) + ".result;"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-							VariableDeclarationStatement variableStatement= (VariableDeclarationStatement) scratchRewriter.createStringPlaceholder(varStatement, ASTNode.VARIABLE_DECLARATION_STATEMENT);
-							if (fSingleElseStatement == null) {
-								listRewriteForBlock.insertAfter(variableStatement, lastStatementWithRecursiveCall, editGroup);
-							} else {
-								listRewriteForBlock.insertLast(variableStatement, editGroup);
-							}
-							i--;
-						}
-					} else if (lastStatementWithRecursiveCall instanceof ExpressionStatement) {
-						for (int i= partialComputationsNames.size() - 1; i >= 0 ; ) {
-							String varStatement= partialComputationsNames.get(i) + " = task" + (i + 1) + ".result;"; //$NON-NLS-1$ //$NON-NLS-2$
-							ExpressionStatement exprStatement= (ExpressionStatement) scratchRewriter.createStringPlaceholder(varStatement, ASTNode.EXPRESSION_STATEMENT);
-							if (fSingleElseStatement == null) {
-								listRewriteForBlock.insertAfter(exprStatement, lastStatementWithRecursiveCall, editGroup);
-							} else {
-								listRewriteForBlock.insertLast(exprStatement, editGroup);
-							}
-							i--;
-						}
-					}
+					createPartialComputations(editGroup, scratchRewriter, partialComputationsNames, typesOfComputations, listRewriteForBlock, lastStatementWithRecursiveCall);
 				}
 				
 				Statement lastStatementInBlock;
@@ -560,6 +538,33 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			e.printStackTrace();
 		}
 		recursiveActionSubtype.bodyDeclarations().add(computeMethod);
+	}
+
+	private void createPartialComputations(final TextEditGroup editGroup, final ASTRewrite scratchRewriter, final List<String> partialComputationsNames, final List<String> typesOfComputations,
+			ListRewrite listRewriteForBlock, Statement lastStatementWithRecursiveCall) {
+		if (lastStatementWithRecursiveCall instanceof VariableDeclarationStatement) {
+			for (int i= partialComputationsNames.size() - 1; i >= 0 ; ) {
+				String varStatement= typesOfComputations.get(i) + " " + partialComputationsNames.get(i) + " = task" + (i + 1) + ".result;"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+				VariableDeclarationStatement variableStatement= (VariableDeclarationStatement) scratchRewriter.createStringPlaceholder(varStatement, ASTNode.VARIABLE_DECLARATION_STATEMENT);
+				if (fSingleElseStatement == null) {
+					listRewriteForBlock.insertAfter(variableStatement, lastStatementWithRecursiveCall, editGroup);
+				} else {
+					listRewriteForBlock.insertLast(variableStatement, editGroup);
+				}
+				i--;
+			}
+		} else if (lastStatementWithRecursiveCall instanceof ExpressionStatement) {
+			for (int i= partialComputationsNames.size() - 1; i >= 0 ; ) {
+				String varStatement= partialComputationsNames.get(i) + " = task" + (i + 1) + ".result;"; //$NON-NLS-1$ //$NON-NLS-2$
+				ExpressionStatement exprStatement= (ExpressionStatement) scratchRewriter.createStringPlaceholder(varStatement, ASTNode.EXPRESSION_STATEMENT);
+				if (fSingleElseStatement == null) {
+					listRewriteForBlock.insertAfter(exprStatement, lastStatementWithRecursiveCall, editGroup);
+				} else {
+					listRewriteForBlock.insertLast(exprStatement, editGroup);
+				}
+				i--;
+			}
+		}
 	}
 
 	private void doRecursionBaseCaseReturn(AST ast, final TextEditGroup editGroup, Statement recursionBaseCaseBranch, final ASTRewrite scratchRewriter) {
