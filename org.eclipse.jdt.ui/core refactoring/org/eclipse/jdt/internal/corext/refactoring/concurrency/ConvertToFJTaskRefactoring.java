@@ -264,18 +264,12 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		final TextEditGroup editGroup= new TextEditGroup(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_generate_compute);
 		
 		if (fMethodDeclaration.getBody() == null) {
-			RefactoringStatus fatalError= new RefactoringStatus();
-			fatalError.addFatalError(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_recursion_error_1 
-							+ fMethod.getElementName() + ConcurrencyRefactorings.ConvertToFJTaskRefactoring_recursion_error_2);
-			result.merge(fatalError);
+			createFatalError(result);
 			return;
 		}
 		Statement recursionBaseCaseBranch= identifyRecursionBaseCaseBranch(fMethodDeclaration.getBody());
 		if (recursionBaseCaseBranch == null) {
-			RefactoringStatus fatalError= new RefactoringStatus();
-			fatalError.addFatalError(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_recursion_error_1 
-							+ fMethod.getElementName() + ConcurrencyRefactorings.ConvertToFJTaskRefactoring_recursion_error_2);
-			result.merge(fatalError);
+			createFatalError(result);
 			return;
 		}
 
@@ -417,10 +411,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		});
 		try {
 			if (lastStatementWithRecursiveMethodInvocation.size() == 0) {
-				RefactoringStatus fatalError= new RefactoringStatus();
-				fatalError.addFatalError(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_recursion_error_1 
-								+ fMethod.getElementName() + ConcurrencyRefactorings.ConvertToFJTaskRefactoring_recursion_error_2);
-				result.merge(fatalError);
+				createFatalError(result);
 				return;
 			}
 			Block blockContainingTaskDecl= null;
@@ -430,10 +421,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 					tempNode= tempNode.getParent();
 				} while (tempNode != null && !Block.class.isInstance(tempNode));
 				if (tempNode == null) {
-					RefactoringStatus fatalError= new RefactoringStatus();
-					fatalError.addFatalError(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_recursion_error_1 
-									+ fMethod.getElementName() + ConcurrencyRefactorings.ConvertToFJTaskRefactoring_recursion_error_2);
-					result.merge(fatalError);
+					createFatalError(result);
 					return;
 				} else {
 					blockContainingTaskDecl= (Block) tempNode;
@@ -442,10 +430,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				blockContainingTaskDecl= newBlock;
 			}
 			if (blockContainingTaskDecl == null) {
-				RefactoringStatus fatalError= new RefactoringStatus();
-				fatalError.addFatalError(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_recursion_error_1 
-								+ fMethod.getElementName() + ConcurrencyRefactorings.ConvertToFJTaskRefactoring_recursion_error_2);
-				result.merge(fatalError);
+				createFatalError(result);
 			}
 			ListRewrite listRewriteForBlock= scratchRewriter.getListRewrite(blockContainingTaskDecl, Block.STATEMENTS_PROPERTY);
 			
@@ -605,6 +590,13 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			e.printStackTrace();
 		}
 		recursiveActionSubtype.bodyDeclarations().add(computeMethod);
+	}
+
+	private void createFatalError(RefactoringStatus result) {
+		RefactoringStatus fatalError= new RefactoringStatus();
+		fatalError.addFatalError(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_recursion_error_1 
+						+ fMethod.getElementName() + ConcurrencyRefactorings.ConvertToFJTaskRefactoring_recursion_error_2);
+		result.merge(fatalError);
 	}
 
 	Statement findParentStatement(MethodInvocation methodCall) {
