@@ -450,45 +450,49 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 					listRewriteForBlock.insertAt(ast.newExpressionStatement(forkJoinInvocation), taskNumber[0], editGroup);
 				}
 			}
-			TextEdit edits= scratchRewriter.rewriteAST();
-			IDocument scratchDocument= new Document(((ICompilationUnit)fRoot.getJavaElement()).getSource());
-			try {
-				edits.apply(scratchDocument);
-				
-				ASTParser parser= ASTParser.newParser(AST.JLS4);
-				parser.setSource(scratchDocument.get().toCharArray());
-				CompilationUnit scratchCU= (CompilationUnit)parser.createAST(null);
-				final TypeDeclaration[] declaringClass= new TypeDeclaration[1];
-				scratchCU.accept(new ASTVisitor() {
-					@Override
-					public boolean visit(TypeDeclaration typedecl){
-						if (typedecl.getName().getIdentifier().equals(fMethod.getDeclaringType().getElementName())) {
-							declaringClass[0]= typedecl;
-						}
-						return true;
-					}
-				});
-				MethodDeclaration[] methodsInRefactoredClass= declaringClass[0].getMethods();
-				for (MethodDeclaration methodDeclaration : methodsInRefactoredClass) {
-					if (methodDeclaration.getName().getIdentifier().equals(fMethodDeclaration.getName().getIdentifier())
-							&& methodsHaveSameSignature(methodDeclaration,fMethodDeclaration)) {
-						Block block= methodDeclaration.getBody();
-						Block copySubtree= (Block) ASTNode.copySubtree(ast, block);
-						computeMethod.setBody(copySubtree);
-						break;
-					}
-				}
-			} catch (MalformedTreeException e) {
-				e.printStackTrace();
-			} catch (BadLocationException e) {
-				e.printStackTrace();
-			}
+			tryApplyEdits(ast, computeMethod, scratchRewriter);
 		} catch (JavaModelException e) {
 			e.printStackTrace();
 		} catch (IllegalArgumentException e) {
 			e.printStackTrace();
 		}
 		recursiveActionSubtype.bodyDeclarations().add(computeMethod);
+	}
+
+	private void tryApplyEdits(AST ast, MethodDeclaration computeMethod, final ASTRewrite scratchRewriter) throws JavaModelException {
+		TextEdit edits= scratchRewriter.rewriteAST();
+		IDocument scratchDocument= new Document(((ICompilationUnit)fRoot.getJavaElement()).getSource());
+		try {
+			edits.apply(scratchDocument);
+			
+			ASTParser parser= ASTParser.newParser(AST.JLS4);
+			parser.setSource(scratchDocument.get().toCharArray());
+			CompilationUnit scratchCU= (CompilationUnit)parser.createAST(null);
+			final TypeDeclaration[] declaringClass= new TypeDeclaration[1];
+			scratchCU.accept(new ASTVisitor() {
+				@Override
+				public boolean visit(TypeDeclaration typedecl){
+					if (typedecl.getName().getIdentifier().equals(fMethod.getDeclaringType().getElementName())) {
+						declaringClass[0]= typedecl;
+					}
+					return true;
+				}
+			});
+			MethodDeclaration[] methodsInRefactoredClass= declaringClass[0].getMethods();
+			for (MethodDeclaration methodDeclaration : methodsInRefactoredClass) {
+				if (methodDeclaration.getName().getIdentifier().equals(fMethodDeclaration.getName().getIdentifier())
+						&& methodsHaveSameSignature(methodDeclaration,fMethodDeclaration)) {
+					Block block= methodDeclaration.getBody();
+					Block copySubtree= (Block) ASTNode.copySubtree(ast, block);
+					computeMethod.setBody(copySubtree);
+					break;
+				}
+			}
+		} catch (MalformedTreeException e) {
+			e.printStackTrace();
+		} catch (BadLocationException e) {
+			e.printStackTrace();
+		}
 	}
 
 	private int createLastStatement(AST ast, RefactoringStatus result, final TextEditGroup editGroup, final ASTRewrite scratchRewriter, ListRewrite listRewriteForBlock, Statement lastStatementInBlock) {
