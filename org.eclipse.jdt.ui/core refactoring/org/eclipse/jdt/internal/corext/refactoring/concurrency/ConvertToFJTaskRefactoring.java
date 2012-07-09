@@ -316,19 +316,16 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 					Statement parentOfMethodCall= findParentStatement(methodCall);
 					if (recursiveMethodReturnsVoid()) {
 						scratchRewriter.replace(parentOfMethodCall, taskDeclStatement, editGroup);
-					}
-					else {
+					} else {
 						if (parentOfMethodCall == null || SwitchStatement.class.isInstance(parentOfMethodCall.getParent())) {
 							return false;
-						}
-						else if (parentOfMethodCall instanceof VariableDeclarationStatement){
+						} else if (parentOfMethodCall instanceof VariableDeclarationStatement) {
 							VariableDeclarationStatement varDeclaration= (VariableDeclarationStatement) parentOfMethodCall;
 							VariableDeclarationFragment varFragment= (VariableDeclarationFragment) varDeclaration.fragments().get(0);
 							partialComputationsNames.add(varFragment.getName().getIdentifier());
 							typesOfComputations.add(varDeclaration.getType().toString());
 							scratchRewriter.replace(parentOfMethodCall, taskDeclStatement, editGroup);
-						}
-						else if (parentOfMethodCall instanceof ExpressionStatement) {
+						} else if (parentOfMethodCall instanceof ExpressionStatement) {
 							ExpressionStatement exprStatement= (ExpressionStatement) parentOfMethodCall;
 							Expression expressionContainer= exprStatement.getExpression();
 							if (expressionContainer instanceof Assignment) {
@@ -337,11 +334,9 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 								partialComputationsNames.add(leftHandSide.toString());
 								typesOfComputations.add(leftHandSide.resolveTypeBinding().getName());
 								scratchRewriter.replace(parentOfMethodCall, taskDeclStatement, editGroup);
-							}  
-							else
+							} else
 								System.err.println(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_scenario_error + parentOfMethodCall.toString() );
-						}
-						else if (parentOfMethodCall instanceof ReturnStatement) {
+						} else if (parentOfMethodCall instanceof ReturnStatement) {
 							ASTNode tempNode= parentOfMethodCall.getParent();
 							if (tempNode instanceof Block) {
 								Block blockWithReturn= (Block) tempNode;
@@ -364,15 +359,14 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 							Expression exprTemp= ((ReturnStatement) parentOfMethodCall).getExpression();
 							if (exprTemp instanceof InfixExpression) {
 								fInfixExpressionFlag= true;
-							}
-							else if (exprTemp instanceof MethodInvocation) {
+							} else if (exprTemp instanceof MethodInvocation) {
 								fMethodInvocationFlag= true;
-							}
-							else
+							} else {
 								System.err.println(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_scenario_error + parentOfMethodCall.toString() );
-						}
-						else 
+							}
+						} else {
 							System.err.println(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_scenario_error + parentOfMethodCall.toString() );
+						}
 					}
 					lastStatementWithRecursiveMethodInvocation.add(parentOfMethodCall);
 					
@@ -386,7 +380,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				return;
 			}
 			Block blockContainingTaskDecl= null;
-			ASTNode tempNode= lastStatementWithRecursiveMethodInvocation.get(0);
+			ASTNode tempNode= lastStatementWithRecursiveMethodInvocation.get(0);  //TODO Assumes recursion is in same block - this gets first
 			if(fSingleElseStatement == null) {
 				do {
 					tempNode= tempNode.getParent();
@@ -709,8 +703,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				if (statementIsBaseCase(thenStatement)) {
 					baseCase[0]= thenStatement;
 					counter[0]++;
-				}
-				else if ((elseStatement != null) && (statementIsBaseCase(elseStatement))) {
+				} else if ((elseStatement != null) && (statementIsBaseCase(elseStatement))) {
 					baseCase[0]= elseStatement;
 					counter[0]++;
 				} else {
