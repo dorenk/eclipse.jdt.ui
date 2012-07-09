@@ -209,4 +209,8 @@ public class ConvertToFJTaskTests extends AbstractSelectionTestCase {
 	public void testBooleanReturn() throws Exception {
 		invalidTest("elementAncestor");
 	}
+	
+	public void testConditionalChain() throws Exception {
+		invalidTest("resolveBinding");
+	}
 }
