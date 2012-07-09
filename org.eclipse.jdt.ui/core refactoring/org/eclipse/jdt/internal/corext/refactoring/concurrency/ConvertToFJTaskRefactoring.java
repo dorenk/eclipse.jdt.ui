@@ -314,12 +314,12 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 					codeForTaskDecl += methodArguments + ");"; //$NON-NLS-1$
 					VariableDeclarationStatement taskDeclStatement= (VariableDeclarationStatement) scratchRewriter.createStringPlaceholder(codeForTaskDecl , ASTNode.VARIABLE_DECLARATION_STATEMENT);
 					Statement parentOfMethodCall= findParentStatement(methodCall);
-					if (recursiveMethodReturnsVoid()) {
+					if (parentOfMethodCall == null || SwitchStatement.class.isInstance(parentOfMethodCall.getParent())) {
+						return false;
+					} else if (recursiveMethodReturnsVoid()) {
 						scratchRewriter.replace(parentOfMethodCall, taskDeclStatement, editGroup);
 					} else {
-						if (parentOfMethodCall == null || SwitchStatement.class.isInstance(parentOfMethodCall.getParent())) {
-							return false;
-						} else if (parentOfMethodCall instanceof VariableDeclarationStatement) {
+						if (parentOfMethodCall instanceof VariableDeclarationStatement) {
 							VariableDeclarationStatement varDeclaration= (VariableDeclarationStatement) parentOfMethodCall;
 							VariableDeclarationFragment varFragment= (VariableDeclarationFragment) varDeclaration.fragments().get(0);
 							partialComputationsNames.add(varFragment.getName().getIdentifier());
