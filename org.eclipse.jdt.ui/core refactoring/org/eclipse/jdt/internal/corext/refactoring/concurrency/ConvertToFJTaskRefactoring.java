@@ -351,13 +351,13 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 							} else if (tempNode instanceof IfStatement) {
 								IfStatement ifStatement= (IfStatement) tempNode;
 								Statement elseStatement= ifStatement.getElseStatement();
-								if(elseStatement != null) {
+								if(elseStatement != null && ifStatement.getThenStatement() != null && !ifStatement.getThenStatement().equals(parentOfMethodCall)) {
 									ListRewrite listRewriteForBlock= scratchRewriter.getListRewrite(newBlock, Block.STATEMENTS_PROPERTY);
 									scratchRewriter.replace(elseStatement, newBlock, editGroup);
 									fSingleElseStatement= elseStatement;
 									listRewriteForBlock.insertLast(taskDeclStatement, editGroup);									
 								} else {
-									return false;  //TODO Add a case for this?  See ExpressionVariable.java - resolveBinding()
+									return false;  //TODO Add a case for this?
 								}
 							}
 							Expression exprTemp= ((ReturnStatement) parentOfMethodCall).getExpression();
