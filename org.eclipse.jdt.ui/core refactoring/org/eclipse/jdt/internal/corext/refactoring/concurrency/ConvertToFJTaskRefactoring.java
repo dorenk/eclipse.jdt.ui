@@ -354,6 +354,8 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 									scratchRewriter.replace(elseStatement, newBlock, editGroup);
 									fSingleElseStatement= elseStatement;
 									listRewriteForBlock.insertLast(taskDeclStatement, editGroup);									
+								} else {
+									return false;  //TODO Add a case for this?  See ExpressionVariable.java - resolveBinding()
 								}
 							}
 							Expression exprTemp= ((ReturnStatement) parentOfMethodCall).getExpression();
