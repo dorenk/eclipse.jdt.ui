@@ -336,6 +336,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 								scratchRewriter.replace(parentOfMethodCall, taskDeclStatement, editGroup);
 							} else
 								System.err.println(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_scenario_error + parentOfMethodCall.toString() );
+								return false;
 						} else if (parentOfMethodCall instanceof ReturnStatement) {
 							ASTNode tempNode= parentOfMethodCall.getParent();
 							if (tempNode instanceof Block) {
@@ -365,9 +366,11 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 								fMethodInvocationFlag= true;
 							} else {
 								System.err.println(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_scenario_error + parentOfMethodCall.toString() );
+								return false;
 							}
 						} else {
 							System.err.println(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_scenario_error + parentOfMethodCall.toString() );
+							return false;
 						}
 					}
 					lastStatementWithRecursiveMethodInvocation.add(parentOfMethodCall);
