@@ -280,24 +280,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		scratchRewriter.replace(enclosingIf.getExpression(), sequentialThresholdCheck, editGroup);
 		
 		if (recursionBaseCaseBranch instanceof Block) {
-			Block baseCaseBlock= (Block) recursionBaseCaseBranch;
-			List<ASTNode> statementsInBaseCase= baseCaseBlock.statements();
-			ASTNode lastStatementInBaseCase= statementsInBaseCase.get(statementsInBaseCase.size() - 1 );
-			if (recursiveMethodReturnsVoid()) {
-				ExpressionStatement sequentialMethodInvocation= ast.newExpressionStatement(createSequentialMethodInvocation(ast));
-				ListRewrite listRewriteForBaseBlock= scratchRewriter.getListRewrite(baseCaseBlock, Block.STATEMENTS_PROPERTY);
-				listRewriteForBaseBlock.insertBefore(sequentialMethodInvocation, lastStatementInBaseCase, editGroup);
-			} else {
-				Assignment assignmentToResult= ast.newAssignment();
-				assignmentToResult.setLeftHandSide(ast.newSimpleName("result")); //$NON-NLS-1$
-				assignmentToResult.setRightHandSide(createSequentialMethodInvocation(ast));
-				ExpressionStatement newExpressionStatement= ast.newExpressionStatement(assignmentToResult);
-				
-				ListRewrite listRewriteForBaseBlock= scratchRewriter.getListRewrite(baseCaseBlock, Block.STATEMENTS_PROPERTY);
-				listRewriteForBaseBlock.insertBefore(newExpressionStatement, lastStatementInBaseCase, editGroup);
-				ReturnStatement newReturnResult= ast.newReturnStatement();
-				scratchRewriter.replace(lastStatementInBaseCase, newReturnResult, editGroup);
-			}
+			doRecursionBaseCaseBlock(ast, editGroup, recursionBaseCaseBranch, scratchRewriter);
 		} else if (recursionBaseCaseBranch instanceof ReturnStatement) {
 			Block basecaseBlock= ast.newBlock();
 			List<ASTNode> basecaseStatements= basecaseBlock.statements();
@@ -590,6 +573,27 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			e.printStackTrace();
 		}
 		recursiveActionSubtype.bodyDeclarations().add(computeMethod);
+	}
+
+	private void doRecursionBaseCaseBlock(AST ast, final TextEditGroup editGroup, Statement recursionBaseCaseBranch, final ASTRewrite scratchRewriter) {
+		Block baseCaseBlock= (Block) recursionBaseCaseBranch;
+		List<ASTNode> statementsInBaseCase= baseCaseBlock.statements();
+		ASTNode lastStatementInBaseCase= statementsInBaseCase.get(statementsInBaseCase.size() - 1 );
+		if (recursiveMethodReturnsVoid()) {
+			ExpressionStatement sequentialMethodInvocation= ast.newExpressionStatement(createSequentialMethodInvocation(ast));
+			ListRewrite listRewriteForBaseBlock= scratchRewriter.getListRewrite(baseCaseBlock, Block.STATEMENTS_PROPERTY);
+			listRewriteForBaseBlock.insertBefore(sequentialMethodInvocation, lastStatementInBaseCase, editGroup);
+		} else {
+			Assignment assignmentToResult= ast.newAssignment();
+			assignmentToResult.setLeftHandSide(ast.newSimpleName("result")); //$NON-NLS-1$
+			assignmentToResult.setRightHandSide(createSequentialMethodInvocation(ast));
+			ExpressionStatement newExpressionStatement= ast.newExpressionStatement(assignmentToResult);
+			
+			ListRewrite listRewriteForBaseBlock= scratchRewriter.getListRewrite(baseCaseBlock, Block.STATEMENTS_PROPERTY);
+			listRewriteForBaseBlock.insertBefore(newExpressionStatement, lastStatementInBaseCase, editGroup);
+			ReturnStatement newReturnResult= ast.newReturnStatement();
+			scratchRewriter.replace(lastStatementInBaseCase, newReturnResult, editGroup);
+		}
 	}
 
 	private void createFatalError(RefactoringStatus result) {
