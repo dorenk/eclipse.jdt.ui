@@ -334,9 +334,10 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 								partialComputationsNames.add(leftHandSide.toString());
 								typesOfComputations.add(leftHandSide.resolveTypeBinding().getName());
 								scratchRewriter.replace(parentOfMethodCall, taskDeclStatement, editGroup);
-							} else
+							} else {
 								System.err.println(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_scenario_error + parentOfMethodCall.toString() );
 								return false;
+							}
 						} else if (parentOfMethodCall instanceof ReturnStatement) {
 							ASTNode tempNode= parentOfMethodCall.getParent();
 							if (tempNode instanceof Block) {
@@ -401,6 +402,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			}
 			if (blockContainingTaskDecl == null) {
 				createFatalError(result);
+				return;
 			}
 			ListRewrite listRewriteForBlock= scratchRewriter.getListRewrite(blockContainingTaskDecl, Block.STATEMENTS_PROPERTY);
 			
@@ -699,21 +701,21 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		
 		final Statement[] baseCase= new Statement[] {null};
 		final int[] counter= new int[] {0};
-		final boolean[] isFirst= new boolean[] {false};
+		final boolean[] isFirst= new boolean[] {true};
 		computeBodyBlock.accept(new ASTVisitor() {
 			@Override
 			public boolean visit(IfStatement ifStatement) {
 				Statement thenStatement= ifStatement.getThenStatement();
-				Statement elseStatement= ifStatement.getElseStatement();
+//				Statement elseStatement= ifStatement.getElseStatement();
 				if (statementIsBaseCase(thenStatement)) {
 					baseCase[0]= thenStatement;
 					counter[0]++;
-				} else if ((elseStatement != null) && (statementIsBaseCase(elseStatement))) {
-					baseCase[0]= elseStatement;
-					counter[0]++;
+//				} else if ((elseStatement != null) && (statementIsBaseCase(elseStatement))) {
+//					baseCase[0]= elseStatement;
+//					counter[0]++;
 				} else {
-					if (!isFirst[0]) {
-						isFirst[0]= true;
+					if (isFirst[0] && counter[0] != 1) {
+						isFirst[0]= false;
 						counter[0]++;
 					}
 				}
@@ -743,7 +745,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				return false;
 			}
 		});
-		if (counter[0] == 1 && !isFirst[0]) {
+		if (counter[0] == 1 && isFirst[0]) {
 			return baseCase[0];
 		} else {
 			return null;
