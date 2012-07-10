@@ -351,7 +351,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 							} else if (tempNode instanceof IfStatement) {
 								IfStatement ifStatement= (IfStatement) tempNode;
 								Statement elseStatement= ifStatement.getElseStatement();
-								if(elseStatement != null && ifStatement.getThenStatement() != null && !ifStatement.getThenStatement().equals(parentOfMethodCall)) {
+								if (elseStatement != null && ifStatement.getThenStatement() != null && !ifStatement.getThenStatement().equals(parentOfMethodCall)) {
 									ListRewrite listRewriteForBlock= scratchRewriter.getListRewrite(newBlock, Block.STATEMENTS_PROPERTY);
 									scratchRewriter.replace(elseStatement, newBlock, editGroup);
 									fSingleElseStatement= elseStatement;
@@ -393,6 +393,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				createFatalError(result);
 				return;
 			}
+			//TODO Add check to make sure all statements are inside same block section - otherwise can't make any assumptions
 			Block blockContainingTaskDecl= null;
 			ASTNode tempNode= lastStatementWithRecursiveMethodInvocation.get(0);  //TODO Assumes recursion is in same block - this gets first
 			if(fSingleElseStatement == null) {
