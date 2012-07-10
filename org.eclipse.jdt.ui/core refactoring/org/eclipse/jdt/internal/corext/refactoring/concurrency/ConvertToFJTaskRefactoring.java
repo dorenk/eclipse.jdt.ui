@@ -389,7 +389,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			}
 		});
 		try {
-			if (lastStatementWithRecursiveMethodInvocation.size() == 0) {
+			if (lastStatementWithRecursiveMethodInvocation.size() <= 1) {
 				createFatalError(result);
 				return;
 			}
