@@ -213,4 +213,8 @@ public class ConvertToFJTaskTests extends AbstractSelectionTestCase {
 	public void testConditionalChain() throws Exception {
 		invalidTest("resolveBinding");
 	}
+	
+	public void testIfStatementWithoutBraces() throws Exception {
+		invalidTest("grayCheckHierarchy");
+	}
 }
