@@ -393,30 +393,41 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				createFatalError(result);
 				return;
 			}
-			//TODO Add check to make sure all statements are inside same block section - otherwise can't make any assumptions
-			Block blockContainingTaskDecl= null;
-			ASTNode tempNode= lastStatementWithRecursiveMethodInvocation.get(0);  //TODO Assumes recursion is in same block - this gets first
-			if(fSingleElseStatement == null) {
-				do {
-					tempNode= tempNode.getParent();
-				} while (tempNode != null && !Block.class.isInstance(tempNode));
-				if (tempNode == null) {
+			Block[] allTheBlocks= new Block[lastStatementWithRecursiveMethodInvocation.size()];
+			for (int i= 0; i < lastStatementWithRecursiveMethodInvocation.size(); i++) {
+				//TODO Add check to make sure all statements are inside same block section - otherwise can't make any assumptions
+				allTheBlocks[i]= null;
+				ASTNode tempNode= lastStatementWithRecursiveMethodInvocation.get(i);  //TODO Assumes recursion is in same block - this gets first
+				if(fSingleElseStatement == null) {
+					do {
+						tempNode= tempNode.getParent();
+					} while (tempNode != null && !Block.class.isInstance(tempNode) && !SwitchStatement.class.isInstance(tempNode));
+					if (tempNode == null) {
+						createFatalError(result);
+						return;
+					} else if (tempNode instanceof SwitchStatement) {
+						createFatalError(result);
+						return;
+					} else {
+						allTheBlocks[i]= (Block) tempNode;
+					}
+				} else {
+					allTheBlocks[i]= newBlock;
+				}
+				if (allTheBlocks[i] == null) {
 					createFatalError(result);
 					return;
-				} else {
-					blockContainingTaskDecl= (Block) tempNode;
 				}
-			} else {
-				blockContainingTaskDecl= newBlock;
 			}
-			if (blockContainingTaskDecl == null) {
-				createFatalError(result);
-				return;
+			for (int i= 0; i < allTheBlocks.length - 1; i++) {
+				if (!allTheBlocks[i].equals(allTheBlocks[i + 1])) {
+					createFatalError(result);
+					return;
+				}
 			}
-			ListRewrite listRewriteForBlock= scratchRewriter.getListRewrite(blockContainingTaskDecl, Block.STATEMENTS_PROPERTY);
+			ListRewrite listRewriteForBlock= scratchRewriter.getListRewrite(allTheBlocks[0], Block.STATEMENTS_PROPERTY);
 			
 			MethodInvocation forkJoinInvocation= ast.newMethodInvocation();
-			//TODO the code below assumes that there are at least two task, do I implement for only 1?
 			forkJoinInvocation.setName(ast.newSimpleName("invokeAll")); //$NON-NLS-1$
 			List<Expression> argumentsForkJoin= forkJoinInvocation.arguments();
 			for (int i= 1; i <= taskNumber[0]; i++) {
@@ -436,7 +447,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				
 				Statement lastStatementInBlock;
 				if (fSingleElseStatement == null) {
-					List<ASTNode> statementsInBlockWithTaskDecl= blockContainingTaskDecl.statements();
+					List<ASTNode> statementsInBlockWithTaskDecl= allTheBlocks[0].statements();
 					lastStatementInBlock= (Statement) statementsInBlockWithTaskDecl.get(statementsInBlockWithTaskDecl.size() - 1);
 				} else {
 					lastStatementInBlock= fSingleElseStatement;
