@@ -357,7 +357,15 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 									fSingleElseStatement= elseStatement;
 									listRewriteForBlock.insertLast(taskDeclStatement, editGroup);									
 								} else {
-									return false;  //TODO Add a case for this?
+									Statement thenStatement= ifStatement.getThenStatement();
+									if (thenStatement != null && thenStatement.equals(parentOfMethodCall)) {
+										ListRewrite listRewriteForBlock= scratchRewriter.getListRewrite(newBlock, Block.STATEMENTS_PROPERTY);
+										scratchRewriter.replace(thenStatement, newBlock, editGroup);
+										fSingleElseStatement= thenStatement;
+										listRewriteForBlock.insertLast(taskDeclStatement, editGroup);
+									} else {
+										return false;  //TODO Add a case for this - See CheckboxTreeAndListGroup.java - grayCheckHierarchy
+									}
 								}
 							}
 							Expression exprTemp= ((ReturnStatement) parentOfMethodCall).getExpression();
