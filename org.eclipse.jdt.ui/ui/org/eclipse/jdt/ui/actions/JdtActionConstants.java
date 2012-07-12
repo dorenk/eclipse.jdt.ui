@@ -322,7 +322,7 @@ public class JdtActionConstants {
 	 * @since 3.9
 	 */
 	
-	public static final String ATOMIC_INTEGER= "org.eclipse.jdt.ui.actions.AtomicInteger"; //$NON-NLS-1$
+	public static final String ATOMIC_INTEGER= "org.eclipse.jdt.ui.actions.ConvertToAtomicInteger"; //$NON-NLS-1$
 
 	/**
 	 * Refactor menu: name of standard Modify Parameters global action

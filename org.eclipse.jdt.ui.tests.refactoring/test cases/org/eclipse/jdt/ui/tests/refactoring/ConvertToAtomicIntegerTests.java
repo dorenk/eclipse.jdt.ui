@@ -147,6 +147,14 @@ public class ConvertToAtomicIntegerTests extends AbstractSelectionTestCase {
 		objectTest("i"); //$NON-NLS-1$
 	}
 
+	public void testMultipleFieldRefsInEnclosingStatementSynchMethod() throws Exception {
+		objectTest("i"); //$NON-NLS-1$
+	}
+	
+	public void testMultipleInfixExpressionsWithReferenceToChosenField() throws Exception {
+		objectTest("f"); //$NON-NLS-1$
+	}
+	
 	public void testReadAccess() throws Exception {
 		objectTest("field"); //$NON-NLS-1$
 	}
@@ -172,6 +180,18 @@ public class ConvertToAtomicIntegerTests extends AbstractSelectionTestCase {
 	}	
 
 	public void testDecrementPostfix() throws Exception {
+		objectTest("f"); //$NON-NLS-1$
+	}
+	
+	public void testMultipleInfixExpressionsAssignment() throws Exception {
+		objectTest("f"); //$NON-NLS-1$
+	}
+	
+	public void testMultipleInfixExpressionsAssignmentInSynchBlock() throws Exception {
+		objectTest("f"); //$NON-NLS-1$
+	}
+	
+	public void testMultipleInfixExpressionsAssignmentInSynchMethod() throws Exception {
 		objectTest("f"); //$NON-NLS-1$
 	}
 	

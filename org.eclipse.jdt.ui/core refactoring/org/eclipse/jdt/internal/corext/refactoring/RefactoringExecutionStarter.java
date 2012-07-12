@@ -73,6 +73,7 @@ import org.eclipse.jdt.internal.corext.refactoring.code.IntroduceFactoryRefactor
 import org.eclipse.jdt.internal.corext.refactoring.code.IntroduceIndirectionRefactoring;
 import org.eclipse.jdt.internal.corext.refactoring.code.IntroduceParameterRefactoring;
 import org.eclipse.jdt.internal.corext.refactoring.code.ReplaceInvocationsRefactoring;
+import org.eclipse.jdt.internal.corext.refactoring.concurrency.ConcurrencyRefactorings;
 import org.eclipse.jdt.internal.corext.refactoring.concurrency.ConvertToAtomicIntegerRefactoring;
 import org.eclipse.jdt.internal.corext.refactoring.concurrency.ConvertToFJTaskRefactoring;
 import org.eclipse.jdt.internal.corext.refactoring.generics.InferTypeArgumentsRefactoring;
@@ -538,7 +539,7 @@ public final class RefactoringExecutionStarter {
 			if (!RefactoringAvailabilityTester.isConvertAtomicIntegerAvailable(field))
 				return;
 			final ConvertToAtomicIntegerRefactoring refactoring= new ConvertToAtomicIntegerRefactoring(field);
-			new RefactoringStarter().activate(new ConvertToAtomicIntegerWizard(refactoring, 0), shell, "", RefactoringSaveHelper.SAVE_REFACTORING); //$NON-NLS-1$
+			new RefactoringStarter().activate(new ConvertToAtomicIntegerWizard(refactoring, ConcurrencyRefactorings.AtomicIntegerRefactoring_name), shell, "", RefactoringSaveHelper.SAVE_REFACTORING); //$NON-NLS-1$
 		} catch (JavaModelException e) {
 			ExceptionHandler.handle(e, ActionMessages.AtomicIntegerAction_dialog_title, ActionMessages.AtomicIntegerAction_dialog_cannot_perform);
 		}
