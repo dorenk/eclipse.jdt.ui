@@ -51,6 +51,7 @@ import org.eclipse.jdt.core.dom.Assignment;
 import org.eclipse.jdt.core.dom.Block;
 import org.eclipse.jdt.core.dom.ChildListPropertyDescriptor;
 import org.eclipse.jdt.core.dom.ClassInstanceCreation;
+import org.eclipse.jdt.core.dom.Comment;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.ExpressionStatement;
@@ -239,7 +240,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		
 		createComputeMethod(recursiveActionSubtype, ast, result);
 		
-		copyRecursiveMethod(recursiveActionSubtype, ast);
+		copyRecursiveMethod(recursiveActionSubtype, ast, result);
 		
 		ChildListPropertyDescriptor descriptor= getBodyDeclarationsProperty(fMethodDeclaration.getParent());
 		fRewriter.getListRewrite(fMethodDeclaration.getParent(), descriptor).insertAfter(recursiveActionSubtype, fMethodDeclaration, gd);
@@ -250,10 +251,25 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		return group;
 	}
 
-	private void copyRecursiveMethod(TypeDeclaration recursiveActionSubtype, AST ast) {
+	private void copyRecursiveMethod(TypeDeclaration recursiveActionSubtype, AST ast, RefactoringStatus result) {
 		
 		ASTNode copyRecursiveMethod= ASTNode.copySubtree(ast, fMethodDeclaration);  //TODO Copy over comments?
 		recursiveActionSubtype.bodyDeclarations().add(copyRecursiveMethod);
+		
+		int start= fMethodDeclaration.getBody().getStartPosition();
+		int end= fMethodDeclaration.getBody().getLength() - start;
+		List<Comment> commentList= fRoot.getCommentList();
+		if (commentList.size() != 0) {
+			for (int i=0; i < commentList.size(); i++) {
+				int tempStart= commentList.get(i).getStartPosition();
+				if (tempStart > start && tempStart < end) {
+					RefactoringStatus warning= new RefactoringStatus();
+					warning.addWarning("Comment(s) will be lost in " + fMethod.getElementName()); //$NON-NLS-1$
+					result.merge(warning);
+					return;
+				}
+			}
+		}
 	}
 
 	private void createComputeMethod(TypeDeclaration recursiveActionSubtype, AST ast, RefactoringStatus result) {
