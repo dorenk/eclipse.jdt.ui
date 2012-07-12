@@ -656,8 +656,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 
 	private void createFatalError(RefactoringStatus result) {
 		RefactoringStatus fatalError= new RefactoringStatus();
-		fatalError.addFatalError(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_recursion_error_1 
-						+ fMethod.getElementName() + ConcurrencyRefactorings.ConvertToFJTaskRefactoring_recursion_error_2);
+		fatalError.addFatalError(Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_recursion_error, new String[] {fMethod.getElementName()}));
 		result.merge(fatalError);
 	}
 
