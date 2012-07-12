@@ -364,7 +364,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 										fSingleElseStatement= thenStatement;
 										listRewriteForBlock.insertLast(taskDeclStatement, editGroup);
 									} else {
-										return false;  //TODO Add a case for this - See CheckboxTreeAndListGroup.java - grayCheckHierarchy
+										return false;
 									}
 								}
 							}
@@ -395,9 +395,8 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			}
 			Block[] allTheBlocks= new Block[lastStatementWithRecursiveMethodInvocation.size()];
 			for (int i= 0; i < lastStatementWithRecursiveMethodInvocation.size(); i++) {
-				//TODO Add check to make sure all statements are inside same block section - otherwise can't make any assumptions
 				allTheBlocks[i]= null;
-				ASTNode tempNode= lastStatementWithRecursiveMethodInvocation.get(i);  //TODO Assumes recursion is in same block - this gets first
+				ASTNode tempNode= lastStatementWithRecursiveMethodInvocation.get(i);
 				if(fSingleElseStatement == null) {
 					do {
 						tempNode= tempNode.getParent();
@@ -973,17 +972,15 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			JavaPlugin.log(exception);
 		}
 
-		//TODO need to properly initialize the arguments so that this refactoring becomes recordable
 		final Map<String, String> arguments= new HashMap<String, String>();
 		String description= ConcurrencyRefactorings.ConvertToFJTaskRefactoring_name_user;
 		final JDTRefactoringDescriptorComment comment= new JDTRefactoringDescriptorComment(project, this, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_descriptor_description, new String[] { JavaElementLabels.getTextLabel(fMethod, JavaElementLabels.ALL_FULLY_QUALIFIED), JavaElementLabels.getTextLabel(declaring, JavaElementLabels.ALL_FULLY_QUALIFIED)}));
 		comment.addSetting(Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_method_pattern, BasicElementLabels.getJavaElementName(fMethod.getElementName())));
 		
-		final FJTaskRefactoringDescriptor descriptor= RefactoringSignatureDescriptorFactory.createFJTaskRefactoringDescriptor(project, description, comment.asString(), arguments, flags); //TODO Refactoring id?
+		final FJTaskRefactoringDescriptor descriptor= RefactoringSignatureDescriptorFactory.createFJTaskRefactoringDescriptor(project, description, comment.asString(), arguments, flags);
 		
 		arguments.put(JavaRefactoringDescriptorUtil.ATTRIBUTE_INPUT, JavaRefactoringDescriptorUtil.elementToHandle(project, fMethod));
 		arguments.put(JavaRefactoringDescriptorUtil.ATTRIBUTE_NAME, fMethod.getElementName());
-//		arguments.put(JavaRefactoringDescriptorUtil.ATTRIBUTE_REFERENCES, Boolean.valueOf(fUpdateReferences).toString());		
 		
 		final DynamicValidationRefactoringChange result= new DynamicValidationRefactoringChange(descriptor, getName());
 		TextChange[] changes= fChangeManager.getAllChanges();
