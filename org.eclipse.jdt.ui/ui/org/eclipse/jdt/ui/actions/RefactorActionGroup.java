@@ -166,6 +166,7 @@ public class RefactorActionGroup extends ActionGroup {
 	private SelectionDispatchAction fChangeTypeAction;
 	private SelectionDispatchAction fUseSupertypeAction;
 	private SelectionDispatchAction fInferTypeArgumentsAction;
+	private SelectionDispatchAction fForkJoinTaskAction;
 
 	private SelectionDispatchAction fInlineAction;
 //	private SelectionDispatchAction fReplaceInvocationsAction;
@@ -300,6 +301,10 @@ public class RefactorActionGroup extends ActionGroup {
 			initAction(fInferTypeArgumentsAction, selection, IJavaEditorActionDefinitionIds.INFER_TYPE_ARGUMENTS_ACTION);
 			editor.setAction("InferTypeArguments", fInferTypeArgumentsAction); //$NON-NLS-1$
 
+			fForkJoinTaskAction= new ConvertToFJTaskAction(editor);
+			initAction(fForkJoinTaskAction, selection, IJavaEditorActionDefinitionIds.FORK_JOIN_TASK);
+			editor.setAction("ForkJoinTask", fForkJoinTaskAction); //$NON-NLS-1$
+			
 			fExtractMethodAction= new ExtractMethodAction(editor);
 			initUpdatingAction(fExtractMethodAction, provider, null, selection, IJavaEditorActionDefinitionIds.EXTRACT_METHOD);
 			editor.setAction("ExtractMethod", fExtractMethodAction); //$NON-NLS-1$
@@ -414,6 +419,9 @@ public class RefactorActionGroup extends ActionGroup {
 			fInferTypeArgumentsAction= new InferTypeArgumentsAction(fSite);
 			initUpdatingAction(fInferTypeArgumentsAction, fSelectionProvider, selectionProvider, selection, IJavaEditorActionDefinitionIds.INFER_TYPE_ARGUMENTS_ACTION);
 
+			fForkJoinTaskAction= new ConvertToFJTaskAction(fSite);
+			initUpdatingAction(fForkJoinTaskAction, fSelectionProvider, selectionProvider, selection, IJavaEditorActionDefinitionIds.FORK_JOIN_TASK);
+			
 			fIntroduceFactoryAction= new IntroduceFactoryAction(fSite);
 			initUpdatingAction(fIntroduceFactoryAction, fSelectionProvider, selectionProvider, selection, IJavaEditorActionDefinitionIds.INTRODUCE_FACTORY);
 
@@ -501,6 +509,7 @@ public class RefactorActionGroup extends ActionGroup {
 			actionBars.setGlobalActionHandler(JdtActionConstants.CHANGE_TYPE, fChangeTypeAction);
 			actionBars.setGlobalActionHandler(JdtActionConstants.CONVERT_NESTED_TO_TOP, fConvertNestedToTopAction);
 			actionBars.setGlobalActionHandler(JdtActionConstants.INFER_TYPE_ARGUMENTS, fInferTypeArgumentsAction);
+			actionBars.setGlobalActionHandler(JdtActionConstants.FORK_JOIN_TASK, fForkJoinTaskAction);
 			actionBars.setGlobalActionHandler(JdtActionConstants.CONVERT_LOCAL_TO_FIELD, fConvertLocalToFieldAction);
 			actionBars.setGlobalActionHandler(JdtActionConstants.CONVERT_ANONYMOUS_TO_NESTED, fConvertAnonymousToNestedAction);
 			actionBars.setGlobalActionHandler(JdtActionConstants.INTRODUCE_PARAMETER_OBJECT, fIntroduceParameterObjectAction);
@@ -559,6 +568,7 @@ public class RefactorActionGroup extends ActionGroup {
 			disposeAction(fChangeTypeAction, fSelectionProvider);
 			disposeAction(fConvertNestedToTopAction, fSelectionProvider);
 			disposeAction(fInferTypeArgumentsAction, fSelectionProvider);
+			disposeAction(fForkJoinTaskAction, fSelectionProvider);
 			disposeAction(fConvertLocalToFieldAction, fSelectionProvider);
 			disposeAction(fConvertAnonymousToNestedAction, fSelectionProvider);
 		}
@@ -642,6 +652,7 @@ public class RefactorActionGroup extends ActionGroup {
 		
 		refactorSubmenu.add(new Separator(GROUP_CONCURRENCY));
 		added+= addAction(refactorSubmenu, fAtomicIntegerAction);
+		added+= addAction(refactorSubmenu, fForkJoinTaskAction);
 		return added;
 	}
 

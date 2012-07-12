@@ -185,6 +185,11 @@ public interface IJavaHelpContextIds {
 	 * @since 3.9
 	 */
 	public static final String ATOMIC_INTEGER_ACTION=						PREFIX + "atomic_integer_action"; //$NON-NLS-1$
+	
+	/**
+	 * @since 3.9
+	 */
+	public static final String FORK_JOIN_TASK_ACTION=					PREFIX + "fork_join_task_action"; //$NON-NLS-1$
 
 	/**
 	 * @since 3.2

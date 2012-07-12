@@ -486,6 +486,14 @@ public interface IJavaEditorActionDefinitionIds extends ITextEditorActionDefinit
 	 * @since 2.1
 	 */
 	public static final String CONVERT_ANONYMOUS_TO_NESTED= "org.eclipse.jdt.ui.edit.text.java.convert.anonymous.to.nested"; //$NON-NLS-1$
+	
+	/**
+	 * Action definition ID of the refactor -> convert recursion to fork join task
+	 * (value <code>"org.eclipse.jdt.ui.edit.text.java.fork.join.task"</code>).
+	 *
+	 * @since 3.9
+	 */
+	public static final String FORK_JOIN_TASK= "org.eclipse.jdt.ui.edit.text.java.fork.join.task"; //$NON-NLS-1$
 
 	// navigate
 

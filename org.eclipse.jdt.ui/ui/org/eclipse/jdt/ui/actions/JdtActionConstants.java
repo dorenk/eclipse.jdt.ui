@@ -494,6 +494,14 @@ public class JdtActionConstants {
 	 * @since 2.1
 	 */
 	public static final String CONVERT_ANONYMOUS_TO_NESTED= "org.eclipse.jdt.ui.actions.ConvertAnonymousToNested"; //$NON-NLS-1$
+	
+	/**
+	 * Refactor menu: name of standard Covert Recursion to Fork Join Task
+	 * (value <code>"org.eclipse.jdt.ui.actions.ConvertToFJTask"</code>).
+	 *
+	 * @since 3.9
+	 */
+	public static final String FORK_JOIN_TASK= "org.eclipse.jdt.ui.actions.ConvertToFJTask"; //$NON-NLS-1$
 
 	// Search Menu
 

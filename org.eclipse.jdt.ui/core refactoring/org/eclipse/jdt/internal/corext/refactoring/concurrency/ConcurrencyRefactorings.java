@@ -40,6 +40,24 @@ public final class ConcurrencyRefactorings extends NLS {
 	public static String AtomicIntegerRefactoring_create_changes;
 	public static String AtomicIntegerWizard_name;
 	
+	public static String ConvertToFJTaskRefactoring_check_preconditions;
+	public static String ConvertToFJTaskRefactoring_task_name;
+	public static String ConvertToFJTaskRefactoring_recursive_method;
+	public static String ConvertToFJTaskRefactoring_recursive_action;
+	public static String ConvertToFJTaskRefactoring_generate_compute;
+	public static String ConvertToFJTaskRefactoring_recursion_error_1;
+	public static String ConvertToFJTaskRefactoring_recursion_error_2;
+	public static String ConvertToFJTaskRefactoring_scenario_error;
+	public static String ConvertToFJTaskRefactoring_analyze_error;
+	public static String ConvertToFJTaskRefactoring_compile_error;
+	public static String ConvertToFJTaskRefactoring_compile_error_update;
+	public static String ConvertToFJTaskRefactoring_name_user;
+	public static String ConvertToFJTaskRefactoring_create_changes;
+	public static String ConvertToFJTaskRefactoring_name_official;
+	public static String ConvertToFJTaskRefactoring_sequential_req;
+	public static String ConvertToFJTaskRefactoring_descriptor_description;
+	public static String ConvertToFJTaskRefactoring_method_pattern;
+	
 	static {
 		NLS.initializeMessages(BUNDLE_NAME, ConcurrencyRefactorings.class);
 	}

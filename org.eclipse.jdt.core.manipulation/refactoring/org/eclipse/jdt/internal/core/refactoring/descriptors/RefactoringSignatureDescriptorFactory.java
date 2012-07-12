@@ -27,6 +27,7 @@ import org.eclipse.jdt.core.refactoring.descriptors.ExtractInterfaceDescriptor;
 import org.eclipse.jdt.core.refactoring.descriptors.ExtractLocalDescriptor;
 import org.eclipse.jdt.core.refactoring.descriptors.ExtractMethodDescriptor;
 import org.eclipse.jdt.core.refactoring.descriptors.ExtractSuperclassDescriptor;
+import org.eclipse.jdt.core.refactoring.descriptors.FJTaskRefactoringDescriptor;
 import org.eclipse.jdt.core.refactoring.descriptors.GeneralizeTypeDescriptor;
 import org.eclipse.jdt.core.refactoring.descriptors.InferTypeArgumentsDescriptor;
 import org.eclipse.jdt.core.refactoring.descriptors.InlineConstantDescriptor;
@@ -286,6 +287,14 @@ public class RefactoringSignatureDescriptorFactory {
 
 	public static AtomicIntegerRefactoringDescriptor createAtomicIntegerRefactoringDescriptor(String project, String description, String comment, HashMap arguments, int flags) {
 		return new AtomicIntegerRefactoringDescriptor(project, description, comment, arguments, flags);
+	}
+	
+	public static FJTaskRefactoringDescriptor createFJTaskRefactoringDescriptor() {
+		return new FJTaskRefactoringDescriptor();
+	}
+	
+	public static FJTaskRefactoringDescriptor createFJTaskRefactoringDescriptor(String project, String description, String comment, Map arguments, int flags) {
+		return new FJTaskRefactoringDescriptor(project, description, comment, arguments, flags);
 	}
 
 }
