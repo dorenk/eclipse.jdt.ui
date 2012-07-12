@@ -73,14 +73,15 @@ import org.eclipse.jdt.internal.corext.refactoring.code.IntroduceFactoryRefactor
 import org.eclipse.jdt.internal.corext.refactoring.code.IntroduceIndirectionRefactoring;
 import org.eclipse.jdt.internal.corext.refactoring.code.IntroduceParameterRefactoring;
 import org.eclipse.jdt.internal.corext.refactoring.code.ReplaceInvocationsRefactoring;
+import org.eclipse.jdt.internal.corext.refactoring.concurrency.ConcurrencyRefactorings;
 import org.eclipse.jdt.internal.corext.refactoring.concurrency.ConvertToFJTaskRefactoring;
 import org.eclipse.jdt.internal.corext.refactoring.generics.InferTypeArgumentsRefactoring;
+import org.eclipse.jdt.internal.corext.refactoring.reorg.IReorgPolicy.ICopyPolicy;
+import org.eclipse.jdt.internal.corext.refactoring.reorg.IReorgPolicy.IMovePolicy;
 import org.eclipse.jdt.internal.corext.refactoring.reorg.JavaCopyProcessor;
 import org.eclipse.jdt.internal.corext.refactoring.reorg.JavaDeleteProcessor;
 import org.eclipse.jdt.internal.corext.refactoring.reorg.JavaMoveProcessor;
 import org.eclipse.jdt.internal.corext.refactoring.reorg.ReorgPolicyFactory;
-import org.eclipse.jdt.internal.corext.refactoring.reorg.IReorgPolicy.ICopyPolicy;
-import org.eclipse.jdt.internal.corext.refactoring.reorg.IReorgPolicy.IMovePolicy;
 import org.eclipse.jdt.internal.corext.refactoring.sef.SelfEncapsulateFieldRefactoring;
 import org.eclipse.jdt.internal.corext.refactoring.structure.ChangeSignatureProcessor;
 import org.eclipse.jdt.internal.corext.refactoring.structure.ChangeTypeRefactoring;
@@ -536,10 +537,10 @@ public final class RefactoringExecutionStarter {
 			if (!RefactoringAvailabilityTester.isConvertToFJTaskAvailable(method))
 				return;
 			ConvertToFJTaskRefactoring refactoring= new ConvertToFJTaskRefactoring(method);
-			ConvertToFJTaskWizard wizard= new ConvertToFJTaskWizard(refactoring, "Convert to ForkJoinTask"); //$NON-NLS-1$
+			ConvertToFJTaskWizard wizard= new ConvertToFJTaskWizard(refactoring, ConcurrencyRefactorings.ConvertToFJTaskRefactoring_name_official); 
 			new RefactoringStarter().activate(wizard, shell, RefactoringMessages.OpenRefactoringWizardAction_refactoring, RefactoringSaveHelper.SAVE_REFACTORING);
 		} catch (JavaModelException e) {
-			ExceptionHandler.handle(e, "Convert To ForkJoinTask", "This operation is unavailable at this time.  Please select a recursive method."); //$NON-NLS-1$ //$NON-NLS-2$
+			ExceptionHandler.handle(e, ConcurrencyRefactorings.ConvertToFJTaskRefactoring_name_official, ConcurrencyRefactorings.ConvertToFJTaskRefactoring_unavailable_operation);
 		}
 	}
 }
