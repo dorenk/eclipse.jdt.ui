@@ -264,7 +264,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				int tempStart= commentList.get(i).getStartPosition();
 				if (tempStart > start && tempStart < end) {
 					RefactoringStatus warning= new RefactoringStatus();
-					warning.addWarning("Comment(s) will be lost in " + fMethod.getElementName()); //$NON-NLS-1$
+					warning.addWarning(Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_comment_warning, new String[] {fMethod.getElementName()}));
 					result.merge(warning);
 					return;
 				}
@@ -1091,7 +1091,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			} else if (type.isSimpleType()) {
 				sugSeqThreshold= parameter.getName().getIdentifier() + ".length() < 10"; //$NON-NLS-1$
 			} else {
-				System.err.println("Unknown parameter type"); //$NON-NLS-1$
+				System.err.println(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_parameter_error);
 			}
 		}
 		
