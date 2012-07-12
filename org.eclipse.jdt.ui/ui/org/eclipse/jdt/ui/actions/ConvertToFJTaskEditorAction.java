@@ -47,7 +47,7 @@ public class ConvertToFJTaskEditorAction implements IEditorActionDelegate{
 				
 				if (isRefactoringAvailableFor(method)) {
 					ConvertToFJTaskRefactoring refactoring= new ConvertToFJTaskRefactoring(method);
-					run(new ConvertToFJTaskWizard(refactoring, "Convert to FJTask"), getShell(), "Convert to FJTask"); //$NON-NLS-1$ //$NON-NLS-2$
+					run(new ConvertToFJTaskWizard(refactoring, "Convert to ForkJoinTask"), getShell(), "Convert to ForkJoinTask"); //$NON-NLS-1$ //$NON-NLS-2$
 					return;
 				}
 			}

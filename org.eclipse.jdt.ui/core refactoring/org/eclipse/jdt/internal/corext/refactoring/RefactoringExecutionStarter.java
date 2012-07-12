@@ -536,7 +536,7 @@ public final class RefactoringExecutionStarter {
 			if (!RefactoringAvailabilityTester.isConvertToFJTaskAvailable(method))
 				return;
 			ConvertToFJTaskRefactoring refactoring= new ConvertToFJTaskRefactoring(method);
-			ConvertToFJTaskWizard wizard= new ConvertToFJTaskWizard(refactoring, 0);
+			ConvertToFJTaskWizard wizard= new ConvertToFJTaskWizard(refactoring, "Convert to ForkJoinTask"); //$NON-NLS-1$
 			new RefactoringStarter().activate(wizard, shell, RefactoringMessages.OpenRefactoringWizardAction_refactoring, RefactoringSaveHelper.SAVE_REFACTORING);
 		} catch (JavaModelException e) {
 			ExceptionHandler.handle(e, "Convert To ForkJoinTask", "This operation is unavailable at this time.  Please select a recursive method."); //$NON-NLS-1$ //$NON-NLS-2$
