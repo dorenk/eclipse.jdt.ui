@@ -51,6 +51,7 @@ import org.eclipse.jdt.core.dom.Assignment;
 import org.eclipse.jdt.core.dom.Block;
 import org.eclipse.jdt.core.dom.ChildListPropertyDescriptor;
 import org.eclipse.jdt.core.dom.ClassInstanceCreation;
+import org.eclipse.jdt.core.dom.Comment;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.ExpressionStatement;
@@ -239,7 +240,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		
 		createComputeMethod(recursiveActionSubtype, ast, result);
 		
-		copyRecursiveMethod(recursiveActionSubtype, ast);
+		copyRecursiveMethod(recursiveActionSubtype, ast, result);
 		
 		ChildListPropertyDescriptor descriptor= getBodyDeclarationsProperty(fMethodDeclaration.getParent());
 		fRewriter.getListRewrite(fMethodDeclaration.getParent(), descriptor).insertAfter(recursiveActionSubtype, fMethodDeclaration, gd);
@@ -250,10 +251,25 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		return group;
 	}
 
-	private void copyRecursiveMethod(TypeDeclaration recursiveActionSubtype, AST ast) {
+	private void copyRecursiveMethod(TypeDeclaration recursiveActionSubtype, AST ast, RefactoringStatus result) {
 		
-		ASTNode copyRecursiveMethod= ASTNode.copySubtree(ast, fMethodDeclaration);
+		ASTNode copyRecursiveMethod= ASTNode.copySubtree(ast, fMethodDeclaration);  //TODO Copy over comments?
 		recursiveActionSubtype.bodyDeclarations().add(copyRecursiveMethod);
+		
+		int start= fMethodDeclaration.getBody().getStartPosition();
+		int end= fMethodDeclaration.getBody().getLength() - start;
+		List<Comment> commentList= fRoot.getCommentList();
+		if (commentList.size() != 0) {
+			for (int i=0; i < commentList.size(); i++) {
+				int tempStart= commentList.get(i).getStartPosition();
+				if (tempStart > start && tempStart < end) {
+					RefactoringStatus warning= new RefactoringStatus();
+					warning.addWarning(Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_comment_warning, new String[] {fMethod.getElementName()}));
+					result.merge(warning);
+					return;
+				}
+			}
+		}
 	}
 
 	private void createComputeMethod(TypeDeclaration recursiveActionSubtype, AST ast, RefactoringStatus result) {
@@ -640,8 +656,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 
 	private void createFatalError(RefactoringStatus result) {
 		RefactoringStatus fatalError= new RefactoringStatus();
-		fatalError.addFatalError(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_recursion_error_1 
-						+ fMethod.getElementName() + ConcurrencyRefactorings.ConvertToFJTaskRefactoring_recursion_error_2);
+		fatalError.addFatalError(Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_recursion_error, new String[] {fMethod.getElementName()}));
 		result.merge(fatalError);
 	}
 
@@ -1076,7 +1091,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			} else if (type.isSimpleType()) {
 				sugSeqThreshold= parameter.getName().getIdentifier() + ".length() < 10"; //$NON-NLS-1$
 			} else {
-				System.err.println("Unknown parameter type"); //$NON-NLS-1$
+				System.err.println(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_parameter_error);
 			}
 		}
 		

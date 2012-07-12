@@ -45,8 +45,7 @@ public final class ConcurrencyRefactorings extends NLS {
 	public static String ConvertToFJTaskRefactoring_recursive_method;
 	public static String ConvertToFJTaskRefactoring_recursive_action;
 	public static String ConvertToFJTaskRefactoring_generate_compute;
-	public static String ConvertToFJTaskRefactoring_recursion_error_1;
-	public static String ConvertToFJTaskRefactoring_recursion_error_2;
+	public static String ConvertToFJTaskRefactoring_recursion_error;
 	public static String ConvertToFJTaskRefactoring_scenario_error;
 	public static String ConvertToFJTaskRefactoring_analyze_error;
 	public static String ConvertToFJTaskRefactoring_compile_error;
@@ -57,6 +56,9 @@ public final class ConcurrencyRefactorings extends NLS {
 	public static String ConvertToFJTaskRefactoring_sequential_req;
 	public static String ConvertToFJTaskRefactoring_descriptor_description;
 	public static String ConvertToFJTaskRefactoring_method_pattern;
+	public static String ConvertToFJTaskRefactoring_unavailable_operation;
+	public static String ConvertToFJTaskRefactoring_parameter_error;
+	public static String ConvertToFJTaskRefactoring_comment_warning;
 	
 	static {
 		NLS.initializeMessages(BUNDLE_NAME, ConcurrencyRefactorings.class);
