@@ -252,7 +252,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 
 	private void copyRecursiveMethod(TypeDeclaration recursiveActionSubtype, AST ast) {
 		
-		ASTNode copyRecursiveMethod= ASTNode.copySubtree(ast, fMethodDeclaration);
+		ASTNode copyRecursiveMethod= ASTNode.copySubtree(ast, fMethodDeclaration);  //TODO Copy over comments?
 		recursiveActionSubtype.bodyDeclarations().add(copyRecursiveMethod);
 	}
 
