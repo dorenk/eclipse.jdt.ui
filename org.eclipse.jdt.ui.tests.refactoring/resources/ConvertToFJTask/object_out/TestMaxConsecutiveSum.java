@@ -3,7 +3,7 @@ package object_out;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.RecursiveAction;
 
-public class MaxSumTest {
+public class TestMaxConsecutiveSum {
 
     static private int seqStart = 0;
     static private int seqEnd = -1;

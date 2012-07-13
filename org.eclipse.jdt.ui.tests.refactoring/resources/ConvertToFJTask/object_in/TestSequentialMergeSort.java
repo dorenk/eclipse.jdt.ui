@@ -1,6 +1,6 @@
 package object_in;
 
-public class SequentialMergeSort {
+public class TestSequentialMergeSort {
 
 	private int[] listToSort;
 
@@ -10,7 +10,7 @@ public class SequentialMergeSort {
 	 *
 	 * @param listToSort the array of integers to be sorted.
 	 */
-	public SequentialMergeSort(int[] listToSort) {
+	public TestSequentialMergeSort(int[] listToSort) {
 		this.listToSort = listToSort;
 	}
 
@@ -123,7 +123,7 @@ public class SequentialMergeSort {
 		System.out.println("Unsorted:");
 		ArrayUtil.printArray(arrayToSort, 5);
 
-		SequentialMergeSort sortObj = new SequentialMergeSort(arrayToSort);
+		TestSequentialMergeSort sortObj = new TestSequentialMergeSort(arrayToSort);
 		sortObj.sort();
 
 		System.out.println("Sorted:");

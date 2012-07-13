@@ -3,7 +3,7 @@ package object_out;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.RecursiveAction;
 
-public class CreateTypeDeclaration {
+public class TestCreateTypeDeclaration {
 	
 	public void method(int[] array, int start, int end) {
 		int processorCount = Runtime.getRuntime().availableProcessors();
