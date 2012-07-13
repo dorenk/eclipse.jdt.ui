@@ -255,7 +255,12 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		
 		ASTNode copyRecursiveMethod= ASTNode.copySubtree(ast, fMethodDeclaration);
 		recursiveActionSubtype.bodyDeclarations().add(copyRecursiveMethod);
-		
+		if(fMethodDeclaration.getBody() != null) {
+			checkIfCommentWarning(result);
+		}
+	}
+
+	private void checkIfCommentWarning(RefactoringStatus result) {
 		int start= fMethodDeclaration.getBody().getStartPosition();
 		int end= fMethodDeclaration.getBody().getLength() - start;
 		List<Comment> commentList= fRoot.getCommentList();
