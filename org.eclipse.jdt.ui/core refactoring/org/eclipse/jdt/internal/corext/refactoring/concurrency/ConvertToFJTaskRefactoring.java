@@ -411,7 +411,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		});
 		try {
 			if (statementsWithRecursiveMethodInvocation.size() <= 1) {
-				createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_recursion_error, new String[] {fMethod.getElementName()}));
+				createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_statement_error, new String[] {fMethod.getElementName()}));
 				return;
 			}
 			Block[] allTheBlocks= new Block[statementsWithRecursiveMethodInvocation.size()];
@@ -423,10 +423,10 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 						tempNode= tempNode.getParent();
 					} while (tempNode != null && !Block.class.isInstance(tempNode) && !SwitchStatement.class.isInstance(tempNode));
 					if (tempNode == null) {
-						createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_recursion_error, new String[] {fMethod.getElementName()}));
+						createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_node_location_error, new String[] {statementsWithRecursiveMethodInvocation.get(i).toString()}));
 						return;
 					} else if (tempNode instanceof SwitchStatement) {
-						createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_recursion_error, new String[] {fMethod.getElementName()}));
+						createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_switch_statement_error, new String[] {statementsWithRecursiveMethodInvocation.get(i).toString()}));
 						return;
 					} else {
 						allTheBlocks[i]= (Block) tempNode;
