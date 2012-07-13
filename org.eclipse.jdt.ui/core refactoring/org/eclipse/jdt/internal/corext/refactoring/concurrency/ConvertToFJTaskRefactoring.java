@@ -302,7 +302,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			doRecursionBaseCaseReturn(ast, editGroup, recursionBaseCaseBranch, scratchRewriter);
 		}
 		
-		final List<Statement> lastStatementWithRecursiveMethodInvocation= new ArrayList<Statement>();
+		final List<Statement> statementsWithRecursiveMethodInvocation= new ArrayList<Statement>();
 		final int[] taskNumber= new int[] {0};
 		final List<String> partialComputationsNames= new ArrayList<String>();
 		final List<String> typesOfComputations= new ArrayList<String>();
@@ -398,21 +398,21 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 							return false;
 						}
 					}
-					lastStatementWithRecursiveMethodInvocation.add(parentOfMethodCall);
+					statementsWithRecursiveMethodInvocation.add(parentOfMethodCall);
 					
 				}
 				return true;
 			}
 		});
 		try {
-			if (lastStatementWithRecursiveMethodInvocation.size() <= 1) {
+			if (statementsWithRecursiveMethodInvocation.size() <= 1) {
 				createFatalError(result);
 				return;
 			}
-			Block[] allTheBlocks= new Block[lastStatementWithRecursiveMethodInvocation.size()];
-			for (int i= 0; i < lastStatementWithRecursiveMethodInvocation.size(); i++) {
-				allTheBlocks[i]= null;
-				ASTNode tempNode= lastStatementWithRecursiveMethodInvocation.get(i);
+			Block[] allTheBlocks= new Block[statementsWithRecursiveMethodInvocation.size()];
+			for (int i= 0; i < statementsWithRecursiveMethodInvocation.size(); i++) {  //TODO Change to just check for at least 2 that are in same block - can do if multiple blocks with at least 2 calls within each one
+				allTheBlocks[i]= null;														//Use a hashmap or something to hold them so can keep track if multiple of same one?  Do it in the adding of it, save a step after
+				ASTNode tempNode= statementsWithRecursiveMethodInvocation.get(i);
 				if(fSingleElseStatement == null) {
 					do {
 						tempNode= tempNode.getParent();
@@ -450,7 +450,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			}
 			Statement lastStatementWithRecursiveCall;
 			if (fSingleElseStatement == null) {
-				lastStatementWithRecursiveCall= lastStatementWithRecursiveMethodInvocation.get(lastStatementWithRecursiveMethodInvocation.size() - 1);
+				lastStatementWithRecursiveCall= statementsWithRecursiveMethodInvocation.get(statementsWithRecursiveMethodInvocation.size() - 1);
 			} else {
 				lastStatementWithRecursiveCall= fSingleElseStatement;
 			}
@@ -654,7 +654,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		}
 	}
 
-	private void createFatalError(RefactoringStatus result) {
+	private void createFatalError(RefactoringStatus result) {  //TODO Allow passing of string so as to customize message
 		RefactoringStatus fatalError= new RefactoringStatus();
 		fatalError.addFatalError(Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_recursion_error, new String[] {fMethod.getElementName()}));
 		result.merge(fatalError);
