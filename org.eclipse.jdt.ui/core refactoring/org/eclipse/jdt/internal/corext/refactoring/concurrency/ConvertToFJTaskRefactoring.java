@@ -253,7 +253,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 
 	private void copyRecursiveMethod(TypeDeclaration recursiveActionSubtype, AST ast, RefactoringStatus result) {
 		
-		ASTNode copyRecursiveMethod= ASTNode.copySubtree(ast, fMethodDeclaration);  //TODO Copy over comments?
+		ASTNode copyRecursiveMethod= ASTNode.copySubtree(ast, fMethodDeclaration);
 		recursiveActionSubtype.bodyDeclarations().add(copyRecursiveMethod);
 		
 		int start= fMethodDeclaration.getBody().getStartPosition();
@@ -281,12 +281,12 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		final TextEditGroup editGroup= new TextEditGroup(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_generate_compute);
 		
 		if (fMethodDeclaration.getBody() == null) {
-			createFatalError(result);
+			createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_recursion_error, new String[] {fMethod.getElementName()}));
 			return;
 		}
 		Statement recursionBaseCaseBranch= identifyRecursionBaseCaseBranch(fMethodDeclaration.getBody());
 		if (recursionBaseCaseBranch == null) {
-			createFatalError(result);
+			createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_recursion_error, new String[] {fMethod.getElementName()}));
 			return;
 		}
 
@@ -406,7 +406,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		});
 		try {
 			if (statementsWithRecursiveMethodInvocation.size() <= 1) {
-				createFatalError(result);
+				createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_recursion_error, new String[] {fMethod.getElementName()}));
 				return;
 			}
 			Block[] allTheBlocks= new Block[statementsWithRecursiveMethodInvocation.size()];
@@ -418,10 +418,10 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 						tempNode= tempNode.getParent();
 					} while (tempNode != null && !Block.class.isInstance(tempNode) && !SwitchStatement.class.isInstance(tempNode));
 					if (tempNode == null) {
-						createFatalError(result);
+						createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_recursion_error, new String[] {fMethod.getElementName()}));
 						return;
 					} else if (tempNode instanceof SwitchStatement) {
-						createFatalError(result);
+						createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_recursion_error, new String[] {fMethod.getElementName()}));
 						return;
 					} else {
 						allTheBlocks[i]= (Block) tempNode;
@@ -430,13 +430,13 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 					allTheBlocks[i]= newBlock;
 				}
 				if (allTheBlocks[i] == null) {
-					createFatalError(result);
+					createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_recursion_error, new String[] {fMethod.getElementName()}));
 					return;
 				}
 			}
 			for (int i= 0; i < allTheBlocks.length - 1; i++) {
 				if (!allTheBlocks[i].equals(allTheBlocks[i + 1])) {
-					createFatalError(result);
+					createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_recursion_error, new String[] {fMethod.getElementName()}));
 					return;
 				}
 			}
@@ -654,9 +654,9 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		}
 	}
 
-	private void createFatalError(RefactoringStatus result) {  //TODO Allow passing of string so as to customize message
+	private void createFatalError(RefactoringStatus result, String message) {
 		RefactoringStatus fatalError= new RefactoringStatus();
-		fatalError.addFatalError(Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_recursion_error, new String[] {fMethod.getElementName()}));
+		fatalError.addFatalError(message);
 		result.merge(fatalError);
 	}
 
