@@ -435,13 +435,13 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 					allTheBlocks[i]= newBlock;
 				}
 				if (allTheBlocks[i] == null) {
-					createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_recursion_error, new String[] {fMethod.getElementName()}));
+					createFatalError(result, ConcurrencyRefactorings.ConvertToFJTaskRefactoring_block_error);
 					return;
 				}
 			}
 			for (int i= 0; i < allTheBlocks.length - 1; i++) {
 				if (!allTheBlocks[i].equals(allTheBlocks[i + 1])) {
-					createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_recursion_error, new String[] {fMethod.getElementName()}));
+					createFatalError(result, ConcurrencyRefactorings.ConvertToFJTaskRefactoring_multiple_block_error);
 					return;
 				}
 			}
