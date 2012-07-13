@@ -562,10 +562,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			assignToResult.setLeftHandSide(ast.newSimpleName("result")); //$NON-NLS-1$
 			ASTNode tempAST= ASTNode.copySubtree(ast, ((ReturnStatement)lastStatementInBlock).getExpression());
 			if (!(tempAST instanceof MethodInvocation)) {
-				RefactoringStatus fatalError= new RefactoringStatus();
-				fatalError.addFatalError(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_analyze_error 
-								+ fMethod.getElementName());
-				result.merge(fatalError);
+				createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_analyze_error, new String[] {fMethod.getElementName()}));
 				return -1;
 			}
 			MethodInvocation methodInvocation= ((MethodInvocation) tempAST);
@@ -968,8 +965,8 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		if (messages.length == 0) {
 			return false;
 		}
-		result.addFatalError(MessageFormat.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_compile_error,
-				((Object[]) new String[] { fMethod.getElementName(), messages[0].getMessage()})));
+		createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_compile_error,
+				(new String[] { fMethod.getElementName(), messages[0].getMessage()})));
 		return true;
 	}
 	
