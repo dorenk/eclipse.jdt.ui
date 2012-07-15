@@ -479,18 +479,14 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 					}
 				}
 			}
-			if (fInfixExpressionFlag || fMethodInvocationFlag ) {
-				if (fSingleElseStatement == null) {
+			if (fSingleElseStatement == null) {
+				if (fInfixExpressionFlag || fMethodInvocationFlag) {
 					listRewriteForBlock.insertBefore(ast.newExpressionStatement(forkJoinInvocation), lastStatementWithRecursiveCall, editGroup);
 				} else {
-					listRewriteForBlock.insertAt(ast.newExpressionStatement(forkJoinInvocation), taskNumber[0], editGroup);
+					listRewriteForBlock.insertAfter(ast.newExpressionStatement(forkJoinInvocation), lastStatementWithRecursiveCall, editGroup);
 				}
 			} else {
-				if (fSingleElseStatement == null) {
-					listRewriteForBlock.insertAfter(ast.newExpressionStatement(forkJoinInvocation), lastStatementWithRecursiveCall, editGroup);
-				} else {
 					listRewriteForBlock.insertAt(ast.newExpressionStatement(forkJoinInvocation), taskNumber[0], editGroup);
-				}
 			}
 			tryApplyEdits(ast, computeMethod, scratchRewriter);
 		} catch (JavaModelException e) {
