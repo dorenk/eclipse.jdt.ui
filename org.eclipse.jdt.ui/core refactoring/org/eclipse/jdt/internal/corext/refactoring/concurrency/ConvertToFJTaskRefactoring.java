@@ -319,7 +319,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			if (allStatementsWithRecursiveMethodInvocation.size() == 0) {
 				createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_statement_error, new String[] {fMethod.getElementName()}));
 				return;
-			} else if (switchStatementFound[0]) {  //Create error?
+			} else if (switchStatementFound[0]) {  //TODO Create error - only if all switch statements otherwise other block can do refactoring
 				createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_switch_statement_error, new String[] {fMethod.getElementName()}));
 				return;
 			}
