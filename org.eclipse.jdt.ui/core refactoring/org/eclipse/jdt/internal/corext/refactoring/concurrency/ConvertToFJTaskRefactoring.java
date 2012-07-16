@@ -114,7 +114,6 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 	private String sequentialThreshold= ConcurrencyRefactorings.ConcurrencyRefactorings_empty_string;
 	private boolean fInfixExpressionFlag= false;
 	private boolean fMethodInvocationFlag= false;
-	private Statement fSingleElseStatement;
 
 	
 
@@ -312,7 +311,6 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		final List<String> partialComputationsNames= new ArrayList<String>();
 		final List<String> typesOfComputations= new ArrayList<String>();
 		final boolean[] switchStatementFound= new boolean[] {false};
-		fSingleElseStatement = null;  //TODO Remove
 		final Map<Integer, Block> tasksToBlock= new HashMap<Integer, Block>();  //Can determine which task belongs to which block
 		final Map<Block, Integer> numTasksPerBlock= new HashMap<Block, Integer>();  //Can determine how many tasks belong to this block easily
 		final Map<ASTNode, Block> locationOfNewBlocks= new HashMap<ASTNode, Block>();  //Can determine where the new block was created so as to see if already has been created (don't create a new one at "same" place)
@@ -390,7 +388,6 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 										locationOfNewBlocks.put(elseStatement, myBlock);
 										blockWithoutBraces.put(myBlock, elseStatement);
 									}
-									fSingleElseStatement= elseStatement;
 									ListRewrite listRewriteForBlock= scratchRewriter.getListRewrite(myBlock, Block.STATEMENTS_PROPERTY);
 									scratchRewriter.replace(elseStatement, myBlock, editGroup);
 									listRewriteForBlock.insertLast(taskDeclStatement, editGroup);									
@@ -404,7 +401,6 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 											locationOfNewBlocks.put(thenStatement, myBlock);
 											blockWithoutBraces.put(myBlock, thenStatement);
 										}
-										fSingleElseStatement= thenStatement;
 										ListRewrite listRewriteForBlock= scratchRewriter.getListRewrite(myBlock, Block.STATEMENTS_PROPERTY);
 										scratchRewriter.replace(thenStatement, myBlock, editGroup);
 										listRewriteForBlock.insertLast(taskDeclStatement, editGroup);
@@ -590,7 +586,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		}
 	}
 
-	private int createLastStatement(AST ast, RefactoringStatus result, final TextEditGroup editGroup, final ASTRewrite scratchRewriter, ListRewrite listRewriteForBlock, Statement lastStatementInBlock) {
+	private int createLastStatement(AST ast, RefactoringStatus result, final TextEditGroup editGroup, final ASTRewrite scratchRewriter, ListRewrite listRewriteForBlock, Statement lastStatementInBlock, boolean isNewBlock) {
 		if (fInfixExpressionFlag) {
 			Assignment assignToResult= ast.newAssignment();
 			assignToResult.setLeftHandSide(ast.newSimpleName("result")); //$NON-NLS-1$
@@ -604,7 +600,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				i++;
 			}
 			assignToResult.setRightHandSide(infixExpression);
-			if (fSingleElseStatement == null) {
+			if (isNewBlock) {
 				scratchRewriter.replace(lastStatementInBlock, ast.newExpressionStatement(assignToResult), editGroup);
 			} else {
 				listRewriteForBlock.insertLast(ast.newExpressionStatement(assignToResult), editGroup);
@@ -625,7 +621,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				methodArguments.set(index++, ast.newQualifiedName(ast.newSimpleName("task" + taskNum++), ast.newSimpleName("result"))); //$NON-NLS-1$ //$NON-NLS-2$
 			}
 			assignToResult.setRightHandSide(methodInvocation);
-			if (fSingleElseStatement == null) {
+			if (isNewBlock) {
 				scratchRewriter.replace(lastStatementInBlock, ast.newExpressionStatement(assignToResult), editGroup);
 			} else {
 				listRewriteForBlock.insertLast(ast.newExpressionStatement(assignToResult), editGroup);
@@ -635,7 +631,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			Assignment assignToResult= ast.newAssignment();
 			assignToResult.setLeftHandSide(ast.newSimpleName("result")); //$NON-NLS-1$
 			assignToResult.setRightHandSide((Expression) ASTNode.copySubtree(ast, ((ReturnStatement) lastStatementInBlock).getExpression()));
-			if (fSingleElseStatement == null) {
+			if (isNewBlock) {
 				scratchRewriter.replace(lastStatementInBlock, ast.newExpressionStatement(assignToResult), editGroup);
 			} else {
 				listRewriteForBlock.insertLast(ast.newExpressionStatement(assignToResult), editGroup);
@@ -645,12 +641,12 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 	}
 
 	private void createPartialComputations(final TextEditGroup editGroup, final ASTRewrite scratchRewriter, final List<String> partialComputationsNames, final List<String> typesOfComputations,
-			ListRewrite listRewriteForBlock, Statement lastStatementWithRecursiveCall) {
+			ListRewrite listRewriteForBlock, Statement lastStatementWithRecursiveCall, boolean isNewBlock) {
 		if (lastStatementWithRecursiveCall instanceof VariableDeclarationStatement) {
 			for (int i= partialComputationsNames.size() - 1; i >= 0 ; ) {
 				String varStatement= typesOfComputations.get(i) + " " + partialComputationsNames.get(i) + " = task" + (i + 1) + ".result;"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 				VariableDeclarationStatement variableStatement= (VariableDeclarationStatement) scratchRewriter.createStringPlaceholder(varStatement, ASTNode.VARIABLE_DECLARATION_STATEMENT);
-				if (fSingleElseStatement == null) {
+				if (isNewBlock) {
 					listRewriteForBlock.insertAfter(variableStatement, lastStatementWithRecursiveCall, editGroup);
 				} else {
 					listRewriteForBlock.insertLast(variableStatement, editGroup);
@@ -661,7 +657,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			for (int i= partialComputationsNames.size() - 1; i >= 0 ; ) {
 				String varStatement= partialComputationsNames.get(i) + " = task" + (i + 1) + ".result;"; //$NON-NLS-1$ //$NON-NLS-2$
 				ExpressionStatement exprStatement= (ExpressionStatement) scratchRewriter.createStringPlaceholder(varStatement, ASTNode.EXPRESSION_STATEMENT);
-				if (fSingleElseStatement == null) {
+				if (isNewBlock) {
 					listRewriteForBlock.insertAfter(exprStatement, lastStatementWithRecursiveCall, editGroup);
 				} else {
 					listRewriteForBlock.insertLast(exprStatement, editGroup);
