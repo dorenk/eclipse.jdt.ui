@@ -1183,16 +1183,49 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 						myBlock= (Block) tempNode;
 					}
 				}
-				fTasksToBlock.put(new Integer(fTaskNumber[0]), myBlock);
-				if (fNumTasksPerBlock.containsKey(myBlock)) {
-					Integer newValue= new Integer(fNumTasksPerBlock.get(myBlock).intValue() + 1);
-					fNumTasksPerBlock.put(myBlock, newValue);
+				populateAllMaps(partialComputationsNames, typesOfComputations, infixExpressionFlag, methodInvocationFlag, myBlock, parentOfMethodCall);
+			}
+			return true;
+		}
+
+		private void populateAllMaps(List<String> partialComputationsNames, List<String> typesOfComputations, boolean infixExpressionFlag, boolean methodInvocationFlag, Block myBlock,
+				Statement parentOfMethodCall) {
+			fTasksToBlock.put(new Integer(fTaskNumber[0]), myBlock);
+			if (fNumTasksPerBlock.containsKey(myBlock)) {
+				Integer newValue= new Integer(fNumTasksPerBlock.get(myBlock).intValue() + 1);
+				fNumTasksPerBlock.put(myBlock, newValue);
+			} else {
+				fNumTasksPerBlock.put(myBlock, new Integer(1));
+			}
+			if (fAllStatementsWithRecursiveMethodInvocation.containsKey(myBlock)) {
+				List<Statement> recursiveList= fAllStatementsWithRecursiveMethodInvocation.get(myBlock);
+				recursiveList.add(parentOfMethodCall);
+			} else {
+				List<Statement> recursiveList= new ArrayList<Statement>();
+				recursiveList.add(parentOfMethodCall);
+				fAllStatementsWithRecursiveMethodInvocation.put(myBlock, recursiveList);
+			}
+			if (!fAllTheBlocks.contains(myBlock)) {
+				fAllTheBlocks.add(myBlock);
+			}
+			if (!partialComputationsNames.isEmpty()) {
+				if (fAllPartialComputationsNames.containsKey(myBlock)) {
+					fAllPartialComputationsNames.get(myBlock).addAll(partialComputationsNames);
+					fAllTypesOfComputations.get(myBlock).addAll(typesOfComputations);
 				} else {
-					fNumTasksPerBlock.put(myBlock, new Integer(1));
+					fAllPartialComputationsNames.put(myBlock, partialComputationsNames);
+					fAllTypesOfComputations.put(myBlock, typesOfComputations);
 				}
-				if (fAllStatementsWithRecursiveMethodInvocation.containsKey(myBlock)) {
-					List<Statement> recursiveList= fAllStatementsWithRecursiveMethodInvocation.get(myBlock);
-					recursiveList.add(parentOfMethodCall);
+			}
+			int flag= 0;
+			if (infixExpressionFlag) {
+				flag= 1;
+			} else if (methodInvocationFlag) {
+				flag= 2;
+			}
+			fBlockFlags.put(myBlock, new Integer(flag));
+		}
+
 		private Block ifStatementWork(VariableDeclarationStatement taskDeclStatement, Block myBlock, Statement parentOfMethodCall, ASTNode tempNode) {
 			IfStatement ifStatement= (IfStatement) tempNode;
 			Statement elseStatement= ifStatement.getElseStatement();
