@@ -307,7 +307,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			doRecursionBaseCaseReturn(ast, editGroup, recursionBaseCaseBranch, scratchRewriter);
 		}
 		
-		final List<Statement> statementsWithRecursiveMethodInvocation= new ArrayList<Statement>();
+		final Map<Block, List<Statement> > allStatementsWithRecursiveMethodInvocation= new HashMap<Block, List<Statement> >();
 		final int[] taskNumber= new int[] {0};
 		final List<String> partialComputationsNames= new ArrayList<String>();
 		final List<String> typesOfComputations= new ArrayList<String>();
@@ -447,16 +447,32 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 					} else {
 						numTasksPerBlock.put(myBlock, new Integer(1));
 					}
-					statementsWithRecursiveMethodInvocation.add(parentOfMethodCall);
+					if (allStatementsWithRecursiveMethodInvocation.containsKey(myBlock)) {
+						List<Statement> recursiveList= allStatementsWithRecursiveMethodInvocation.get(myBlock);
+						recursiveList.add(parentOfMethodCall); //TODO Determine if need to add back list or if updated here then updated in map
+					} else {
+						List<Statement> recursiveList= new ArrayList<Statement>();
+						recursiveList.add(parentOfMethodCall);
+						allStatementsWithRecursiveMethodInvocation.put(myBlock, recursiveList);
+					}
 				}
 				return true;
 			}
 		});
 		try {
-			if (statementsWithRecursiveMethodInvocation.size() <= 1) {
+			if (allStatementsWithRecursiveMethodInvocation.size() == 0) {
 				createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_statement_error, new String[] {fMethod.getElementName()}));
 				return;
-			} else if (switchStatementFound[0]) {
+			}
+			Collection<List<Statement> > recursiveCollection= allStatementsWithRecursiveMethodInvocation.values();  //TODO Move this into loop so can refactor certain parts
+			Iterator<List<Statement> > recursiveIter= recursiveCollection.iterator();
+			while (recursiveIter.hasNext()) {
+				if (recursiveIter.next().size() <= 1) {
+					createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_statement_error, new String[] {fMethod.getElementName()}));
+					return;
+				}
+			} 
+			if (switchStatementFound[0]) {
 				createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_switch_statement_error, new String[] {fMethod.getElementName()}));
 				return;
 			}
