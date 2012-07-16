@@ -599,7 +599,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			e.printStackTrace();
 		}
 	}
-	//TODO Change to use maps
+
 	private int createLastStatement(AST ast, RefactoringStatus result, final TextEditGroup editGroup, final ASTRewrite scratchRewriter, ListRewrite listRewriteForBlock, Statement lastStatementInBlock, boolean isNotNewBlock, int[] taskNumbers, int flags) {
 		if (flags == 1) {
 			Assignment assignToResult= ast.newAssignment();
@@ -724,30 +724,20 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		result.merge(fatalError);
 	}
 
-	Statement findParentStatement(MethodInvocation methodCall) {  //TODO make less nested
+	Statement findParentStatement(MethodInvocation methodCall) {
 		
 		Statement  parentOfMethodCall= null;
 		ASTNode tempNode= methodCall;
 		do {
 			tempNode= tempNode.getParent();
-		} while (tempNode != null && !VariableDeclarationStatement.class.isInstance(tempNode));
+		} while (tempNode != null && !VariableDeclarationStatement.class.isInstance(tempNode) && !ExpressionStatement.class.isInstance(tempNode) && !ReturnStatement.class.isInstance(tempNode));
 		if (tempNode != null) {
-			parentOfMethodCall= (VariableDeclarationStatement) tempNode;
-		} else {
-			tempNode= methodCall;
-			do {
-				tempNode= tempNode.getParent();
-			} while (tempNode != null && !ExpressionStatement.class.isInstance(tempNode));
-			if (tempNode != null) {
+			if (tempNode instanceof VariableDeclarationStatement) {
+				parentOfMethodCall= (VariableDeclarationStatement) tempNode;
+			} else if (tempNode instanceof ExpressionStatement) {
 				parentOfMethodCall= (ExpressionStatement) tempNode;
 			} else {
-				tempNode= methodCall;
-				do {
-					tempNode= tempNode.getParent();
-				} while (tempNode != null && !ReturnStatement.class.isInstance(tempNode));
-				if (tempNode != null) {
-					parentOfMethodCall= (ReturnStatement) tempNode;
-				}
+				parentOfMethodCall= (ReturnStatement) tempNode;
 			}
 		}
 		return parentOfMethodCall;	
