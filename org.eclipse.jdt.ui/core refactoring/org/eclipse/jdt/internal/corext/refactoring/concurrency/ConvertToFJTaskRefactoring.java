@@ -383,16 +383,30 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 								IfStatement ifStatement= (IfStatement) tempNode;
 								Statement elseStatement= ifStatement.getElseStatement();
 								if (elseStatement != null && ifStatement.getThenStatement() != null && !ifStatement.getThenStatement().equals(parentOfMethodCall)) {
-									ListRewrite listRewriteForBlock= scratchRewriter.getListRewrite(newBlock, Block.STATEMENTS_PROPERTY);
-									scratchRewriter.replace(elseStatement, newBlock, editGroup);
+									if (locationOfNewBlocks.containsKey(elseStatement)) {
+										myBlock= locationOfNewBlocks.get(elseStatement);
+									} else {
+										myBlock= ast.newBlock();
+										locationOfNewBlocks.put(elseStatement, myBlock);
+										blockWithoutBraces.put(myBlock, elseStatement);
+									}
 									fSingleElseStatement= elseStatement;
+									ListRewrite listRewriteForBlock= scratchRewriter.getListRewrite(myBlock, Block.STATEMENTS_PROPERTY);
+									scratchRewriter.replace(elseStatement, myBlock, editGroup);
 									listRewriteForBlock.insertLast(taskDeclStatement, editGroup);									
 								} else {
 									Statement thenStatement= ifStatement.getThenStatement();
 									if (thenStatement != null && thenStatement.equals(parentOfMethodCall)) {
-										ListRewrite listRewriteForBlock= scratchRewriter.getListRewrite(newBlock, Block.STATEMENTS_PROPERTY);
-										scratchRewriter.replace(thenStatement, newBlock, editGroup);
+										if (locationOfNewBlocks.containsKey(thenStatement)) {
+											myBlock= locationOfNewBlocks.get(thenStatement);
+										} else {
+											myBlock= ast.newBlock();
+											locationOfNewBlocks.put(thenStatement, myBlock);
+											blockWithoutBraces.put(myBlock, thenStatement);
+										}
 										fSingleElseStatement= thenStatement;
+										ListRewrite listRewriteForBlock= scratchRewriter.getListRewrite(myBlock, Block.STATEMENTS_PROPERTY);
+										scratchRewriter.replace(thenStatement, myBlock, editGroup);
 										listRewriteForBlock.insertLast(taskDeclStatement, editGroup);
 									} else {
 										return false;
