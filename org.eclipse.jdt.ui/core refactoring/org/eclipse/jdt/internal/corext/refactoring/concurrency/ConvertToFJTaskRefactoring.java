@@ -1104,20 +1104,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			IMethodBinding bindingForMethodCall= methodCall.resolveMethodBinding();
 			IMethodBinding bindingForMethodDeclaration= fMethodDeclaration.resolveBinding();
 			if (bindingForMethodCall.isEqualTo(bindingForMethodDeclaration)) {
-				String codeForTaskDecl= nameForFJTaskSubtype + " task" + ++fTaskNumber[0] +  //$NON-NLS-1$
-			    " = new " + nameForFJTaskSubtype + "("; //$NON-NLS-1$ //$NON-NLS-2$
-				String methodArguments= ConcurrencyRefactorings.ConcurrencyRefactorings_empty_string;
-				List<Expression> arguments= methodCall.arguments();
-				for (Iterator<Expression> iterator= arguments.iterator(); iterator
-						.hasNext();) {
-					ASTNode argument= iterator.next();
-					methodArguments += argument.toString();
-					if (iterator.hasNext()) {
-						methodArguments += ", "; //$NON-NLS-1$
-					}
-				}
-				codeForTaskDecl += methodArguments + ");"; //$NON-NLS-1$
-				VariableDeclarationStatement taskDeclStatement= (VariableDeclarationStatement) fScratchRewriter.createStringPlaceholder(codeForTaskDecl , ASTNode.VARIABLE_DECLARATION_STATEMENT);
+				VariableDeclarationStatement taskDeclStatement= createTaskDeclaration(methodCall);
 				
 				List<String> partialComputationsNames= new ArrayList<String>();
 				List<String> typesOfComputations= new ArrayList<String>();
@@ -1254,10 +1241,22 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 					flag= 1;
 				} else if (methodInvocationFlag) {
 					flag= 2;
+		private VariableDeclarationStatement createTaskDeclaration(MethodInvocation methodCall) {
+			String codeForTaskDecl= nameForFJTaskSubtype + " task" + ++fTaskNumber[0] +  //$NON-NLS-1$
+			" = new " + nameForFJTaskSubtype + "("; //$NON-NLS-1$ //$NON-NLS-2$
+			String methodArguments= ConcurrencyRefactorings.ConcurrencyRefactorings_empty_string;
+			List<Expression> arguments= methodCall.arguments();
+			for (Iterator<Expression> iterator= arguments.iterator(); iterator
+					.hasNext();) {
+				ASTNode argument= iterator.next();
+				methodArguments += argument.toString();
+				if (iterator.hasNext()) {
+					methodArguments += ", "; //$NON-NLS-1$
 				}
-				fBlockFlags.put(myBlock, new Integer(flag));
 			}
-			return true;
+			codeForTaskDecl += methodArguments + ");"; //$NON-NLS-1$
+			VariableDeclarationStatement taskDeclStatement= (VariableDeclarationStatement) fScratchRewriter.createStringPlaceholder(codeForTaskDecl , ASTNode.VARIABLE_DECLARATION_STATEMENT);
+			return taskDeclStatement;
 		}
 	}
 }
