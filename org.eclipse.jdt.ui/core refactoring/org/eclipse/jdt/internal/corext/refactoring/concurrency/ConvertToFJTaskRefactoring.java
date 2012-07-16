@@ -308,8 +308,8 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		
 		final Map<Block, List<Statement> > allStatementsWithRecursiveMethodInvocation= new HashMap<Block, List<Statement> >();
 		final int[] taskNumber= new int[] {0};
-		final List<String> partialComputationsNames= new ArrayList<String>();  //TODO Change these to maps as well
-		final List<String> typesOfComputations= new ArrayList<String>();
+		final Map<Block, List<String> > allPartialComputationsNames= new HashMap<Block, List<String> >();
+		final Map<Block, List<String> > allTypesOfComputations= new HashMap<Block, List<String> >();
 		final boolean[] switchStatementFound= new boolean[] {false};
 		final Map<Integer, Block> tasksToBlock= new HashMap<Integer, Block>();  //Can determine which task belongs to which block
 		final Map<Block, Integer> numTasksPerBlock= new HashMap<Block, Integer>();  //Can determine how many tasks belong to this block easily
@@ -338,6 +338,8 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 					codeForTaskDecl += methodArguments + ");"; //$NON-NLS-1$
 					VariableDeclarationStatement taskDeclStatement= (VariableDeclarationStatement) scratchRewriter.createStringPlaceholder(codeForTaskDecl , ASTNode.VARIABLE_DECLARATION_STATEMENT);
 					
+					List<String> partialComputationsNames= new ArrayList<String>();
+					List<String> typesOfComputations= new ArrayList<String>();
 					Block myBlock= null;
 					Statement parentOfMethodCall= findParentStatement(methodCall);
 					if (parentOfMethodCall == null) {
@@ -455,6 +457,15 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 					if (!allTheBlocks.contains(myBlock)) {
 						allTheBlocks.add(myBlock);
 					}
+					if (!partialComputationsNames.isEmpty()) {
+						if (allPartialComputationsNames.containsKey(myBlock)) {
+							allPartialComputationsNames.get(myBlock).addAll(partialComputationsNames);
+							allTypesOfComputations.get(myBlock).addAll(typesOfComputations);
+						} else {
+							allPartialComputationsNames.put(myBlock, partialComputationsNames);
+							allTypesOfComputations.put(myBlock, typesOfComputations);
+						}
+					}
 				}
 				return true;
 			}
@@ -500,8 +511,8 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 					}
 					
 					if (!recursiveMethodReturnsVoid()) {
-						if (partialComputationsNames.size() >= 1) {  //TODO Make use the map
-							createPartialComputations(editGroup, scratchRewriter, partialComputationsNames, typesOfComputations, listRewriteForBlock, lastStatementWithRecursiveCall, !blockWithoutBraces.containsKey(currBlock));
+						if (allPartialComputationsNames.containsKey(currBlock)) {
+							createPartialComputations(editGroup, scratchRewriter, allPartialComputationsNames.get(currBlock), allTypesOfComputations.get(currBlock), listRewriteForBlock, lastStatementWithRecursiveCall, !blockWithoutBraces.containsKey(currBlock), taskNumbers);
 						}
 						
 						Statement lastStatementInBlock;
