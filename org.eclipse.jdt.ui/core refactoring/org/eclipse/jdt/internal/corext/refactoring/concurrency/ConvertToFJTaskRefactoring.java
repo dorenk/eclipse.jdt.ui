@@ -492,10 +492,12 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 					List<Expression> argumentsForkJoin= forkJoinInvocation.arguments();
 					int counter= 0;
 					Integer max= numTasksPerBlock.get(currBlock);
+					int[] taskNumbers= new int[max.intValue()];
 					for (int i= 1; i <= tasksToBlock.size(); i++) {
 						Block tempBlock= tasksToBlock.get(Integer.valueOf(i));
 						if (tempBlock.equals(currBlock)) {
 							argumentsForkJoin.add(ast.newSimpleName("task" + i)); //$NON-NLS-1$
+							taskNumbers[counter]= i;
 							if (++counter == max.intValue()) {
 								break;
 							}
@@ -523,7 +525,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 							lastStatementInBlock= blockWithoutBraces.get(currBlock);
 						}
 						if (lastStatementInBlock instanceof ReturnStatement) {
-							int errorFlag= createLastStatement(ast, result, editGroup, scratchRewriter, listRewriteForBlock, lastStatementInBlock, !blockWithoutBraces.containsKey(currBlock));
+							int errorFlag= createLastStatement(ast, result, editGroup, scratchRewriter, listRewriteForBlock, lastStatementInBlock, !blockWithoutBraces.containsKey(currBlock), taskNumbers);
 							if(errorFlag == -1) {
 								return;
 							}
@@ -589,18 +591,17 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		}
 	}
 	//TODO Change to use maps
-	private int createLastStatement(AST ast, RefactoringStatus result, final TextEditGroup editGroup, final ASTRewrite scratchRewriter, ListRewrite listRewriteForBlock, Statement lastStatementInBlock, boolean isNewBlock) {
+	private int createLastStatement(AST ast, RefactoringStatus result, final TextEditGroup editGroup, final ASTRewrite scratchRewriter, ListRewrite listRewriteForBlock, Statement lastStatementInBlock, boolean isNewBlock, int[] taskNumbers) {
 		if (fInfixExpressionFlag) {
 			Assignment assignToResult= ast.newAssignment();
 			assignToResult.setLeftHandSide(ast.newSimpleName("result")); //$NON-NLS-1$
 			InfixExpression infixExpression= ((InfixExpression)(ASTNode.copySubtree(ast, ((ReturnStatement)lastStatementInBlock).getExpression())));
-			int taskNum= 1;
-			infixExpression.setLeftOperand(ast.newQualifiedName(ast.newSimpleName("task" + taskNum++), ast.newSimpleName("result"))); //$NON-NLS-1$ //$NON-NLS-2$
-			infixExpression.setRightOperand(ast.newQualifiedName(ast.newSimpleName("task" + taskNum++), ast.newSimpleName("result"))); //$NON-NLS-1$ //$NON-NLS-2$
+			int taskNum= 0;
+			infixExpression.setLeftOperand(ast.newQualifiedName(ast.newSimpleName("task" + taskNumbers[taskNum++]), ast.newSimpleName("result"))); //$NON-NLS-1$ //$NON-NLS-2$
+			infixExpression.setRightOperand(ast.newQualifiedName(ast.newSimpleName("task" + taskNumbers[taskNum++]), ast.newSimpleName("result"))); //$NON-NLS-1$ //$NON-NLS-2$
 			List<Expression> extendedOperands = infixExpression.extendedOperands();
-			for (int i= 0; i < extendedOperands.size(); ) {
-				extendedOperands.set(i, ast.newQualifiedName(ast.newSimpleName("task" + taskNum++), ast.newSimpleName("result"))); //$NON-NLS-1$ //$NON-NLS-2$
-				i++;
+			for (int i= 0; i < extendedOperands.size(); i++) {
+				extendedOperands.set(i, ast.newQualifiedName(ast.newSimpleName("task" + taskNumbers[taskNum++]), ast.newSimpleName("result"))); //$NON-NLS-1$ //$NON-NLS-2$
 			}
 			assignToResult.setRightHandSide(infixExpression);
 			if (isNewBlock) {
@@ -618,10 +619,10 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				return -1;
 			}
 			MethodInvocation methodInvocation= ((MethodInvocation) tempAST);
-			int taskNum= 1;
+			int taskNum= 0;
 			List<Expression> methodArguments= methodInvocation.arguments();
 			for (int index= 0; index < methodArguments.size(); ) {
-				methodArguments.set(index++, ast.newQualifiedName(ast.newSimpleName("task" + taskNum++), ast.newSimpleName("result"))); //$NON-NLS-1$ //$NON-NLS-2$
+				methodArguments.set(index++, ast.newQualifiedName(ast.newSimpleName("task" + taskNumbers[taskNum++]), ast.newSimpleName("result"))); //$NON-NLS-1$ //$NON-NLS-2$
 			}
 			assignToResult.setRightHandSide(methodInvocation);
 			if (isNewBlock) {
@@ -642,12 +643,12 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		}
 		return 0;
 	}
-	//TODO Change to use maps
+
 	private void createPartialComputations(final TextEditGroup editGroup, final ASTRewrite scratchRewriter, final List<String> partialComputationsNames, final List<String> typesOfComputations,
-			ListRewrite listRewriteForBlock, Statement lastStatementWithRecursiveCall, boolean isNewBlock) {
+			ListRewrite listRewriteForBlock, Statement lastStatementWithRecursiveCall, boolean isNewBlock, int[] taskNumbers) {
 		if (lastStatementWithRecursiveCall instanceof VariableDeclarationStatement) {
 			for (int i= partialComputationsNames.size() - 1; i >= 0 ; ) {
-				String varStatement= typesOfComputations.get(i) + " " + partialComputationsNames.get(i) + " = task" + (i + 1) + ".result;"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+				String varStatement= typesOfComputations.get(i) + " " + partialComputationsNames.get(i) + " = task" + taskNumbers[i] + ".result;"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 				VariableDeclarationStatement variableStatement= (VariableDeclarationStatement) scratchRewriter.createStringPlaceholder(varStatement, ASTNode.VARIABLE_DECLARATION_STATEMENT);
 				if (isNewBlock) {
 					listRewriteForBlock.insertAfter(variableStatement, lastStatementWithRecursiveCall, editGroup);
@@ -658,12 +659,12 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			}
 		} else if (lastStatementWithRecursiveCall instanceof ExpressionStatement) {
 			for (int i= partialComputationsNames.size() - 1; i >= 0 ; ) {
-				String varStatement= partialComputationsNames.get(i) + " = task" + (i + 1) + ".result;"; //$NON-NLS-1$ //$NON-NLS-2$
-				ExpressionStatement exprStatement= (ExpressionStatement) scratchRewriter.createStringPlaceholder(varStatement, ASTNode.EXPRESSION_STATEMENT);
+				String exprStatement= partialComputationsNames.get(i) + " = task" + taskNumbers[i] + ".result;"; //$NON-NLS-1$ //$NON-NLS-2$
+				ExpressionStatement expressionStatement= (ExpressionStatement) scratchRewriter.createStringPlaceholder(exprStatement, ASTNode.EXPRESSION_STATEMENT);
 				if (isNewBlock) {
-					listRewriteForBlock.insertAfter(exprStatement, lastStatementWithRecursiveCall, editGroup);
+					listRewriteForBlock.insertAfter(expressionStatement, lastStatementWithRecursiveCall, editGroup);
 				} else {
-					listRewriteForBlock.insertLast(exprStatement, editGroup);
+					listRewriteForBlock.insertLast(expressionStatement, editGroup);
 				}
 				i--;
 			}
