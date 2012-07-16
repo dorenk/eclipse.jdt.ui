@@ -339,6 +339,8 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 					}
 					codeForTaskDecl += methodArguments + ");"; //$NON-NLS-1$
 					VariableDeclarationStatement taskDeclStatement= (VariableDeclarationStatement) scratchRewriter.createStringPlaceholder(codeForTaskDecl , ASTNode.VARIABLE_DECLARATION_STATEMENT);
+					
+					Block myBlock= null;
 					Statement parentOfMethodCall= findParentStatement(methodCall);
 					if (parentOfMethodCall == null || SwitchStatement.class.isInstance(parentOfMethodCall.getParent())) {
 						return false;
