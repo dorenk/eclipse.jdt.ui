@@ -446,7 +446,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 					}
 					if (allStatementsWithRecursiveMethodInvocation.containsKey(myBlock)) {
 						List<Statement> recursiveList= allStatementsWithRecursiveMethodInvocation.get(myBlock);
-						recursiveList.add(parentOfMethodCall); //TODO Determine if need to add back list or if updated here then updated in map
+						recursiveList.add(parentOfMethodCall);
 					} else {
 						List<Statement> recursiveList= new ArrayList<Statement>();
 						recursiveList.add(parentOfMethodCall);
@@ -463,6 +463,9 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			if (allStatementsWithRecursiveMethodInvocation.size() == 0) {
 				createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_statement_error, new String[] {fMethod.getElementName()}));
 				return;
+			} else if (switchStatementFound[0]) {
+				createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_switch_statement_error, new String[] {fMethod.getElementName()}));
+				return;
 			}
 			Collection<List<Statement> > recursiveCollection= allStatementsWithRecursiveMethodInvocation.values();  //TODO Move this into loop so can refactor certain parts
 			Iterator<List<Statement> > recursiveIter= recursiveCollection.iterator();
@@ -472,10 +475,6 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 					return;
 				}
 			} 
-			if (switchStatementFound[0]) {
-				createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_switch_statement_error, new String[] {fMethod.getElementName()}));
-				return;
-			}
 			Collection<Integer> numBlockTasks= numTasksPerBlock.values();
 			Iterator<Integer> taskIter= numBlockTasks.iterator();
 			while (taskIter.hasNext()) {
