@@ -1150,35 +1150,9 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 								listRewriteForBlock.insertBefore(taskDeclStatement, lastStatementInBlock, fEditGroup);
 							}
 						} else if (tempNode instanceof IfStatement) {  //TODO Move this outside of return statement?
-							IfStatement ifStatement= (IfStatement) tempNode;
-							Statement elseStatement= ifStatement.getElseStatement();
-							if (elseStatement != null && ifStatement.getThenStatement() != null && !ifStatement.getThenStatement().equals(parentOfMethodCall)) {
-								if (fLocationOfNewBlocks.containsKey(elseStatement)) {
-									myBlock= fLocationOfNewBlocks.get(elseStatement);
-								} else {
-									myBlock= fAst.newBlock();
-									fLocationOfNewBlocks.put(elseStatement, myBlock);
-									fBlockWithoutBraces.put(myBlock, elseStatement);
-								}
-								ListRewrite listRewriteForBlock= fScratchRewriter.getListRewrite(myBlock, Block.STATEMENTS_PROPERTY);
-								fScratchRewriter.replace(elseStatement, myBlock, fEditGroup);
-								listRewriteForBlock.insertLast(taskDeclStatement, fEditGroup);									
-							} else {
-								Statement thenStatement= ifStatement.getThenStatement();
-								if (thenStatement != null && thenStatement.equals(parentOfMethodCall)) {
-									if (fLocationOfNewBlocks.containsKey(thenStatement)) {
-										myBlock= fLocationOfNewBlocks.get(thenStatement);
-									} else {
-										myBlock= fAst.newBlock();
-										fLocationOfNewBlocks.put(thenStatement, myBlock);
-										fBlockWithoutBraces.put(myBlock, thenStatement);
-									}
-									ListRewrite listRewriteForBlock= fScratchRewriter.getListRewrite(myBlock, Block.STATEMENTS_PROPERTY);
-									fScratchRewriter.replace(thenStatement, myBlock, fEditGroup);
-									listRewriteForBlock.insertLast(taskDeclStatement, fEditGroup);
-								} else {
-									return false;
-								}
+							myBlock= ifStatementWork(taskDeclStatement, myBlock, parentOfMethodCall, tempNode);
+							if (myBlock == null) {
+								return false;
 							}
 						}  //TODO Add another case for when block is higher up?
 						Expression exprTemp= ((ReturnStatement) parentOfMethodCall).getExpression();
@@ -1219,28 +1193,40 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				if (fAllStatementsWithRecursiveMethodInvocation.containsKey(myBlock)) {
 					List<Statement> recursiveList= fAllStatementsWithRecursiveMethodInvocation.get(myBlock);
 					recursiveList.add(parentOfMethodCall);
+		private Block ifStatementWork(VariableDeclarationStatement taskDeclStatement, Block myBlock, Statement parentOfMethodCall, ASTNode tempNode) {
+			IfStatement ifStatement= (IfStatement) tempNode;
+			Statement elseStatement= ifStatement.getElseStatement();
+			if (elseStatement != null && ifStatement.getThenStatement() != null && !ifStatement.getThenStatement().equals(parentOfMethodCall)) {
+				if (fLocationOfNewBlocks.containsKey(elseStatement)) {
+					myBlock= fLocationOfNewBlocks.get(elseStatement);
 				} else {
-					List<Statement> recursiveList= new ArrayList<Statement>();
-					recursiveList.add(parentOfMethodCall);
-					fAllStatementsWithRecursiveMethodInvocation.put(myBlock, recursiveList);
+					myBlock= fAst.newBlock();
+					fLocationOfNewBlocks.put(elseStatement, myBlock);
+					fBlockWithoutBraces.put(myBlock, elseStatement);
 				}
-				if (!fAllTheBlocks.contains(myBlock)) {
-					fAllTheBlocks.add(myBlock);
-				}
-				if (!partialComputationsNames.isEmpty()) {
-					if (fAllPartialComputationsNames.containsKey(myBlock)) {
-						fAllPartialComputationsNames.get(myBlock).addAll(partialComputationsNames);
-						fAllTypesOfComputations.get(myBlock).addAll(typesOfComputations);
+				ListRewrite listRewriteForBlock= fScratchRewriter.getListRewrite(myBlock, Block.STATEMENTS_PROPERTY);
+				fScratchRewriter.replace(elseStatement, myBlock, fEditGroup);
+				listRewriteForBlock.insertLast(taskDeclStatement, fEditGroup);									
+			} else {
+				Statement thenStatement= ifStatement.getThenStatement();
+				if (thenStatement != null && thenStatement.equals(parentOfMethodCall)) {
+					if (fLocationOfNewBlocks.containsKey(thenStatement)) {
+						myBlock= fLocationOfNewBlocks.get(thenStatement);
 					} else {
-						fAllPartialComputationsNames.put(myBlock, partialComputationsNames);
-						fAllTypesOfComputations.put(myBlock, typesOfComputations);
+						myBlock= fAst.newBlock();
+						fLocationOfNewBlocks.put(thenStatement, myBlock);
+						fBlockWithoutBraces.put(myBlock, thenStatement);
 					}
+					ListRewrite listRewriteForBlock= fScratchRewriter.getListRewrite(myBlock, Block.STATEMENTS_PROPERTY);
+					fScratchRewriter.replace(thenStatement, myBlock, fEditGroup);
+					listRewriteForBlock.insertLast(taskDeclStatement, fEditGroup);
+				} else {
+					return null;
 				}
-				int flag= 0;
-				if (infixExpressionFlag) {
-					flag= 1;
-				} else if (methodInvocationFlag) {
-					flag= 2;
+			}
+			return myBlock;
+		}
+
 		private VariableDeclarationStatement createTaskDeclaration(MethodInvocation methodCall) {
 			String codeForTaskDecl= nameForFJTaskSubtype + " task" + ++fTaskNumber[0] +  //$NON-NLS-1$
 			" = new " + nameForFJTaskSubtype + "("; //$NON-NLS-1$ //$NON-NLS-2$
