@@ -398,6 +398,28 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		return counter;
 	}
 
+	private void doMethodWithReturnWork(final AST ast, RefactoringStatus result, final TextEditGroup editGroup, final ASTRewrite scratchRewriter,
+			final Map<Block, List<String>> allPartialComputationsNames, final Map<Block, List<String>> allTypesOfComputations, final Map<Block, Statement> blockWithoutBraces,
+			final Map<Block, Integer> blockFlags, Block currBlock, ListRewrite listRewriteForBlock, int[] taskNumbers, Statement lastStatementWithRecursiveCall) {
+		if (allPartialComputationsNames.containsKey(currBlock)) {
+			createPartialComputations(editGroup, scratchRewriter, allPartialComputationsNames.get(currBlock), allTypesOfComputations.get(currBlock), listRewriteForBlock, lastStatementWithRecursiveCall, !blockWithoutBraces.containsKey(currBlock), taskNumbers);
+		}
+		
+		Statement lastStatementInBlock;
+		if (!blockWithoutBraces.containsKey(currBlock)) {
+			List<ASTNode> statementsInBlockWithTaskDecl= currBlock.statements();
+			lastStatementInBlock= (Statement) statementsInBlockWithTaskDecl.get(statementsInBlockWithTaskDecl.size() - 1);
+		} else {
+			lastStatementInBlock= blockWithoutBraces.get(currBlock);
+		}
+		if (lastStatementInBlock instanceof ReturnStatement) {
+			int errorFlag= createLastStatement(ast, result, editGroup, scratchRewriter, listRewriteForBlock, lastStatementInBlock, !blockWithoutBraces.containsKey(currBlock), taskNumbers, blockFlags.get(currBlock).intValue());
+			if(errorFlag == -1) {
+				return;  //TODO Check this
+			}
+		}
+	}
+
 	private void tryApplyEdits(AST ast, MethodDeclaration computeMethod, final ASTRewrite scratchRewriter) throws JavaModelException {
 		TextEdit edits= scratchRewriter.rewriteAST();
 		IDocument scratchDocument= new Document(((ICompilationUnit)fRoot.getJavaElement()).getSource());
