@@ -491,14 +491,15 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 					forkJoinInvocation.setName(ast.newSimpleName("invokeAll")); //$NON-NLS-1$
 					List<Expression> argumentsForkJoin= forkJoinInvocation.arguments();
 					int counter= 0;
-					Integer max= numTasksPerBlock.get(currBlock);
-					int[] taskNumbers= new int[max.intValue()];
+					int max= numTasksPerBlock.get(currBlock).intValue();
+					int[] taskNumbers= new int[max];
 					for (int i= 1; i <= tasksToBlock.size(); i++) {
 						Block tempBlock= tasksToBlock.get(Integer.valueOf(i));
 						if (tempBlock.equals(currBlock)) {
 							argumentsForkJoin.add(ast.newSimpleName("task" + i)); //$NON-NLS-1$
 							taskNumbers[counter]= i;
-							if (++counter == max.intValue()) {
+							counter++;
+							if (counter == max) {
 								break;
 							}
 						}
