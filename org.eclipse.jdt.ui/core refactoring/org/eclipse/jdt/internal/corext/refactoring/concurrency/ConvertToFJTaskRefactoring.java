@@ -277,7 +277,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		}
 	}
 
-	private void createComputeMethod(TypeDeclaration recursiveActionSubtype, AST ast, RefactoringStatus result) {
+	private void createComputeMethod(TypeDeclaration recursiveActionSubtype, final AST ast, RefactoringStatus result) {
 		
 		MethodDeclaration computeMethod= ast.newMethodDeclaration();
 		computeMethod.setName(ast.newSimpleName("compute")); //$NON-NLS-1$
@@ -369,7 +369,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 								if (lastStatementInBlock instanceof ReturnStatement) {
 									listRewriteForBlock.insertBefore(taskDeclStatement, lastStatementInBlock, editGroup);
 								}
-							} else if (tempNode instanceof IfStatement) {
+							} else if (tempNode instanceof IfStatement) {  //TODO Move this outside of return statement?
 								IfStatement ifStatement= (IfStatement) tempNode;
 								Statement elseStatement= ifStatement.getElseStatement();
 								if (elseStatement != null && ifStatement.getThenStatement() != null && !ifStatement.getThenStatement().equals(parentOfMethodCall)) {
@@ -388,7 +388,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 										return false;
 									}
 								}
-							}
+							}  //TODO Add another case for when block is higher up?
 							Expression exprTemp= ((ReturnStatement) parentOfMethodCall).getExpression();
 							if (exprTemp instanceof InfixExpression) {
 								fInfixExpressionFlag= true;
