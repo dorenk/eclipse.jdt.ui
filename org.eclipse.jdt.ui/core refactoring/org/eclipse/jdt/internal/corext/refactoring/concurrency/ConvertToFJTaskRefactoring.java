@@ -518,7 +518,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 					
 					Statement lastStatementInBlock;
 					if (!blockWithoutBraces.containsKey(currBlock)) {
-						List<ASTNode> statementsInBlockWithTaskDecl= tasksToBlock.get(Integer.valueOf(1)).statements();
+						List<ASTNode> statementsInBlockWithTaskDecl= currBlock.statements();
 						lastStatementInBlock= (Statement) statementsInBlockWithTaskDecl.get(statementsInBlockWithTaskDecl.size() - 1);
 					} else {
 						lastStatementInBlock= blockWithoutBraces.get(currBlock);
@@ -537,7 +537,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 						listRewriteForBlock.insertAfter(ast.newExpressionStatement(forkJoinInvocation), lastStatementWithRecursiveCall, editGroup);
 					}
 				} else {
-						listRewriteForBlock.insertAt(ast.newExpressionStatement(forkJoinInvocation), tasksToBlock.size(), editGroup);
+						listRewriteForBlock.insertAt(ast.newExpressionStatement(forkJoinInvocation), numTasksPerBlock.get(currBlock).intValue(), editGroup);
 				}
 			}
 			tryApplyEdits(ast, computeMethod, scratchRewriter);
