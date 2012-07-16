@@ -427,8 +427,28 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 							return false;
 						}
 					}
+					if (myBlock == null) {
+						ASTNode tempNode= parentOfMethodCall;
+						do {
+							tempNode= tempNode.getParent();
+						} while (tempNode != null && !Block.class.isInstance(tempNode) && !SwitchStatement.class.isInstance(tempNode));
+						if (tempNode == null) {
+							return false;
+						} else if (tempNode instanceof SwitchStatement) {
+							switchStatementFound[0]= true;
+							return false;
+						} else {
+							myBlock= (Block) tempNode;
+						}
+					}
+					tasksToBlock.put(new Integer(taskNumber[0]), myBlock);
+					if (numTasksPerBlock.containsKey(myBlock)) {
+						Integer newValue= new Integer(numTasksPerBlock.get(myBlock) + 1);
+						numTasksPerBlock.put(myBlock, newValue);
+					} else {
+						numTasksPerBlock.put(myBlock, new Integer(1));
+					}
 					statementsWithRecursiveMethodInvocation.add(parentOfMethodCall);
-					
 				}
 				return true;
 			}
