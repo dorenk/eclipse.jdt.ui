@@ -467,7 +467,8 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_switch_statement_error, new String[] {fMethod.getElementName()}));
 				return;
 			}
-			Collection<List<Statement> > recursiveCollection= allStatementsWithRecursiveMethodInvocation.values();  //TODO Move this into loop so can refactor certain parts
+			//TODO Move these checks into loop so can refactor certain parts
+			Collection<List<Statement> > recursiveCollection= allStatementsWithRecursiveMethodInvocation.values();
 			Iterator<List<Statement> > recursiveIter= recursiveCollection.iterator();
 			while (recursiveIter.hasNext()) {
 				if (recursiveIter.next().size() <= 1) {
@@ -483,6 +484,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 					return;
 				}
 			}
+			//Big loop
 			Iterator<Block> blockIter= allTheBlocks.iterator();
 			while (blockIter.hasNext()) {
 				Block currBlock= blockIter.next();
@@ -531,7 +533,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 					}
 				}
 				if (!blockWithoutBraces.containsKey(currBlock)) {
-					if (fInfixExpressionFlag || fMethodInvocationFlag) {
+					if (fInfixExpressionFlag || fMethodInvocationFlag) { //TODO Change these to depend on block
 						listRewriteForBlock.insertBefore(ast.newExpressionStatement(forkJoinInvocation), lastStatementWithRecursiveCall, editGroup);
 					} else {
 						listRewriteForBlock.insertAfter(ast.newExpressionStatement(forkJoinInvocation), lastStatementWithRecursiveCall, editGroup);
@@ -539,7 +541,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				} else {
 						listRewriteForBlock.insertAt(ast.newExpressionStatement(forkJoinInvocation), numTasksPerBlock.get(currBlock).intValue(), editGroup);
 				}
-			}
+			} //End of big loop
 			tryApplyEdits(ast, computeMethod, scratchRewriter);
 		} catch (JavaModelException e) {
 			e.printStackTrace();
