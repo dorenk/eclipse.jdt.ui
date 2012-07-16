@@ -543,7 +543,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				}
 			} //End of big loop
 			if (!atLeastOneBlockChanged) {
-				createFatalError(result, ConcurrencyRefactorings.ConvertToFJTaskRefactoring_no_change_error);
+				createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_no_change_error, new String[] {fMethod.getElementName()}));
 				return;
 			}
 			tryApplyEdits(ast, computeMethod, scratchRewriter);
@@ -715,7 +715,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		result.merge(fatalError);
 	}
 
-	Statement findParentStatement(MethodInvocation methodCall) {
+	Statement findParentStatement(MethodInvocation methodCall) {  //TODO make less nested
 		
 		Statement  parentOfMethodCall= null;
 		ASTNode tempNode= methodCall;
