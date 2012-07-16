@@ -85,9 +85,6 @@ public class TestMaxConsecutiveSum {
 			result = max3(maxLeftSum, maxRightSum, maxLeftBorderSum
 					+ maxRightBorderSum);
 		}
-		/**
-		 * Recursive maximum contiguous subsequence sum algorithm. Finds maximum sum in subarray spanning a[left..right]. Does not attempt to maintain actual best sequence.
-		 */
 		private static int maxSumRec(int[] a, int left, int right) {
 			int maxLeftBorderSum = 0, maxRightBorderSum = 0;
 			int leftBorderSum = 0, rightBorderSum = 0;

@@ -67,11 +67,6 @@ public class TestSequentialMergeSort {
 				result = whole;
 			}
 		}
-		/**
-		 * Recursive helper method which sorts the array referred to  by whole using the merge sort algorithm.
-		 * @param whole  the array to be sorted.
-		 * @return  a reference to an array that holds the elements of whole sorted into non-decreasing order.
-		 */
 		private int[] sort(int[] whole) {
 			if (whole.length == 1) {
 				return whole;

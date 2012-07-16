@@ -40,9 +40,6 @@ public class TestQuickSort {
 			QuicksortImpl task2 = new QuicksortImpl(a, i + 1, right);
 			invokeAll(task1, task2);
 		}
-		/**
-		 * Quicksort code from Sedgewick 7.1, 7.2.
-		 */
 		public void quicksort(double[] a, int left, int right) {
 			if (right <= left)
 				return;
