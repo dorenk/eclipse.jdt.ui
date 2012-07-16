@@ -308,7 +308,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		
 		final Map<Block, List<Statement> > allStatementsWithRecursiveMethodInvocation= new HashMap<Block, List<Statement> >();
 		final int[] taskNumber= new int[] {0};
-		final List<String> partialComputationsNames= new ArrayList<String>();
+		final List<String> partialComputationsNames= new ArrayList<String>();  //TODO Change these to maps as well
 		final List<String> typesOfComputations= new ArrayList<String>();
 		final boolean[] switchStatementFound= new boolean[] {false};
 		final Map<Integer, Block> tasksToBlock= new HashMap<Integer, Block>();  //Can determine which task belongs to which block
@@ -439,7 +439,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 					}
 					tasksToBlock.put(new Integer(taskNumber[0]), myBlock);
 					if (numTasksPerBlock.containsKey(myBlock)) {
-						Integer newValue= new Integer(numTasksPerBlock.get(myBlock) + 1);
+						Integer newValue= new Integer(numTasksPerBlock.get(myBlock).intValue() + 1);
 						numTasksPerBlock.put(myBlock, newValue);
 					} else {
 						numTasksPerBlock.put(myBlock, new Integer(1));
