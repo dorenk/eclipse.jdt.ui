@@ -306,7 +306,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		final int[] taskNumber= new int[] {0};
 		final Map<Block, List<String> > allPartialComputationsNames= new HashMap<Block, List<String> >();
 		final Map<Block, List<String> > allTypesOfComputations= new HashMap<Block, List<String> >();
-		final boolean[] switchStatementFound= new boolean[] {false};
+		final int[] switchStatementFound= new int[] {0};
 		final Map<Integer, Block> tasksToBlock= new HashMap<Integer, Block>();  //Can determine which task belongs to which block
 		final Map<Block, Integer> numTasksPerBlock= new HashMap<Block, Integer>();  //Can determine how many tasks belong to this block easily
 		final Map<ASTNode, Block> locationOfNewBlocks= new HashMap<ASTNode, Block>();  //Can determine where the new block was created so as to see if already has been created (don't create a new one at "same" place)
@@ -319,7 +319,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			if (allStatementsWithRecursiveMethodInvocation.size() == 0) {
 				createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_statement_error, new String[] {fMethod.getElementName()}));
 				return;
-			} else if (switchStatementFound[0]) {  //TODO Create error - only if all switch statements otherwise other block can do refactoring
+			} else if (switchStatementFound[0] >= allTheBlocks.size()) {  //TODO >= or == ?
 				createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_switch_statement_error, new String[] {fMethod.getElementName()}));
 				return;
 			}
@@ -1075,13 +1075,13 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		private final TextEditGroup fEditGroup;
 		private final List<Block> fAllTheBlocks;
 		private final Map<Block, List<String>> fAllTypesOfComputations;
-		private final boolean[] fSwitchStatementFound;
+		private final int[] fSwitchStatementFound;
 		private final Map<Block, Integer> fBlockFlags;
 		private final AST fAst;
 
 		private MethodVisitor(Map<ASTNode, Block> locationOfNewBlocks, ASTRewrite scratchRewriter, Map<Block, Integer> numTasksPerBlock, Map<Block, List<String>> allPartialComputationsNames,
 				int[] taskNumber, Map<Integer, Block> tasksToBlock, Map<Block, Statement> blockWithoutBraces, Map<Block, List<Statement>> allStatementsWithRecursiveMethodInvocation,
-				TextEditGroup editGroup, List<Block> allTheBlocks, Map<Block, List<String>> allTypesOfComputations, boolean[] switchStatementFound, Map<Block, Integer> blockFlags, AST ast) {
+				TextEditGroup editGroup, List<Block> allTheBlocks, Map<Block, List<String>> allTypesOfComputations, int[] switchStatementFound, Map<Block, Integer> blockFlags, AST ast) {
 			fLocationOfNewBlocks= locationOfNewBlocks;
 			fScratchRewriter= scratchRewriter;
 			fNumTasksPerBlock= numTasksPerBlock;
@@ -1115,7 +1115,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				if (parentOfMethodCall == null) {
 					return false;
 				} else if (SwitchStatement.class.isInstance(parentOfMethodCall.getParent())) {
-					fSwitchStatementFound[0]= true;
+					fSwitchStatementFound[0]++;
 					return false;
 				} else if (recursiveMethodReturnsVoid()) {
 					fScratchRewriter.replace(parentOfMethodCall, taskDeclStatement, fEditGroup);
@@ -1177,7 +1177,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 					if (tempNode == null) {
 						return false;
 					} else if (tempNode instanceof SwitchStatement) {
-						fSwitchStatementFound[0]= true;
+						fSwitchStatementFound[0]++;
 						return false;
 					} else {
 						myBlock= (Block) tempNode;
