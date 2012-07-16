@@ -463,85 +463,76 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			if (allStatementsWithRecursiveMethodInvocation.size() == 0) {
 				createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_statement_error, new String[] {fMethod.getElementName()}));
 				return;
-			} else if (switchStatementFound[0]) {
+			} else if (switchStatementFound[0]) {  //Create error?
 				createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_switch_statement_error, new String[] {fMethod.getElementName()}));
 				return;
 			}
-			//TODO Move these checks into loop so can refactor certain parts
-			Collection<List<Statement> > recursiveCollection= allStatementsWithRecursiveMethodInvocation.values();
-			Iterator<List<Statement> > recursiveIter= recursiveCollection.iterator();
-			while (recursiveIter.hasNext()) {
-				if (recursiveIter.next().size() <= 1) {
-					createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_statement_error, new String[] {fMethod.getElementName()}));
-					return;
-				}
-			} 
-			Collection<Integer> numBlockTasks= numTasksPerBlock.values();
-			Iterator<Integer> taskIter= numBlockTasks.iterator();
-			while (taskIter.hasNext()) {
-				if (taskIter.next().equals(Integer.valueOf(1))) {
-					createFatalError(result, ConcurrencyRefactorings.ConvertToFJTaskRefactoring_multiple_block_error);
-					return;
-				}
-			}
 			//Big loop
+			boolean atLeastOneBlockChanged= false;
 			Iterator<Block> blockIter= allTheBlocks.iterator();
 			while (blockIter.hasNext()) {
 				Block currBlock= blockIter.next();
 				ListRewrite listRewriteForBlock= scratchRewriter.getListRewrite(currBlock, Block.STATEMENTS_PROPERTY);
 				
-				MethodInvocation forkJoinInvocation= ast.newMethodInvocation();
-				forkJoinInvocation.setName(ast.newSimpleName("invokeAll")); //$NON-NLS-1$
-				List<Expression> argumentsForkJoin= forkJoinInvocation.arguments();
-				int counter= 0;
-				Integer max= numTasksPerBlock.get(currBlock);
-				for (int i= 1; i <= tasksToBlock.size(); i++) {
-					Block tempBlock= tasksToBlock.get(Integer.valueOf(i));
-					if (tempBlock.equals(currBlock)) {
-						argumentsForkJoin.add(ast.newSimpleName("task" + i)); //$NON-NLS-1$
-						if (++counter == max.intValue()) {
-							break;
+				if (allStatementsWithRecursiveMethodInvocation.get(currBlock).size() > 1 && !numTasksPerBlock.get(currBlock).equals(Integer.valueOf(1))) {
+					atLeastOneBlockChanged=  true;
+					MethodInvocation forkJoinInvocation= ast.newMethodInvocation();
+					forkJoinInvocation.setName(ast.newSimpleName("invokeAll")); //$NON-NLS-1$
+					List<Expression> argumentsForkJoin= forkJoinInvocation.arguments();
+					int counter= 0;
+					Integer max= numTasksPerBlock.get(currBlock);
+					for (int i= 1; i <= tasksToBlock.size(); i++) {
+						Block tempBlock= tasksToBlock.get(Integer.valueOf(i));
+						if (tempBlock.equals(currBlock)) {
+							argumentsForkJoin.add(ast.newSimpleName("task" + i)); //$NON-NLS-1$
+							if (++counter == max.intValue()) {
+								break;
+							}
 						}
-					}
-				}
-				
-				List<Statement> recursiveList= allStatementsWithRecursiveMethodInvocation.get(currBlock);
-				Statement lastStatementWithRecursiveCall;
-				if (!blockWithoutBraces.containsKey(currBlock)) {
-					lastStatementWithRecursiveCall= recursiveList.get(recursiveList.size() - 1);
-				} else {
-					lastStatementWithRecursiveCall= blockWithoutBraces.get(currBlock);
-				}
-				
-				if (!recursiveMethodReturnsVoid()) {
-					if (partialComputationsNames.size() >= 1) {  //TODO Make use the map
-						createPartialComputations(editGroup, scratchRewriter, partialComputationsNames, typesOfComputations, listRewriteForBlock, lastStatementWithRecursiveCall, !blockWithoutBraces.containsKey(currBlock));
 					}
 					
-					Statement lastStatementInBlock;
+					List<Statement> recursiveList= allStatementsWithRecursiveMethodInvocation.get(currBlock);
+					Statement lastStatementWithRecursiveCall;
 					if (!blockWithoutBraces.containsKey(currBlock)) {
-						List<ASTNode> statementsInBlockWithTaskDecl= currBlock.statements();
-						lastStatementInBlock= (Statement) statementsInBlockWithTaskDecl.get(statementsInBlockWithTaskDecl.size() - 1);
+						lastStatementWithRecursiveCall= recursiveList.get(recursiveList.size() - 1);
 					} else {
-						lastStatementInBlock= blockWithoutBraces.get(currBlock);
+						lastStatementWithRecursiveCall= blockWithoutBraces.get(currBlock);
 					}
-					if (lastStatementInBlock instanceof ReturnStatement) {
-						int errorFlag= createLastStatement(ast, result, editGroup, scratchRewriter, listRewriteForBlock, lastStatementInBlock, !blockWithoutBraces.containsKey(currBlock));
-						if(errorFlag == -1) {
-							return;
+					
+					if (!recursiveMethodReturnsVoid()) {
+						if (partialComputationsNames.size() >= 1) {  //TODO Make use the map
+							createPartialComputations(editGroup, scratchRewriter, partialComputationsNames, typesOfComputations, listRewriteForBlock, lastStatementWithRecursiveCall, !blockWithoutBraces.containsKey(currBlock));
+						}
+						
+						Statement lastStatementInBlock;
+						if (!blockWithoutBraces.containsKey(currBlock)) {
+							List<ASTNode> statementsInBlockWithTaskDecl= currBlock.statements();
+							lastStatementInBlock= (Statement) statementsInBlockWithTaskDecl.get(statementsInBlockWithTaskDecl.size() - 1);
+						} else {
+							lastStatementInBlock= blockWithoutBraces.get(currBlock);
+						}
+						if (lastStatementInBlock instanceof ReturnStatement) {
+							int errorFlag= createLastStatement(ast, result, editGroup, scratchRewriter, listRewriteForBlock, lastStatementInBlock, !blockWithoutBraces.containsKey(currBlock));
+							if(errorFlag == -1) {
+								return;
+							}
 						}
 					}
-				}
-				if (!blockWithoutBraces.containsKey(currBlock)) {
-					if (fInfixExpressionFlag || fMethodInvocationFlag) { //TODO Change these to depend on block
-						listRewriteForBlock.insertBefore(ast.newExpressionStatement(forkJoinInvocation), lastStatementWithRecursiveCall, editGroup);
+					if (!blockWithoutBraces.containsKey(currBlock)) {
+						if (fInfixExpressionFlag || fMethodInvocationFlag) { //TODO Change these to depend on block
+							listRewriteForBlock.insertBefore(ast.newExpressionStatement(forkJoinInvocation), lastStatementWithRecursiveCall, editGroup);
+						} else {
+							listRewriteForBlock.insertAfter(ast.newExpressionStatement(forkJoinInvocation), lastStatementWithRecursiveCall, editGroup);
+						}
 					} else {
-						listRewriteForBlock.insertAfter(ast.newExpressionStatement(forkJoinInvocation), lastStatementWithRecursiveCall, editGroup);
+							listRewriteForBlock.insertAt(ast.newExpressionStatement(forkJoinInvocation), numTasksPerBlock.get(currBlock).intValue(), editGroup);
 					}
-				} else {
-						listRewriteForBlock.insertAt(ast.newExpressionStatement(forkJoinInvocation), numTasksPerBlock.get(currBlock).intValue(), editGroup);
 				}
 			} //End of big loop
+			if (!atLeastOneBlockChanged) {
+				createFatalError(result, ConcurrencyRefactorings.ConvertToFJTaskRefactoring_no_change_error);
+				return;
+			}
 			tryApplyEdits(ast, computeMethod, scratchRewriter);
 		} catch (JavaModelException e) {
 			e.printStackTrace();
@@ -586,7 +577,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			e.printStackTrace();
 		}
 	}
-
+	//TODO Change to use maps
 	private int createLastStatement(AST ast, RefactoringStatus result, final TextEditGroup editGroup, final ASTRewrite scratchRewriter, ListRewrite listRewriteForBlock, Statement lastStatementInBlock, boolean isNewBlock) {
 		if (fInfixExpressionFlag) {
 			Assignment assignToResult= ast.newAssignment();
@@ -640,7 +631,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		}
 		return 0;
 	}
-
+	//TODO Change to use maps
 	private void createPartialComputations(final TextEditGroup editGroup, final ASTRewrite scratchRewriter, final List<String> partialComputationsNames, final List<String> typesOfComputations,
 			ListRewrite listRewriteForBlock, Statement lastStatementWithRecursiveCall, boolean isNewBlock) {
 		if (lastStatementWithRecursiveCall instanceof VariableDeclarationStatement) {
