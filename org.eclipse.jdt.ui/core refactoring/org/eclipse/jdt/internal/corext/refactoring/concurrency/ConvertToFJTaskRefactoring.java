@@ -342,7 +342,10 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 					
 					Block myBlock= null;
 					Statement parentOfMethodCall= findParentStatement(methodCall);
-					if (parentOfMethodCall == null || SwitchStatement.class.isInstance(parentOfMethodCall.getParent())) {
+					if (parentOfMethodCall == null) {
+						return false;
+					} else if (SwitchStatement.class.isInstance(parentOfMethodCall.getParent())) {
+						switchStatementFound[0]= true;
 						return false;
 					} else if (recursiveMethodReturnsVoid()) {
 						scratchRewriter.replace(parentOfMethodCall, taskDeclStatement, editGroup);
@@ -419,6 +422,9 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		try {
 			if (statementsWithRecursiveMethodInvocation.size() <= 1) {
 				createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_statement_error, new String[] {fMethod.getElementName()}));
+				return;
+			} else if (switchStatementFound[0]) {
+				createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_switch_statement_error, new String[] {fMethod.getElementName()}));
 				return;
 			}
 			Block[] allTheBlocks= new Block[statementsWithRecursiveMethodInvocation.size()];
