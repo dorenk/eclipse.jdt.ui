@@ -319,7 +319,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			if (allStatementsWithRecursiveMethodInvocation.size() == 0) {
 				createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_statement_error, new String[] {fMethod.getElementName()}));
 				return;
-			} else if (switchStatementFound[0] >= allTheBlocks.size()) {  //TODO >= or == ?
+			} else if (switchStatementsFound[0] >= taskNumber[0]) {  //TODO >= or == ?
 				createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_switch_statement_error, new String[] {fMethod.getElementName()}));
 				return;
 			}
