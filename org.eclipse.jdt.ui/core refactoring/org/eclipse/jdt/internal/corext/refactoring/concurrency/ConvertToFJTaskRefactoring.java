@@ -383,6 +383,21 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		return atLeastOneBlockChanged;
 	}
 
+	private int doTaskCreationLoop(final AST ast, final Map<Integer, Block> tasksToBlock, Block currBlock, List<Expression> argumentsForkJoin, int counter, int max, int[] taskNumbers) {
+		for (int i= 1; i <= tasksToBlock.size(); i++) {
+			Block tempBlock= tasksToBlock.get(Integer.valueOf(i));
+			if (tempBlock.equals(currBlock)) {
+				argumentsForkJoin.add(ast.newSimpleName("task" + i)); //$NON-NLS-1$
+				taskNumbers[counter]= i;
+				counter++;
+				if (counter == max) {
+					break;
+				}
+			}
+		}
+		return counter;
+	}
+
 	private void tryApplyEdits(AST ast, MethodDeclaration computeMethod, final ASTRewrite scratchRewriter) throws JavaModelException {
 		TextEdit edits= scratchRewriter.rewriteAST();
 		IDocument scratchDocument= new Document(((ICompilationUnit)fRoot.getJavaElement()).getSource());
