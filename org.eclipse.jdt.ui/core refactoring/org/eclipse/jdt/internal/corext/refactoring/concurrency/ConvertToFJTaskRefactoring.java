@@ -311,8 +311,13 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		final int[] taskNumber= new int[] {0};
 		final List<String> partialComputationsNames= new ArrayList<String>();
 		final List<String> typesOfComputations= new ArrayList<String>();
-		fSingleElseStatement = null;
 		final Block newBlock = ast.newBlock();
+		final boolean[] switchStatementFound= new boolean[] {false};
+		fSingleElseStatement = null;  //TODO Remove
+		final Map<Integer, Block> tasksToBlock= new HashMap<Integer, Block>();  //Can determine which task belongs to which block
+		final Map<Block, Integer> numTasksPerBlock= new HashMap<Block, Integer>();  //Can determine how many tasks belong to this block easily
+		final Map<ASTNode, Block> locationOfNewBlocks= new HashMap<ASTNode, Block>();  //Can determine where the new block was created so as to see if already has been created (don't create a new one at "same" place)
+		final Map<Block, Statement> blockWithoutBraces= new HashMap<Block, Statement>();  //Can determine if a block does not have braces so as to use when inserting things to it
 		fMethodDeclaration.accept(new ASTVisitor() {
 			@Override
 			public boolean visit(MethodInvocation methodCall) {
