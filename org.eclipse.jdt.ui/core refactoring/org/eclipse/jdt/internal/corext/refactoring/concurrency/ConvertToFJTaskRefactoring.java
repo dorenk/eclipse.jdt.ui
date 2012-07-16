@@ -306,7 +306,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		final int[] taskNumber= new int[] {0};
 		final Map<Block, List<String> > allPartialComputationsNames= new HashMap<Block, List<String> >();
 		final Map<Block, List<String> > allTypesOfComputations= new HashMap<Block, List<String> >();
-		final int[] switchStatementFound= new int[] {0};
+		final int[] switchStatementsFound= new int[] {0};
 		final Map<Integer, Block> tasksToBlock= new HashMap<Integer, Block>();  //Can determine which task belongs to which block
 		final Map<Block, Integer> numTasksPerBlock= new HashMap<Block, Integer>();  //Can determine how many tasks belong to this block easily
 		final Map<ASTNode, Block> locationOfNewBlocks= new HashMap<ASTNode, Block>();  //Can determine where the new block was created so as to see if already has been created (don't create a new one at "same" place)
@@ -314,7 +314,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		final Map<Block, Integer> blockFlags= new HashMap<Block, Integer>();  //Can determine flags for each block separately
 		final List<Block> allTheBlocks= new ArrayList<Block>();
 		fMethodDeclaration.accept(new MethodVisitor(locationOfNewBlocks, scratchRewriter, numTasksPerBlock, allPartialComputationsNames, taskNumber, tasksToBlock, blockWithoutBraces,
-				allStatementsWithRecursiveMethodInvocation, editGroup, allTheBlocks, allTypesOfComputations, switchStatementFound, blockFlags, ast));
+				allStatementsWithRecursiveMethodInvocation, editGroup, allTheBlocks, allTypesOfComputations, switchStatementsFound, blockFlags, ast));
 		try {
 			if (allStatementsWithRecursiveMethodInvocation.size() == 0) {
 				createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_statement_error, new String[] {fMethod.getElementName()}));
@@ -1075,13 +1075,13 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		private final TextEditGroup fEditGroup;
 		private final List<Block> fAllTheBlocks;
 		private final Map<Block, List<String>> fAllTypesOfComputations;
-		private final int[] fSwitchStatementFound;
+		private final int[] fSwitchStatementsFound;
 		private final Map<Block, Integer> fBlockFlags;
 		private final AST fAst;
 
 		private MethodVisitor(Map<ASTNode, Block> locationOfNewBlocks, ASTRewrite scratchRewriter, Map<Block, Integer> numTasksPerBlock, Map<Block, List<String>> allPartialComputationsNames,
 				int[] taskNumber, Map<Integer, Block> tasksToBlock, Map<Block, Statement> blockWithoutBraces, Map<Block, List<Statement>> allStatementsWithRecursiveMethodInvocation,
-				TextEditGroup editGroup, List<Block> allTheBlocks, Map<Block, List<String>> allTypesOfComputations, int[] switchStatementFound, Map<Block, Integer> blockFlags, AST ast) {
+				TextEditGroup editGroup, List<Block> allTheBlocks, Map<Block, List<String>> allTypesOfComputations, int[] switchStatementsFound, Map<Block, Integer> blockFlags, AST ast) {
 			fLocationOfNewBlocks= locationOfNewBlocks;
 			fScratchRewriter= scratchRewriter;
 			fNumTasksPerBlock= numTasksPerBlock;
@@ -1093,7 +1093,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			fEditGroup= editGroup;
 			fAllTheBlocks= allTheBlocks;
 			fAllTypesOfComputations= allTypesOfComputations;
-			fSwitchStatementFound= switchStatementFound;
+			fSwitchStatementsFound= switchStatementsFound;
 			fBlockFlags= blockFlags;
 			fAst= ast;
 		}
@@ -1115,7 +1115,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				if (parentOfMethodCall == null) {
 					return false;
 				} else if (SwitchStatement.class.isInstance(parentOfMethodCall.getParent())) {
-					fSwitchStatementFound[0]++;
+					fSwitchStatementsFound[0]++;
 					return false;
 				} else if (recursiveMethodReturnsVoid()) {
 					fScratchRewriter.replace(parentOfMethodCall, taskDeclStatement, fEditGroup);
@@ -1177,7 +1177,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 					if (tempNode == null) {
 						return false;
 					} else if (tempNode instanceof SwitchStatement) {
-						fSwitchStatementFound[0]++;
+						fSwitchStatementsFound[0]++;
 						return false;
 					} else {
 						myBlock= (Block) tempNode;
