@@ -317,6 +317,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		final Map<Block, Integer> numTasksPerBlock= new HashMap<Block, Integer>();  //Can determine how many tasks belong to this block easily
 		final Map<ASTNode, Block> locationOfNewBlocks= new HashMap<ASTNode, Block>();  //Can determine where the new block was created so as to see if already has been created (don't create a new one at "same" place)
 		final Map<Block, Statement> blockWithoutBraces= new HashMap<Block, Statement>();  //Can determine if a block does not have braces so as to use when inserting things to it
+		final List<Block> allTheBlocks= new ArrayList<Block>();
 		fMethodDeclaration.accept(new ASTVisitor() {
 			@Override
 			public boolean visit(MethodInvocation methodCall) {
@@ -455,6 +456,9 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 						recursiveList.add(parentOfMethodCall);
 						allStatementsWithRecursiveMethodInvocation.put(myBlock, recursiveList);
 					}
+					if (!allTheBlocks.contains(myBlock)) {
+						allTheBlocks.add(myBlock);
+					}
 				}
 				return true;
 			}
@@ -484,52 +488,63 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 					return;
 				}
 			}
-			//TODO Make a separate fSingleElseStatement thing for each block (potentially)
-			//start loop
-			ListRewrite listRewriteForBlock= scratchRewriter.getListRewrite(tasksToBlock.get(Integer.valueOf(1)), Block.STATEMENTS_PROPERTY);
-			
-			MethodInvocation forkJoinInvocation= ast.newMethodInvocation();
-			forkJoinInvocation.setName(ast.newSimpleName("invokeAll")); //$NON-NLS-1$
-			List<Expression> argumentsForkJoin= forkJoinInvocation.arguments();
-			for (int i= 1; i <= taskNumber[0]; i++) {
-				argumentsForkJoin.add(ast.newSimpleName("task" + i)); //$NON-NLS-1$
-			}
-			Statement lastStatementWithRecursiveCall;
-			if (fSingleElseStatement == null) {
-				lastStatementWithRecursiveCall= statementsWithRecursiveMethodInvocation.get(statementsWithRecursiveMethodInvocation.size() - 1);
-			} else {
-				lastStatementWithRecursiveCall= fSingleElseStatement;
-			}
-			
-			if (!recursiveMethodReturnsVoid()) {
-				if (partialComputationsNames.size() >= 1) {
-					createPartialComputations(editGroup, scratchRewriter, partialComputationsNames, typesOfComputations, listRewriteForBlock, lastStatementWithRecursiveCall);
-				}
+			Iterator<Block> blockIter= allTheBlocks.iterator();
+			while (blockIter.hasNext()) {
+				Block currBlock= blockIter.next();
+				ListRewrite listRewriteForBlock= scratchRewriter.getListRewrite(currBlock, Block.STATEMENTS_PROPERTY);
 				
-				Statement lastStatementInBlock;
-				if (fSingleElseStatement == null) {
-					List<ASTNode> statementsInBlockWithTaskDecl= tasksToBlock.get(Integer.valueOf(1)).statements();
-					lastStatementInBlock= (Statement) statementsInBlockWithTaskDecl.get(statementsInBlockWithTaskDecl.size() - 1);
-				} else {
-					lastStatementInBlock= fSingleElseStatement;
-				}
-				if (lastStatementInBlock instanceof ReturnStatement) {
-					int errorFlag= createLastStatement(ast, result, editGroup, scratchRewriter, listRewriteForBlock, lastStatementInBlock);
-					if(errorFlag == -1) {
-						return;
+				MethodInvocation forkJoinInvocation= ast.newMethodInvocation();
+				forkJoinInvocation.setName(ast.newSimpleName("invokeAll")); //$NON-NLS-1$
+				List<Expression> argumentsForkJoin= forkJoinInvocation.arguments();
+				int counter= 0;
+				Integer max= numTasksPerBlock.get(currBlock);
+				for (int i= 1; i <= tasksToBlock.size(); i++) {
+					Block tempBlock= tasksToBlock.get(Integer.valueOf(i));
+					if (tempBlock.equals(currBlock)) {
+						argumentsForkJoin.add(ast.newSimpleName("task" + i)); //$NON-NLS-1$
+						if (++counter == max.intValue()) {
+							break;
+						}
 					}
 				}
-			}
-			if (fSingleElseStatement == null) {
-				if (fInfixExpressionFlag || fMethodInvocationFlag) {
-					listRewriteForBlock.insertBefore(ast.newExpressionStatement(forkJoinInvocation), lastStatementWithRecursiveCall, editGroup);
+				
+				List<Statement> recursiveList= allStatementsWithRecursiveMethodInvocation.get(currBlock);
+				Statement lastStatementWithRecursiveCall;
+				if (!blockWithoutBraces.containsKey(currBlock)) {
+					lastStatementWithRecursiveCall= recursiveList.get(recursiveList.size() - 1);
 				} else {
-					listRewriteForBlock.insertAfter(ast.newExpressionStatement(forkJoinInvocation), lastStatementWithRecursiveCall, editGroup);
+					lastStatementWithRecursiveCall= blockWithoutBraces.get(currBlock);
 				}
-			} else {
-					listRewriteForBlock.insertAt(ast.newExpressionStatement(forkJoinInvocation), tasksToBlock.size(), editGroup);
+				
+				if (!recursiveMethodReturnsVoid()) {
+					if (partialComputationsNames.size() >= 1) {  //TODO Make use the map
+						createPartialComputations(editGroup, scratchRewriter, partialComputationsNames, typesOfComputations, listRewriteForBlock, lastStatementWithRecursiveCall, !blockWithoutBraces.containsKey(currBlock));
+					}
+					
+					Statement lastStatementInBlock;
+					if (!blockWithoutBraces.containsKey(currBlock)) {
+						List<ASTNode> statementsInBlockWithTaskDecl= tasksToBlock.get(Integer.valueOf(1)).statements();
+						lastStatementInBlock= (Statement) statementsInBlockWithTaskDecl.get(statementsInBlockWithTaskDecl.size() - 1);
+					} else {
+						lastStatementInBlock= blockWithoutBraces.get(currBlock);
+					}
+					if (lastStatementInBlock instanceof ReturnStatement) {
+						int errorFlag= createLastStatement(ast, result, editGroup, scratchRewriter, listRewriteForBlock, lastStatementInBlock, !blockWithoutBraces.containsKey(currBlock));
+						if(errorFlag == -1) {
+							return;
+						}
+					}
+				}
+				if (!blockWithoutBraces.containsKey(currBlock)) {
+					if (fInfixExpressionFlag || fMethodInvocationFlag) {
+						listRewriteForBlock.insertBefore(ast.newExpressionStatement(forkJoinInvocation), lastStatementWithRecursiveCall, editGroup);
+					} else {
+						listRewriteForBlock.insertAfter(ast.newExpressionStatement(forkJoinInvocation), lastStatementWithRecursiveCall, editGroup);
+					}
+				} else {
+						listRewriteForBlock.insertAt(ast.newExpressionStatement(forkJoinInvocation), tasksToBlock.size(), editGroup);
+				}
 			}
-			//end loop
 			tryApplyEdits(ast, computeMethod, scratchRewriter);
 		} catch (JavaModelException e) {
 			e.printStackTrace();
