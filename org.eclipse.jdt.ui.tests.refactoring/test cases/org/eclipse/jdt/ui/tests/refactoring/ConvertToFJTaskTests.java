@@ -198,6 +198,10 @@ public class ConvertToFJTaskTests extends AbstractSelectionTestCase {
 		objectTest("test1", "x < 10");
 	}
 	
+	public void testMultiple2() throws Exception {
+		objectTest("test2", "x < 10");
+	}
+	
 	public void testBaseCaseDoesNotHaveReturn() throws Exception {
 		invalidTest("method");
 	}
