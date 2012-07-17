@@ -186,6 +186,10 @@ public class ConvertToFJTaskTests extends AbstractSelectionTestCase {
 		objectTest("grayCheckHierarchy", "treeElement.length() < 10");
 	}
 	
+	public void testIfception() throws Exception {
+		objectTest("method", "end < 10");
+	}
+	
 	public void testBaseCaseDoesNotHaveReturn() throws Exception {
 		invalidTest("method");
 	}
