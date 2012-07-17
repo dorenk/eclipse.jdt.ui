@@ -1125,7 +1125,15 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 						VariableDeclarationFragment varFragment= (VariableDeclarationFragment) varDeclaration.fragments().get(0);
 						partialComputationsNames.add(varFragment.getName().getIdentifier());
 						typesOfComputations.add(varDeclaration.getType().toString());
-						fScratchRewriter.replace(parentOfMethodCall, taskDeclStatement, fEditGroup);
+						ASTNode tempNode= parentOfMethodCall.getParent();
+						if (tempNode instanceof IfStatement) {
+							myBlock= ifStatementWork(taskDeclStatement, myBlock, parentOfMethodCall, tempNode);
+							if (myBlock == null) {
+								return false;
+							}
+						} else {
+							fScratchRewriter.replace(parentOfMethodCall, taskDeclStatement, fEditGroup);
+						}
 					} else if (parentOfMethodCall instanceof ExpressionStatement) {
 						ExpressionStatement exprStatement= (ExpressionStatement) parentOfMethodCall;
 						Expression expressionContainer= exprStatement.getExpression();
@@ -1134,7 +1142,15 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 							Expression leftHandSide= assignment.getLeftHandSide();
 							partialComputationsNames.add(leftHandSide.toString());
 							typesOfComputations.add(leftHandSide.resolveTypeBinding().getName());
-							fScratchRewriter.replace(parentOfMethodCall, taskDeclStatement, fEditGroup);
+							ASTNode tempNode= parentOfMethodCall.getParent();
+							if (tempNode instanceof IfStatement) {
+								myBlock= ifStatementWork(taskDeclStatement, myBlock, parentOfMethodCall, tempNode);
+								if (myBlock == null) {
+									return false;
+								}
+							} else {
+								fScratchRewriter.replace(parentOfMethodCall, taskDeclStatement, fEditGroup);
+							}
 						} else {
 							System.err.println(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_scenario_error + parentOfMethodCall.toString() );
 							return false;
