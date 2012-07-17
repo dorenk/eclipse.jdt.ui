@@ -225,4 +225,8 @@ public class ConvertToFJTaskTests extends AbstractSelectionTestCase {
 	public void testIfStatementWithoutBraces() throws Exception {
 		invalidTest("grayCheckHierarchy");
 	}
+	
+	public void testOnlyOneCall() throws Exception {
+		invalidTest("yesterday");
+	}
 }
