@@ -237,4 +237,8 @@ public class ConvertToFJTaskTests extends AbstractSelectionTestCase {
 	public void testNoBody() throws Exception {
 		invalidTest("today");
 	}
+	
+	public void testUnavailableOperation() throws Exception {
+		invalidTest("threeDaysIntoFuture");
+	}
 }
