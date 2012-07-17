@@ -1230,33 +1230,30 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			IfStatement ifStatement= (IfStatement) tempNode;
 			Statement elseStatement= ifStatement.getElseStatement();
 			if (elseStatement != null && ifStatement.getThenStatement() != null && !ifStatement.getThenStatement().equals(parentOfMethodCall)) {
-				if (fLocationOfNewBlocks.containsKey(elseStatement)) {
-					myBlock= fLocationOfNewBlocks.get(elseStatement);
-				} else {
-					myBlock= fAst.newBlock();
-					fLocationOfNewBlocks.put(elseStatement, myBlock);
-					fBlockWithoutBraces.put(myBlock, elseStatement);
-				}
-				ListRewrite listRewriteForBlock= fScratchRewriter.getListRewrite(myBlock, Block.STATEMENTS_PROPERTY);
-				fScratchRewriter.replace(elseStatement, myBlock, fEditGroup);
-				listRewriteForBlock.insertLast(taskDeclStatement, fEditGroup);									
+				myBlock= replaceStatementInBlock(taskDeclStatement, elseStatement);									
 			} else {
 				Statement thenStatement= ifStatement.getThenStatement();
 				if (thenStatement != null && thenStatement.equals(parentOfMethodCall)) {
-					if (fLocationOfNewBlocks.containsKey(thenStatement)) {
-						myBlock= fLocationOfNewBlocks.get(thenStatement);
-					} else {
-						myBlock= fAst.newBlock();
-						fLocationOfNewBlocks.put(thenStatement, myBlock);
-						fBlockWithoutBraces.put(myBlock, thenStatement);
-					}
-					ListRewrite listRewriteForBlock= fScratchRewriter.getListRewrite(myBlock, Block.STATEMENTS_PROPERTY);
-					fScratchRewriter.replace(thenStatement, myBlock, fEditGroup);
-					listRewriteForBlock.insertLast(taskDeclStatement, fEditGroup);
+					myBlock= replaceStatementInBlock(taskDeclStatement, thenStatement);
 				} else {
 					return null;
 				}
 			}
+			return myBlock;
+		}
+
+		private Block replaceStatementInBlock(VariableDeclarationStatement taskDeclStatement, Statement targetStatement) {
+			Block myBlock;
+			if (fLocationOfNewBlocks.containsKey(targetStatement)) {
+				myBlock= fLocationOfNewBlocks.get(targetStatement);
+			} else {
+				myBlock= fAst.newBlock();
+				fLocationOfNewBlocks.put(targetStatement, myBlock);
+				fBlockWithoutBraces.put(myBlock, targetStatement);
+			}
+			ListRewrite listRewriteForBlock= fScratchRewriter.getListRewrite(myBlock, Block.STATEMENTS_PROPERTY);
+			fScratchRewriter.replace(targetStatement, myBlock, fEditGroup);
+			listRewriteForBlock.insertLast(taskDeclStatement, fEditGroup);
 			return myBlock;
 		}
 
