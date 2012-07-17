@@ -250,7 +250,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		
 		ASTNode copyRecursiveMethod= ASTNode.copySubtree(ast, fMethodDeclaration);
 		recursiveActionSubtype.bodyDeclarations().add(copyRecursiveMethod);
-		if(fMethodDeclaration.getBody() != null) {
+		if (fMethodDeclaration.getBody() != null) {
 			checkIfCommentWarning(result);
 		}
 	}
@@ -414,7 +414,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		}
 		if (lastStatementInBlock instanceof ReturnStatement) {
 			int errorFlag= createLastStatement(ast, result, editGroup, scratchRewriter, listRewriteForBlock, lastStatementInBlock, !blockWithoutBraces.containsKey(currBlock), taskNumbers, blockFlags.get(currBlock).intValue());
-			if(errorFlag == -1) {
+			if (errorFlag == -1) {
 				return;  //TODO Check this
 			}
 		}
