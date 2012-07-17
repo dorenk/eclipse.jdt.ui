@@ -12,7 +12,6 @@ public class TestMultiple1 {
 		pool.invoke(aTest1Impl);
 		return aTest1Impl.result;
 	}
-
 	public class Test1Impl extends RecursiveAction {
 		private int x;
 		private int result;
