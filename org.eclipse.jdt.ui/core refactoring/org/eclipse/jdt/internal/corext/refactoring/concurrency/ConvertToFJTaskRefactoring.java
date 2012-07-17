@@ -112,11 +112,6 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 	private ImportRewrite fImportRewrite;
 	private String nameForFJTaskSubtype= ConcurrencyRefactorings.ConcurrencyRefactorings_empty_string;
 	private String sequentialThreshold= ConcurrencyRefactorings.ConcurrencyRefactorings_empty_string;
-	private boolean fInfixExpressionFlag= false;
-	private boolean fMethodInvocationFlag= false;
-	private Statement fSingleElseStatement;
-
-	
 
 	public ConvertToFJTaskRefactoring(IMethod method){
 		fChangeManager= new TextChangeManager();
@@ -253,9 +248,14 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 
 	private void copyRecursiveMethod(TypeDeclaration recursiveActionSubtype, AST ast, RefactoringStatus result) {
 		
-		ASTNode copyRecursiveMethod= ASTNode.copySubtree(ast, fMethodDeclaration);  //TODO Copy over comments?
+		ASTNode copyRecursiveMethod= ASTNode.copySubtree(ast, fMethodDeclaration);
 		recursiveActionSubtype.bodyDeclarations().add(copyRecursiveMethod);
-		
+		if(fMethodDeclaration.getBody() != null) {
+			checkIfCommentWarning(result);
+		}
+	}
+
+	private void checkIfCommentWarning(RefactoringStatus result) {
 		int start= fMethodDeclaration.getBody().getStartPosition();
 		int end= fMethodDeclaration.getBody().getLength() - start;
 		List<Comment> commentList= fRoot.getCommentList();
@@ -272,7 +272,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		}
 	}
 
-	private void createComputeMethod(TypeDeclaration recursiveActionSubtype, AST ast, RefactoringStatus result) {
+	private void createComputeMethod(TypeDeclaration recursiveActionSubtype, final AST ast, RefactoringStatus result) {
 		
 		MethodDeclaration computeMethod= ast.newMethodDeclaration();
 		computeMethod.setName(ast.newSimpleName("compute")); //$NON-NLS-1$
@@ -281,12 +281,12 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		final TextEditGroup editGroup= new TextEditGroup(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_generate_compute);
 		
 		if (fMethodDeclaration.getBody() == null) {
-			createFatalError(result);
+			createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_method_body_error, new String[] {fMethod.getElementName()}));
 			return;
 		}
 		Statement recursionBaseCaseBranch= identifyRecursionBaseCaseBranch(fMethodDeclaration.getBody());
 		if (recursionBaseCaseBranch == null) {
-			createFatalError(result);
+			createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_recursion_error, new String[] {fMethod.getElementName()}));
 			return;
 		}
 
@@ -302,190 +302,38 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			doRecursionBaseCaseReturn(ast, editGroup, recursionBaseCaseBranch, scratchRewriter);
 		}
 		
-		final List<Statement> lastStatementWithRecursiveMethodInvocation= new ArrayList<Statement>();
+		final Map<Block, List<Statement> > allStatementsWithRecursiveMethodInvocation= new HashMap<Block, List<Statement> >();
 		final int[] taskNumber= new int[] {0};
-		final List<String> partialComputationsNames= new ArrayList<String>();
-		final List<String> typesOfComputations= new ArrayList<String>();
-		fSingleElseStatement = null;
-		final Block newBlock = ast.newBlock();
-		fMethodDeclaration.accept(new ASTVisitor() {
-			@Override
-			public boolean visit(MethodInvocation methodCall) {
-				
-				IMethodBinding bindingForMethodCall= methodCall.resolveMethodBinding();
-				IMethodBinding bindingForMethodDeclaration= fMethodDeclaration.resolveBinding();
-				if (bindingForMethodCall.isEqualTo(bindingForMethodDeclaration)) {
-					String codeForTaskDecl= nameForFJTaskSubtype + " task" + ++taskNumber[0] +  //$NON-NLS-1$
-				    " = new " + nameForFJTaskSubtype + "("; //$NON-NLS-1$ //$NON-NLS-2$
-					String methodArguments= ConcurrencyRefactorings.ConcurrencyRefactorings_empty_string;
-					List<Expression> arguments= methodCall.arguments();
-					for (Iterator<Expression> iterator= arguments.iterator(); iterator
-							.hasNext();) {
-						ASTNode argument= iterator.next();
-						methodArguments += argument.toString();
-						if (iterator.hasNext()) {
-							methodArguments += ", "; //$NON-NLS-1$
-						}
-					}
-					codeForTaskDecl += methodArguments + ");"; //$NON-NLS-1$
-					VariableDeclarationStatement taskDeclStatement= (VariableDeclarationStatement) scratchRewriter.createStringPlaceholder(codeForTaskDecl , ASTNode.VARIABLE_DECLARATION_STATEMENT);
-					Statement parentOfMethodCall= findParentStatement(methodCall);
-					if (parentOfMethodCall == null || SwitchStatement.class.isInstance(parentOfMethodCall.getParent())) {
-						return false;
-					} else if (recursiveMethodReturnsVoid()) {
-						scratchRewriter.replace(parentOfMethodCall, taskDeclStatement, editGroup);
-					} else {
-						if (parentOfMethodCall instanceof VariableDeclarationStatement) {
-							VariableDeclarationStatement varDeclaration= (VariableDeclarationStatement) parentOfMethodCall;
-							VariableDeclarationFragment varFragment= (VariableDeclarationFragment) varDeclaration.fragments().get(0);
-							partialComputationsNames.add(varFragment.getName().getIdentifier());
-							typesOfComputations.add(varDeclaration.getType().toString());
-							scratchRewriter.replace(parentOfMethodCall, taskDeclStatement, editGroup);
-						} else if (parentOfMethodCall instanceof ExpressionStatement) {
-							ExpressionStatement exprStatement= (ExpressionStatement) parentOfMethodCall;
-							Expression expressionContainer= exprStatement.getExpression();
-							if (expressionContainer instanceof Assignment) {
-								Assignment assignment= (Assignment) expressionContainer;
-								Expression leftHandSide= assignment.getLeftHandSide();
-								partialComputationsNames.add(leftHandSide.toString());
-								typesOfComputations.add(leftHandSide.resolveTypeBinding().getName());
-								scratchRewriter.replace(parentOfMethodCall, taskDeclStatement, editGroup);
-							} else {
-								System.err.println(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_scenario_error + parentOfMethodCall.toString() );
-								return false;
-							}
-						} else if (parentOfMethodCall instanceof ReturnStatement) {
-							ASTNode tempNode= parentOfMethodCall.getParent();
-							if (tempNode instanceof Block) {
-								Block blockWithReturn= (Block) tempNode;
-								ListRewrite listRewriteForBlock= scratchRewriter.getListRewrite(blockWithReturn, Block.STATEMENTS_PROPERTY);
-								List<ASTNode> statementsInBlockWithReturn= blockWithReturn.statements();
-								Statement lastStatementInBlock= (Statement) statementsInBlockWithReturn.get(statementsInBlockWithReturn.size() - 1);
-								if (lastStatementInBlock instanceof ReturnStatement) {
-									listRewriteForBlock.insertBefore(taskDeclStatement, lastStatementInBlock, editGroup);
-								}
-							} else if (tempNode instanceof IfStatement) {
-								IfStatement ifStatement= (IfStatement) tempNode;
-								Statement elseStatement= ifStatement.getElseStatement();
-								if (elseStatement != null && ifStatement.getThenStatement() != null && !ifStatement.getThenStatement().equals(parentOfMethodCall)) {
-									ListRewrite listRewriteForBlock= scratchRewriter.getListRewrite(newBlock, Block.STATEMENTS_PROPERTY);
-									scratchRewriter.replace(elseStatement, newBlock, editGroup);
-									fSingleElseStatement= elseStatement;
-									listRewriteForBlock.insertLast(taskDeclStatement, editGroup);									
-								} else {
-									Statement thenStatement= ifStatement.getThenStatement();
-									if (thenStatement != null && thenStatement.equals(parentOfMethodCall)) {
-										ListRewrite listRewriteForBlock= scratchRewriter.getListRewrite(newBlock, Block.STATEMENTS_PROPERTY);
-										scratchRewriter.replace(thenStatement, newBlock, editGroup);
-										fSingleElseStatement= thenStatement;
-										listRewriteForBlock.insertLast(taskDeclStatement, editGroup);
-									} else {
-										return false;
-									}
-								}
-							}
-							Expression exprTemp= ((ReturnStatement) parentOfMethodCall).getExpression();
-							if (exprTemp instanceof InfixExpression) {
-								fInfixExpressionFlag= true;
-							} else if (exprTemp instanceof MethodInvocation) {
-								fMethodInvocationFlag= true;
-							} else {
-								System.err.println(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_scenario_error + parentOfMethodCall.toString() );
-								return false;
-							}
-						} else {
-							System.err.println(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_scenario_error + parentOfMethodCall.toString() );
-							return false;
-						}
-					}
-					lastStatementWithRecursiveMethodInvocation.add(parentOfMethodCall);
-					
-				}
-				return true;
-			}
-		});
+		final Map<Block, List<String> > allPartialComputationsNames= new HashMap<Block, List<String> >();
+		final Map<Block, List<String> > allTypesOfComputations= new HashMap<Block, List<String> >();
+		final int[] switchStatementsFound= new int[] {0};
+		final Map<Integer, Block> tasksToBlock= new HashMap<Integer, Block>();  //Can determine which task belongs to which block
+		final Map<Block, Integer> numTasksPerBlock= new HashMap<Block, Integer>();  //Can determine how many tasks belong to this block easily
+		final Map<ASTNode, Block> locationOfNewBlocks= new HashMap<ASTNode, Block>();  //Can determine where the new block was created so as to see if already has been created (don't create a new one at "same" place)
+		final Map<Block, Statement> blockWithoutBraces= new HashMap<Block, Statement>();  //Can determine if a block does not have braces so as to use when inserting things to it
+		final Map<Block, Integer> blockFlags= new HashMap<Block, Integer>();  //Can determine flags for each block separately
+		final List<Block> allTheBlocks= new ArrayList<Block>();
+		fMethodDeclaration.accept(new MethodVisitor(locationOfNewBlocks, scratchRewriter, numTasksPerBlock, allPartialComputationsNames, taskNumber, tasksToBlock, blockWithoutBraces,
+				allStatementsWithRecursiveMethodInvocation, editGroup, allTheBlocks, allTypesOfComputations, switchStatementsFound, blockFlags, ast));
 		try {
-			if (lastStatementWithRecursiveMethodInvocation.size() <= 1) {
-				createFatalError(result);
+			if (allStatementsWithRecursiveMethodInvocation.size() == 0) {
+				createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_statement_error, new String[] {fMethod.getElementName()}));
+				return;
+			} else if (switchStatementsFound[0] >= taskNumber[0]) {  //TODO >= or == ?
+				createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_switch_statement_error, new String[] {fMethod.getElementName()}));
 				return;
 			}
-			Block[] allTheBlocks= new Block[lastStatementWithRecursiveMethodInvocation.size()];
-			for (int i= 0; i < lastStatementWithRecursiveMethodInvocation.size(); i++) {
-				allTheBlocks[i]= null;
-				ASTNode tempNode= lastStatementWithRecursiveMethodInvocation.get(i);
-				if(fSingleElseStatement == null) {
-					do {
-						tempNode= tempNode.getParent();
-					} while (tempNode != null && !Block.class.isInstance(tempNode) && !SwitchStatement.class.isInstance(tempNode));
-					if (tempNode == null) {
-						createFatalError(result);
-						return;
-					} else if (tempNode instanceof SwitchStatement) {
-						createFatalError(result);
-						return;
-					} else {
-						allTheBlocks[i]= (Block) tempNode;
-					}
-				} else {
-					allTheBlocks[i]= newBlock;
-				}
-				if (allTheBlocks[i] == null) {
-					createFatalError(result);
-					return;
-				}
+			boolean atLeastOneBlockChanged= false;
+			Iterator<Block> blockIter= allTheBlocks.iterator();
+			while (blockIter.hasNext()) {
+				Block currBlock= blockIter.next();
+				ListRewrite listRewriteForBlock= scratchRewriter.getListRewrite(currBlock, Block.STATEMENTS_PROPERTY);
+				atLeastOneBlockChanged= doBlockWork(ast, result, editGroup, scratchRewriter, allStatementsWithRecursiveMethodInvocation, allPartialComputationsNames, allTypesOfComputations,
+						tasksToBlock, numTasksPerBlock, blockWithoutBraces, blockFlags, atLeastOneBlockChanged, currBlock, listRewriteForBlock);
 			}
-			for (int i= 0; i < allTheBlocks.length - 1; i++) {
-				if (!allTheBlocks[i].equals(allTheBlocks[i + 1])) {
-					createFatalError(result);
-					return;
-				}
-			}
-			ListRewrite listRewriteForBlock= scratchRewriter.getListRewrite(allTheBlocks[0], Block.STATEMENTS_PROPERTY);
-			
-			MethodInvocation forkJoinInvocation= ast.newMethodInvocation();
-			forkJoinInvocation.setName(ast.newSimpleName("invokeAll")); //$NON-NLS-1$
-			List<Expression> argumentsForkJoin= forkJoinInvocation.arguments();
-			for (int i= 1; i <= taskNumber[0]; i++) {
-				argumentsForkJoin.add(ast.newSimpleName("task" + i)); //$NON-NLS-1$
-			}
-			Statement lastStatementWithRecursiveCall;
-			if (fSingleElseStatement == null) {
-				lastStatementWithRecursiveCall= lastStatementWithRecursiveMethodInvocation.get(lastStatementWithRecursiveMethodInvocation.size() - 1);
-			} else {
-				lastStatementWithRecursiveCall= fSingleElseStatement;
-			}
-			
-			if (!recursiveMethodReturnsVoid()) {
-				if (partialComputationsNames.size() >= 1) {
-					createPartialComputations(editGroup, scratchRewriter, partialComputationsNames, typesOfComputations, listRewriteForBlock, lastStatementWithRecursiveCall);
-				}
-				
-				Statement lastStatementInBlock;
-				if (fSingleElseStatement == null) {
-					List<ASTNode> statementsInBlockWithTaskDecl= allTheBlocks[0].statements();
-					lastStatementInBlock= (Statement) statementsInBlockWithTaskDecl.get(statementsInBlockWithTaskDecl.size() - 1);
-				} else {
-					lastStatementInBlock= fSingleElseStatement;
-				}
-				if (lastStatementInBlock instanceof ReturnStatement) {
-					int errorFlag= createLastStatement(ast, result, editGroup, scratchRewriter, listRewriteForBlock, lastStatementInBlock);
-					if(errorFlag == -1) {
-						return;
-					}
-				}
-			}
-			if (fInfixExpressionFlag || fMethodInvocationFlag ) {
-				if (fSingleElseStatement == null) {
-					listRewriteForBlock.insertBefore(ast.newExpressionStatement(forkJoinInvocation), lastStatementWithRecursiveCall, editGroup);
-				} else {
-					listRewriteForBlock.insertAt(ast.newExpressionStatement(forkJoinInvocation), taskNumber[0], editGroup);
-				}
-			} else {
-				if (fSingleElseStatement == null) {
-					listRewriteForBlock.insertAfter(ast.newExpressionStatement(forkJoinInvocation), lastStatementWithRecursiveCall, editGroup);
-				} else {
-					listRewriteForBlock.insertAt(ast.newExpressionStatement(forkJoinInvocation), taskNumber[0], editGroup);
-				}
+			if (!atLeastOneBlockChanged) {
+				createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_no_change_error, new String[] {fMethod.getElementName()}));
+				return;
 			}
 			tryApplyEdits(ast, computeMethod, scratchRewriter);
 		} catch (JavaModelException e) {
@@ -494,6 +342,82 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			e.printStackTrace();
 		}
 		recursiveActionSubtype.bodyDeclarations().add(computeMethod);
+	}
+
+	private boolean doBlockWork(final AST ast, RefactoringStatus result, final TextEditGroup editGroup, final ASTRewrite scratchRewriter,
+			final Map<Block, List<Statement>> allStatementsWithRecursiveMethodInvocation, final Map<Block, List<String>> allPartialComputationsNames,
+			final Map<Block, List<String>> allTypesOfComputations, final Map<Integer, Block> tasksToBlock, final Map<Block, Integer> numTasksPerBlock, final Map<Block, Statement> blockWithoutBraces,
+			final Map<Block, Integer> blockFlags, boolean atLeastOneBlockChanged, Block currBlock, ListRewrite listRewriteForBlock) {
+		if (allStatementsWithRecursiveMethodInvocation.get(currBlock).size() > 1 && !numTasksPerBlock.get(currBlock).equals(Integer.valueOf(1))) {
+			atLeastOneBlockChanged=  true;
+			MethodInvocation forkJoinInvocation= ast.newMethodInvocation();
+			forkJoinInvocation.setName(ast.newSimpleName("invokeAll")); //$NON-NLS-1$
+			List<Expression> argumentsForkJoin= forkJoinInvocation.arguments();
+			int counter= 0;
+			int max= numTasksPerBlock.get(currBlock).intValue();
+			int[] taskNumbers= new int[max];
+			counter= doTaskCreationLoop(ast, tasksToBlock, currBlock, argumentsForkJoin, counter, max, taskNumbers);
+			
+			List<Statement> recursiveList= allStatementsWithRecursiveMethodInvocation.get(currBlock);
+			Statement lastStatementWithRecursiveCall;
+			if (!blockWithoutBraces.containsKey(currBlock)) {
+				lastStatementWithRecursiveCall= recursiveList.get(recursiveList.size() - 1);
+			} else {
+				lastStatementWithRecursiveCall= blockWithoutBraces.get(currBlock);
+			}
+			
+			if (!recursiveMethodReturnsVoid()) {
+				doMethodWithReturnWork(ast, result, editGroup, scratchRewriter, allPartialComputationsNames, allTypesOfComputations, blockWithoutBraces, blockFlags, currBlock, listRewriteForBlock,
+						taskNumbers, lastStatementWithRecursiveCall);
+			}
+			if (!blockWithoutBraces.containsKey(currBlock)) {
+				if (blockFlags.get(currBlock).intValue() != 0) {
+					listRewriteForBlock.insertBefore(ast.newExpressionStatement(forkJoinInvocation), lastStatementWithRecursiveCall, editGroup);
+				} else {
+					listRewriteForBlock.insertAfter(ast.newExpressionStatement(forkJoinInvocation), lastStatementWithRecursiveCall, editGroup);
+				}
+			} else {
+					listRewriteForBlock.insertAt(ast.newExpressionStatement(forkJoinInvocation), numTasksPerBlock.get(currBlock).intValue(), editGroup);
+			}
+		}
+		return atLeastOneBlockChanged;
+	}
+
+	private int doTaskCreationLoop(final AST ast, final Map<Integer, Block> tasksToBlock, Block currBlock, List<Expression> argumentsForkJoin, int counter, int max, int[] taskNumbers) {
+		for (int i= 1; i <= tasksToBlock.size(); i++) {
+			Block tempBlock= tasksToBlock.get(Integer.valueOf(i));
+			if (tempBlock.equals(currBlock)) {
+				argumentsForkJoin.add(ast.newSimpleName("task" + i)); //$NON-NLS-1$
+				taskNumbers[counter]= i;
+				counter++;
+				if (counter == max) {
+					break;
+				}
+			}
+		}
+		return counter;
+	}
+
+	private void doMethodWithReturnWork(final AST ast, RefactoringStatus result, final TextEditGroup editGroup, final ASTRewrite scratchRewriter,
+			final Map<Block, List<String>> allPartialComputationsNames, final Map<Block, List<String>> allTypesOfComputations, final Map<Block, Statement> blockWithoutBraces,
+			final Map<Block, Integer> blockFlags, Block currBlock, ListRewrite listRewriteForBlock, int[] taskNumbers, Statement lastStatementWithRecursiveCall) {
+		if (allPartialComputationsNames.containsKey(currBlock)) {
+			createPartialComputations(editGroup, scratchRewriter, allPartialComputationsNames.get(currBlock), allTypesOfComputations.get(currBlock), listRewriteForBlock, lastStatementWithRecursiveCall, !blockWithoutBraces.containsKey(currBlock), taskNumbers);
+		}
+		
+		Statement lastStatementInBlock;
+		if (!blockWithoutBraces.containsKey(currBlock)) {
+			List<ASTNode> statementsInBlockWithTaskDecl= currBlock.statements();
+			lastStatementInBlock= (Statement) statementsInBlockWithTaskDecl.get(statementsInBlockWithTaskDecl.size() - 1);
+		} else {
+			lastStatementInBlock= blockWithoutBraces.get(currBlock);
+		}
+		if (lastStatementInBlock instanceof ReturnStatement) {
+			int errorFlag= createLastStatement(ast, result, editGroup, scratchRewriter, listRewriteForBlock, lastStatementInBlock, !blockWithoutBraces.containsKey(currBlock), taskNumbers, blockFlags.get(currBlock).intValue());
+			if(errorFlag == -1) {
+				return;  //TODO Check this
+			}
+		}
 	}
 
 	private void tryApplyEdits(AST ast, MethodDeclaration computeMethod, final ASTRewrite scratchRewriter) throws JavaModelException {
@@ -532,45 +456,41 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		}
 	}
 
-	private int createLastStatement(AST ast, RefactoringStatus result, final TextEditGroup editGroup, final ASTRewrite scratchRewriter, ListRewrite listRewriteForBlock, Statement lastStatementInBlock) {
-		if (fInfixExpressionFlag) {
+	private int createLastStatement(AST ast, RefactoringStatus result, final TextEditGroup editGroup, final ASTRewrite scratchRewriter, ListRewrite listRewriteForBlock, Statement lastStatementInBlock, boolean isNotNewBlock, int[] taskNumbers, int flags) {
+		if (flags == 1) {
 			Assignment assignToResult= ast.newAssignment();
 			assignToResult.setLeftHandSide(ast.newSimpleName("result")); //$NON-NLS-1$
 			InfixExpression infixExpression= ((InfixExpression)(ASTNode.copySubtree(ast, ((ReturnStatement)lastStatementInBlock).getExpression())));
-			int taskNum= 1;
-			infixExpression.setLeftOperand(ast.newQualifiedName(ast.newSimpleName("task" + taskNum++), ast.newSimpleName("result"))); //$NON-NLS-1$ //$NON-NLS-2$
-			infixExpression.setRightOperand(ast.newQualifiedName(ast.newSimpleName("task" + taskNum++), ast.newSimpleName("result"))); //$NON-NLS-1$ //$NON-NLS-2$
+			int taskNum= 0;
+			infixExpression.setLeftOperand(ast.newQualifiedName(ast.newSimpleName("task" + taskNumbers[taskNum++]), ast.newSimpleName("result"))); //$NON-NLS-1$ //$NON-NLS-2$
+			infixExpression.setRightOperand(ast.newQualifiedName(ast.newSimpleName("task" + taskNumbers[taskNum++]), ast.newSimpleName("result"))); //$NON-NLS-1$ //$NON-NLS-2$
 			List<Expression> extendedOperands = infixExpression.extendedOperands();
-			for (int i= 0; i < extendedOperands.size(); ) {
-				extendedOperands.set(i, ast.newQualifiedName(ast.newSimpleName("task" + taskNum++), ast.newSimpleName("result"))); //$NON-NLS-1$ //$NON-NLS-2$
-				i++;
+			for (int i= 0; i < extendedOperands.size(); i++) {
+				extendedOperands.set(i, ast.newQualifiedName(ast.newSimpleName("task" + taskNumbers[taskNum++]), ast.newSimpleName("result"))); //$NON-NLS-1$ //$NON-NLS-2$
 			}
 			assignToResult.setRightHandSide(infixExpression);
-			if (fSingleElseStatement == null) {
+			if (isNotNewBlock) {
 				scratchRewriter.replace(lastStatementInBlock, ast.newExpressionStatement(assignToResult), editGroup);
 			} else {
 				listRewriteForBlock.insertLast(ast.newExpressionStatement(assignToResult), editGroup);
 			}
 		}
-		else if (fMethodInvocationFlag) {
+		else if (flags == 2) {
 			Assignment assignToResult= ast.newAssignment();
 			assignToResult.setLeftHandSide(ast.newSimpleName("result")); //$NON-NLS-1$
 			ASTNode tempAST= ASTNode.copySubtree(ast, ((ReturnStatement)lastStatementInBlock).getExpression());
 			if (!(tempAST instanceof MethodInvocation)) {
-				RefactoringStatus fatalError= new RefactoringStatus();
-				fatalError.addFatalError(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_analyze_error 
-								+ fMethod.getElementName());
-				result.merge(fatalError);
+				createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_analyze_error, new String[] {fMethod.getElementName()}));
 				return -1;
 			}
 			MethodInvocation methodInvocation= ((MethodInvocation) tempAST);
-			int taskNum= 1;
+			int taskNum= 0;
 			List<Expression> methodArguments= methodInvocation.arguments();
 			for (int index= 0; index < methodArguments.size(); ) {
-				methodArguments.set(index++, ast.newQualifiedName(ast.newSimpleName("task" + taskNum++), ast.newSimpleName("result"))); //$NON-NLS-1$ //$NON-NLS-2$
+				methodArguments.set(index++, ast.newQualifiedName(ast.newSimpleName("task" + taskNumbers[taskNum++]), ast.newSimpleName("result"))); //$NON-NLS-1$ //$NON-NLS-2$
 			}
 			assignToResult.setRightHandSide(methodInvocation);
-			if (fSingleElseStatement == null) {
+			if (isNotNewBlock) {
 				scratchRewriter.replace(lastStatementInBlock, ast.newExpressionStatement(assignToResult), editGroup);
 			} else {
 				listRewriteForBlock.insertLast(ast.newExpressionStatement(assignToResult), editGroup);
@@ -580,7 +500,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			Assignment assignToResult= ast.newAssignment();
 			assignToResult.setLeftHandSide(ast.newSimpleName("result")); //$NON-NLS-1$
 			assignToResult.setRightHandSide((Expression) ASTNode.copySubtree(ast, ((ReturnStatement) lastStatementInBlock).getExpression()));
-			if (fSingleElseStatement == null) {
+			if (isNotNewBlock) {
 				scratchRewriter.replace(lastStatementInBlock, ast.newExpressionStatement(assignToResult), editGroup);
 			} else {
 				listRewriteForBlock.insertLast(ast.newExpressionStatement(assignToResult), editGroup);
@@ -590,12 +510,12 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 	}
 
 	private void createPartialComputations(final TextEditGroup editGroup, final ASTRewrite scratchRewriter, final List<String> partialComputationsNames, final List<String> typesOfComputations,
-			ListRewrite listRewriteForBlock, Statement lastStatementWithRecursiveCall) {
+			ListRewrite listRewriteForBlock, Statement lastStatementWithRecursiveCall, boolean isNotNewBlock, int[] taskNumbers) {
 		if (lastStatementWithRecursiveCall instanceof VariableDeclarationStatement) {
 			for (int i= partialComputationsNames.size() - 1; i >= 0 ; ) {
-				String varStatement= typesOfComputations.get(i) + " " + partialComputationsNames.get(i) + " = task" + (i + 1) + ".result;"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+				String varStatement= typesOfComputations.get(i) + " " + partialComputationsNames.get(i) + " = task" + taskNumbers[i] + ".result;"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 				VariableDeclarationStatement variableStatement= (VariableDeclarationStatement) scratchRewriter.createStringPlaceholder(varStatement, ASTNode.VARIABLE_DECLARATION_STATEMENT);
-				if (fSingleElseStatement == null) {
+				if (isNotNewBlock) {
 					listRewriteForBlock.insertAfter(variableStatement, lastStatementWithRecursiveCall, editGroup);
 				} else {
 					listRewriteForBlock.insertLast(variableStatement, editGroup);
@@ -604,12 +524,12 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			}
 		} else if (lastStatementWithRecursiveCall instanceof ExpressionStatement) {
 			for (int i= partialComputationsNames.size() - 1; i >= 0 ; ) {
-				String varStatement= partialComputationsNames.get(i) + " = task" + (i + 1) + ".result;"; //$NON-NLS-1$ //$NON-NLS-2$
-				ExpressionStatement exprStatement= (ExpressionStatement) scratchRewriter.createStringPlaceholder(varStatement, ASTNode.EXPRESSION_STATEMENT);
-				if (fSingleElseStatement == null) {
-					listRewriteForBlock.insertAfter(exprStatement, lastStatementWithRecursiveCall, editGroup);
+				String exprStatement= partialComputationsNames.get(i) + " = task" + taskNumbers[i] + ".result;"; //$NON-NLS-1$ //$NON-NLS-2$
+				ExpressionStatement expressionStatement= (ExpressionStatement) scratchRewriter.createStringPlaceholder(exprStatement, ASTNode.EXPRESSION_STATEMENT);
+				if (isNotNewBlock) {
+					listRewriteForBlock.insertAfter(expressionStatement, lastStatementWithRecursiveCall, editGroup);
 				} else {
-					listRewriteForBlock.insertLast(exprStatement, editGroup);
+					listRewriteForBlock.insertLast(expressionStatement, editGroup);
 				}
 				i--;
 			}
@@ -654,9 +574,9 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		}
 	}
 
-	private void createFatalError(RefactoringStatus result) {
+	private void createFatalError(RefactoringStatus result, String message) {
 		RefactoringStatus fatalError= new RefactoringStatus();
-		fatalError.addFatalError(Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_recursion_error, new String[] {fMethod.getElementName()}));
+		fatalError.addFatalError(message);
 		result.merge(fatalError);
 	}
 
@@ -666,24 +586,14 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		ASTNode tempNode= methodCall;
 		do {
 			tempNode= tempNode.getParent();
-		} while (tempNode != null && !VariableDeclarationStatement.class.isInstance(tempNode));
+		} while (tempNode != null && !VariableDeclarationStatement.class.isInstance(tempNode) && !ExpressionStatement.class.isInstance(tempNode) && !ReturnStatement.class.isInstance(tempNode));
 		if (tempNode != null) {
-			parentOfMethodCall= (VariableDeclarationStatement) tempNode;
-		} else {
-			tempNode= methodCall;
-			do {
-				tempNode= tempNode.getParent();
-			} while (tempNode != null && !ExpressionStatement.class.isInstance(tempNode));
-			if (tempNode != null) {
+			if (tempNode instanceof VariableDeclarationStatement) {
+				parentOfMethodCall= (VariableDeclarationStatement) tempNode;
+			} else if (tempNode instanceof ExpressionStatement) {
 				parentOfMethodCall= (ExpressionStatement) tempNode;
 			} else {
-				tempNode= methodCall;
-				do {
-					tempNode= tempNode.getParent();
-				} while (tempNode != null && !ReturnStatement.class.isInstance(tempNode));
-				if (tempNode != null) {
-					parentOfMethodCall= (ReturnStatement) tempNode;
-				}
+				parentOfMethodCall= (ReturnStatement) tempNode;
 			}
 		}
 		return parentOfMethodCall;	
@@ -963,8 +873,8 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		if (messages.length == 0) {
 			return false;
 		}
-		result.addFatalError(MessageFormat.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_compile_error,
-				((Object[]) new String[] { fMethod.getElementName(), messages[0].getMessage()})));
+		createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_compile_error,
+				(new String[] { fMethod.getElementName(), messages[0].getMessage()})));
 		return true;
 	}
 	
@@ -1151,5 +1061,221 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		options.put(JavaCore.COMPILER_PB_MAX_PER_UNIT, "0"); //$NON-NLS-1$
 		options.put(JavaCore.COMPILER_TASK_TAGS, ConcurrencyRefactorings.ConcurrencyRefactorings_empty_string);
 		return options;
+	}
+	
+	private final class MethodVisitor extends ASTVisitor {
+		private final Map<ASTNode, Block> fLocationOfNewBlocks;
+		private final ASTRewrite fScratchRewriter;
+		private final Map<Block, Integer> fNumTasksPerBlock;
+		private final Map<Block, List<String>> fAllPartialComputationsNames;
+		private final int[] fTaskNumber;
+		private final Map<Integer, Block> fTasksToBlock;
+		private final Map<Block, Statement> fBlockWithoutBraces;
+		private final Map<Block, List<Statement>> fAllStatementsWithRecursiveMethodInvocation;
+		private final TextEditGroup fEditGroup;
+		private final List<Block> fAllTheBlocks;
+		private final Map<Block, List<String>> fAllTypesOfComputations;
+		private final int[] fSwitchStatementsFound;
+		private final Map<Block, Integer> fBlockFlags;
+		private final AST fAst;
+
+		private MethodVisitor(Map<ASTNode, Block> locationOfNewBlocks, ASTRewrite scratchRewriter, Map<Block, Integer> numTasksPerBlock, Map<Block, List<String>> allPartialComputationsNames,
+				int[] taskNumber, Map<Integer, Block> tasksToBlock, Map<Block, Statement> blockWithoutBraces, Map<Block, List<Statement>> allStatementsWithRecursiveMethodInvocation,
+				TextEditGroup editGroup, List<Block> allTheBlocks, Map<Block, List<String>> allTypesOfComputations, int[] switchStatementsFound, Map<Block, Integer> blockFlags, AST ast) {
+			fLocationOfNewBlocks= locationOfNewBlocks;
+			fScratchRewriter= scratchRewriter;
+			fNumTasksPerBlock= numTasksPerBlock;
+			fAllPartialComputationsNames= allPartialComputationsNames;
+			fTaskNumber= taskNumber;
+			fTasksToBlock= tasksToBlock;
+			fBlockWithoutBraces= blockWithoutBraces;
+			fAllStatementsWithRecursiveMethodInvocation= allStatementsWithRecursiveMethodInvocation;
+			fEditGroup= editGroup;
+			fAllTheBlocks= allTheBlocks;
+			fAllTypesOfComputations= allTypesOfComputations;
+			fSwitchStatementsFound= switchStatementsFound;
+			fBlockFlags= blockFlags;
+			fAst= ast;
+		}
+
+		@Override
+		public boolean visit(MethodInvocation methodCall) {
+			
+			IMethodBinding bindingForMethodCall= methodCall.resolveMethodBinding();
+			IMethodBinding bindingForMethodDeclaration= fMethodDeclaration.resolveBinding();
+			if (bindingForMethodCall.isEqualTo(bindingForMethodDeclaration)) {
+				VariableDeclarationStatement taskDeclStatement= createTaskDeclaration(methodCall);
+				
+				List<String> partialComputationsNames= new ArrayList<String>();
+				List<String> typesOfComputations= new ArrayList<String>();
+				boolean infixExpressionFlag= false;
+				boolean methodInvocationFlag= false;
+				Block myBlock= null;
+				Statement parentOfMethodCall= findParentStatement(methodCall);
+				if (parentOfMethodCall == null) {
+					return false;
+				} else if (SwitchStatement.class.isInstance(parentOfMethodCall.getParent())) {
+					fSwitchStatementsFound[0]++;
+					return false;
+				} else if (recursiveMethodReturnsVoid()) {
+					fScratchRewriter.replace(parentOfMethodCall, taskDeclStatement, fEditGroup);
+				} else {
+					if (parentOfMethodCall instanceof VariableDeclarationStatement) {
+						VariableDeclarationStatement varDeclaration= (VariableDeclarationStatement) parentOfMethodCall;
+						VariableDeclarationFragment varFragment= (VariableDeclarationFragment) varDeclaration.fragments().get(0);
+						partialComputationsNames.add(varFragment.getName().getIdentifier());
+						typesOfComputations.add(varDeclaration.getType().toString());
+						fScratchRewriter.replace(parentOfMethodCall, taskDeclStatement, fEditGroup);
+					} else if (parentOfMethodCall instanceof ExpressionStatement) {
+						ExpressionStatement exprStatement= (ExpressionStatement) parentOfMethodCall;
+						Expression expressionContainer= exprStatement.getExpression();
+						if (expressionContainer instanceof Assignment) {
+							Assignment assignment= (Assignment) expressionContainer;
+							Expression leftHandSide= assignment.getLeftHandSide();
+							partialComputationsNames.add(leftHandSide.toString());
+							typesOfComputations.add(leftHandSide.resolveTypeBinding().getName());
+							fScratchRewriter.replace(parentOfMethodCall, taskDeclStatement, fEditGroup);
+						} else {
+							System.err.println(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_scenario_error + parentOfMethodCall.toString() );
+							return false;
+						}
+					} else if (parentOfMethodCall instanceof ReturnStatement) {
+						ASTNode tempNode= parentOfMethodCall.getParent();
+						if (tempNode instanceof Block) {
+							Block blockWithReturn= (Block) tempNode;
+							ListRewrite listRewriteForBlock= fScratchRewriter.getListRewrite(blockWithReturn, Block.STATEMENTS_PROPERTY);
+							List<ASTNode> statementsInBlockWithReturn= blockWithReturn.statements();
+							Statement lastStatementInBlock= (Statement) statementsInBlockWithReturn.get(statementsInBlockWithReturn.size() - 1);
+							if (lastStatementInBlock instanceof ReturnStatement) {
+								listRewriteForBlock.insertBefore(taskDeclStatement, lastStatementInBlock, fEditGroup);
+							}
+						} else if (tempNode instanceof IfStatement) {  //TODO Move this outside of return statement?
+							myBlock= ifStatementWork(taskDeclStatement, myBlock, parentOfMethodCall, tempNode);
+							if (myBlock == null) {
+								return false;
+							}
+						}  //TODO Add another case for when block is higher up?
+						Expression exprTemp= ((ReturnStatement) parentOfMethodCall).getExpression();
+						if (exprTemp instanceof InfixExpression) {
+							infixExpressionFlag= true;
+						} else if (exprTemp instanceof MethodInvocation) {
+							methodInvocationFlag= true;
+						} else {
+							System.err.println(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_scenario_error + parentOfMethodCall.toString() );
+							return false;
+						}
+					} else {
+						System.err.println(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_scenario_error + parentOfMethodCall.toString() );
+						return false;
+					}
+				}
+				if (myBlock == null) {
+					ASTNode tempNode= parentOfMethodCall;
+					do {
+						tempNode= tempNode.getParent();
+					} while (tempNode != null && !Block.class.isInstance(tempNode) && !SwitchStatement.class.isInstance(tempNode));
+					if (tempNode == null) {
+						return false;
+					} else if (tempNode instanceof SwitchStatement) {
+						fSwitchStatementsFound[0]++;
+						return false;
+					} else {
+						myBlock= (Block) tempNode;
+					}
+				}
+				populateAllMaps(partialComputationsNames, typesOfComputations, infixExpressionFlag, methodInvocationFlag, myBlock, parentOfMethodCall);
+			}
+			return true;
+		}
+
+		private void populateAllMaps(List<String> partialComputationsNames, List<String> typesOfComputations, boolean infixExpressionFlag, boolean methodInvocationFlag, Block myBlock,
+				Statement parentOfMethodCall) {
+			fTasksToBlock.put(new Integer(fTaskNumber[0]), myBlock);
+			if (fNumTasksPerBlock.containsKey(myBlock)) {
+				Integer newValue= new Integer(fNumTasksPerBlock.get(myBlock).intValue() + 1);
+				fNumTasksPerBlock.put(myBlock, newValue);
+			} else {
+				fNumTasksPerBlock.put(myBlock, new Integer(1));
+			}
+			if (fAllStatementsWithRecursiveMethodInvocation.containsKey(myBlock)) {
+				List<Statement> recursiveList= fAllStatementsWithRecursiveMethodInvocation.get(myBlock);
+				recursiveList.add(parentOfMethodCall);
+			} else {
+				List<Statement> recursiveList= new ArrayList<Statement>();
+				recursiveList.add(parentOfMethodCall);
+				fAllStatementsWithRecursiveMethodInvocation.put(myBlock, recursiveList);
+			}
+			if (!fAllTheBlocks.contains(myBlock)) {
+				fAllTheBlocks.add(myBlock);
+			}
+			if (!partialComputationsNames.isEmpty()) {
+				if (fAllPartialComputationsNames.containsKey(myBlock)) {
+					fAllPartialComputationsNames.get(myBlock).addAll(partialComputationsNames);
+					fAllTypesOfComputations.get(myBlock).addAll(typesOfComputations);
+				} else {
+					fAllPartialComputationsNames.put(myBlock, partialComputationsNames);
+					fAllTypesOfComputations.put(myBlock, typesOfComputations);
+				}
+			}
+			int flag= 0;
+			if (infixExpressionFlag) {
+				flag= 1;
+			} else if (methodInvocationFlag) {
+				flag= 2;
+			}
+			fBlockFlags.put(myBlock, new Integer(flag));
+		}
+
+		private Block ifStatementWork(VariableDeclarationStatement taskDeclStatement, Block myBlock, Statement parentOfMethodCall, ASTNode tempNode) {
+			IfStatement ifStatement= (IfStatement) tempNode;
+			Statement elseStatement= ifStatement.getElseStatement();
+			if (elseStatement != null && ifStatement.getThenStatement() != null && !ifStatement.getThenStatement().equals(parentOfMethodCall)) {
+				if (fLocationOfNewBlocks.containsKey(elseStatement)) {
+					myBlock= fLocationOfNewBlocks.get(elseStatement);
+				} else {
+					myBlock= fAst.newBlock();
+					fLocationOfNewBlocks.put(elseStatement, myBlock);
+					fBlockWithoutBraces.put(myBlock, elseStatement);
+				}
+				ListRewrite listRewriteForBlock= fScratchRewriter.getListRewrite(myBlock, Block.STATEMENTS_PROPERTY);
+				fScratchRewriter.replace(elseStatement, myBlock, fEditGroup);
+				listRewriteForBlock.insertLast(taskDeclStatement, fEditGroup);									
+			} else {
+				Statement thenStatement= ifStatement.getThenStatement();
+				if (thenStatement != null && thenStatement.equals(parentOfMethodCall)) {
+					if (fLocationOfNewBlocks.containsKey(thenStatement)) {
+						myBlock= fLocationOfNewBlocks.get(thenStatement);
+					} else {
+						myBlock= fAst.newBlock();
+						fLocationOfNewBlocks.put(thenStatement, myBlock);
+						fBlockWithoutBraces.put(myBlock, thenStatement);
+					}
+					ListRewrite listRewriteForBlock= fScratchRewriter.getListRewrite(myBlock, Block.STATEMENTS_PROPERTY);
+					fScratchRewriter.replace(thenStatement, myBlock, fEditGroup);
+					listRewriteForBlock.insertLast(taskDeclStatement, fEditGroup);
+				} else {
+					return null;
+				}
+			}
+			return myBlock;
+		}
+
+		private VariableDeclarationStatement createTaskDeclaration(MethodInvocation methodCall) {
+			String codeForTaskDecl= nameForFJTaskSubtype + " task" + ++fTaskNumber[0] +  //$NON-NLS-1$
+			" = new " + nameForFJTaskSubtype + "("; //$NON-NLS-1$ //$NON-NLS-2$
+			String methodArguments= ConcurrencyRefactorings.ConcurrencyRefactorings_empty_string;
+			List<Expression> arguments= methodCall.arguments();
+			for (Iterator<Expression> iterator= arguments.iterator(); iterator
+					.hasNext();) {
+				ASTNode argument= iterator.next();
+				methodArguments += argument.toString();
+				if (iterator.hasNext()) {
+					methodArguments += ", "; //$NON-NLS-1$
+				}
+			}
+			codeForTaskDecl += methodArguments + ");"; //$NON-NLS-1$
+			VariableDeclarationStatement taskDeclStatement= (VariableDeclarationStatement) fScratchRewriter.createStringPlaceholder(codeForTaskDecl , ASTNode.VARIABLE_DECLARATION_STATEMENT);
+			return taskDeclStatement;
+		}
 	}
 }

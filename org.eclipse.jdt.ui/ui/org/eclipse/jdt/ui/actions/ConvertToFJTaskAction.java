@@ -14,6 +14,7 @@ import org.eclipse.jdt.core.JavaModelException;
 
 import org.eclipse.jdt.internal.corext.refactoring.RefactoringAvailabilityTester;
 import org.eclipse.jdt.internal.corext.refactoring.RefactoringExecutionStarter;
+import org.eclipse.jdt.internal.corext.refactoring.concurrency.ConcurrencyRefactorings;
 import org.eclipse.jdt.internal.corext.util.JavaModelUtil;
 
 import org.eclipse.jdt.internal.ui.IJavaHelpContextIds;
@@ -53,7 +54,7 @@ public class ConvertToFJTaskAction extends SelectionDispatchAction {
 	 */
 	public ConvertToFJTaskAction(IWorkbenchSite site) {
 		super(site);
-		setText("Convert recursion to ForkJoinTask"); //$NON-NLS-1$
+		setText(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_action_name);
 		PlatformUI.getWorkbench().getHelpSystem().setHelp(this, IJavaHelpContextIds.FORK_JOIN_TASK_ACTION);
 	}
 	

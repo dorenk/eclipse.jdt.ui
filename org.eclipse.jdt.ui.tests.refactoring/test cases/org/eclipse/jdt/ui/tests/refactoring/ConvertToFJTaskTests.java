@@ -186,6 +186,22 @@ public class ConvertToFJTaskTests extends AbstractSelectionTestCase {
 		objectTest("grayCheckHierarchy", "treeElement.length() < 10");
 	}
 	
+	public void testIfception() throws Exception {
+		objectTest("method", "end < 10");
+	}
+	
+	public void testMultiple0() throws Exception {
+		objectTest("test0", "x < 10");
+	}
+	
+	public void testMultiple1() throws Exception {
+		objectTest("test1", "x < 10");
+	}
+	
+	public void testMultiple2() throws Exception {
+		objectTest("test2", "x < 10");
+	}
+	
 	public void testBaseCaseDoesNotHaveReturn() throws Exception {
 		invalidTest("method");
 	}
@@ -220,5 +236,21 @@ public class ConvertToFJTaskTests extends AbstractSelectionTestCase {
 	
 	public void testIfStatementWithoutBraces() throws Exception {
 		invalidTest("grayCheckHierarchy");
+	}
+	
+	public void testOnlyOneCall() throws Exception {
+		invalidTest("yesterday");
+	}
+	
+	public void testAbstractMethod() throws Exception {
+		invalidTest("tomorrow");
+	}
+	
+	public void testNoBody() throws Exception {
+		invalidTest("today");
+	}
+	
+	public void testUnavailableOperation() throws Exception {
+		invalidTest("threeDaysIntoFuture");
 	}
 }

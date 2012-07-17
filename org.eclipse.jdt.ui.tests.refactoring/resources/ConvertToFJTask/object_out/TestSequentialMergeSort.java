@@ -3,7 +3,7 @@ package object_out;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.RecursiveAction;
 
-public class SequentialMergeSort {
+public class TestSequentialMergeSort {
 
 	private int[] listToSort;
 
@@ -13,7 +13,7 @@ public class SequentialMergeSort {
 	 *
 	 * @param listToSort the array of integers to be sorted.
 	 */
-	public SequentialMergeSort(int[] listToSort) {
+	public TestSequentialMergeSort(int[] listToSort) {
 		this.listToSort = listToSort;
 	}
 
@@ -67,11 +67,6 @@ public class SequentialMergeSort {
 				result = whole;
 			}
 		}
-		/**
-		 * Recursive helper method which sorts the array referred to  by whole using the merge sort algorithm.
-		 * @param whole  the array to be sorted.
-		 * @return  a reference to an array that holds the elements of whole sorted into non-decreasing order.
-		 */
 		private int[] sort(int[] whole) {
 			if (whole.length == 1) {
 				return whole;
@@ -153,7 +148,7 @@ public class SequentialMergeSort {
 		System.out.println("Unsorted:");
 		ArrayUtil.printArray(arrayToSort, 5);
 
-		SequentialMergeSort sortObj = new SequentialMergeSort(arrayToSort);
+		TestSequentialMergeSort sortObj = new TestSequentialMergeSort(arrayToSort);
 		sortObj.sort();
 
 		System.out.println("Sorted:");

@@ -1,6 +1,6 @@
 package object_in;
 
-public class MaxSumTest {
+public class TestMaxConsecutiveSum {
 
     static private int seqStart = 0;
     static private int seqEnd = -1;

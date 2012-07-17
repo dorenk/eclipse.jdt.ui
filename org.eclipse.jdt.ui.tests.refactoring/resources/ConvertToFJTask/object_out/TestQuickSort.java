@@ -5,7 +5,7 @@ import java.util.concurrent.RecursiveAction;
 
 import forkJoin.mergeSort.ArrayUtil;
 
-public class SeqQuickSort {
+public class TestQuickSort {
 	//private static long comparisons = 0;
 	//private static long exchanges   = 0;
 
@@ -40,9 +40,6 @@ public class SeqQuickSort {
 			QuicksortImpl task2 = new QuicksortImpl(a, i + 1, right);
 			invokeAll(task1, task2);
 		}
-		/**
-		 * Quicksort code from Sedgewick 7.1, 7.2.
-		 */
 		public void quicksort(double[] a, int left, int right) {
 			if (right <= left)
 				return;
@@ -109,13 +106,13 @@ public class SeqQuickSort {
 		double elapsed = (stop - start) / 1000.0;
 		System.out.println("Generating input:  " + elapsed + " seconds");
 
-		SeqQuickSort seqQuickSort = new SeqQuickSort();
-		seqQuickSort.shuffle(a);
+		TestQuickSort testQuickSort = new TestQuickSort();
+		testQuickSort.shuffle(a);
 
 		ArrayUtil.printArray(a, 5);
 		// sort them
 		start = System.currentTimeMillis();
-		seqQuickSort.quicksort(a, 0, a.length - 1);
+		testQuickSort.quicksort(a, 0, a.length - 1);
 		stop = System.currentTimeMillis();
 		//      ArrayUtil.printArray(a, 4);
 		elapsed = (stop - start) / 1000.0;

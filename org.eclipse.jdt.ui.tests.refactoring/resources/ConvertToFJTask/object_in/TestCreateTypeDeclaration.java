@@ -1,6 +1,6 @@
 package object_in;
 
-public class CreateTypeDeclaration {
+public class TestCreateTypeDeclaration {
 	
 	public void method(int[] array, int start, int end) {
 		if (array.length == 0) {

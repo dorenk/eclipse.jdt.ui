@@ -3,7 +3,7 @@ package object_out;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.RecursiveAction;
 
-public class MaxSumTest {
+public class TestMaxConsecutiveSum {
 
     static private int seqStart = 0;
     static private int seqEnd = -1;
@@ -85,9 +85,6 @@ public class MaxSumTest {
 			result = max3(maxLeftSum, maxRightSum, maxLeftBorderSum
 					+ maxRightBorderSum);
 		}
-		/**
-		 * Recursive maximum contiguous subsequence sum algorithm. Finds maximum sum in subarray spanning a[left..right]. Does not attempt to maintain actual best sequence.
-		 */
 		private static int maxSumRec(int[] a, int left, int right) {
 			int maxLeftBorderSum = 0, maxRightBorderSum = 0;
 			int leftBorderSum = 0, rightBorderSum = 0;
