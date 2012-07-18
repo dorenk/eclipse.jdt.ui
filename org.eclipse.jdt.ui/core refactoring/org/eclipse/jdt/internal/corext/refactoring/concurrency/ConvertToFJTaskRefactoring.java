@@ -439,7 +439,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			lastStatementInBlock= blockWithoutBraces.get(currBlock);
 		}
 		if (lastStatementInBlock instanceof ReturnStatement) {
-			int errorFlag= createLastStatement(ast, result, editGroup, scratchRewriter, listRewriteForBlock, lastStatementInBlock, !blockWithoutBraces.containsKey(currBlock), taskNumbers, blockFlags.get(currBlock).intValue());
+			int errorFlag= createLastReturnStatement(ast, result, editGroup, scratchRewriter, listRewriteForBlock, lastStatementInBlock, !blockWithoutBraces.containsKey(currBlock), taskNumbers, blockFlags.get(currBlock).intValue());
 			if (errorFlag == -1) {
 				return;  //TODO Check this
 			}
@@ -482,8 +482,8 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		}
 	}
 
-	private int createLastStatement(AST ast, RefactoringStatus result, final TextEditGroup editGroup, final ASTRewrite scratchRewriter, ListRewrite listRewriteForBlock, Statement lastStatementInBlock, boolean isNotNewBlock, int[] taskNumbers, int flags) {
-		if (flags == 1) {
+	private int createLastReturnStatement(AST ast, RefactoringStatus result, final TextEditGroup editGroup, final ASTRewrite scratchRewriter, ListRewrite listRewriteForBlock, Statement lastStatementInBlock, boolean isNotNewBlock, int[] taskNumbers, int flags) {
+		if (flags == 1) {  //InfixExpression
 			Assignment assignToResult= ast.newAssignment();
 			assignToResult.setLeftHandSide(ast.newSimpleName("result")); //$NON-NLS-1$
 			InfixExpression infixExpression= ((InfixExpression)(ASTNode.copySubtree(ast, ((ReturnStatement)lastStatementInBlock).getExpression())));
@@ -501,7 +501,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				listRewriteForBlock.insertLast(ast.newExpressionStatement(assignToResult), editGroup);
 			}
 		}
-		else if (flags == 2) {
+		else if (flags == 2) {  //MethodInvocation
 			Assignment assignToResult= ast.newAssignment();
 			assignToResult.setLeftHandSide(ast.newSimpleName("result")); //$NON-NLS-1$
 			ASTNode tempAST= ASTNode.copySubtree(ast, ((ReturnStatement)lastStatementInBlock).getExpression());
