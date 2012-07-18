@@ -653,17 +653,15 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			@Override
 			public boolean visit(IfStatement ifStatement) {
 				Statement thenStatement= ifStatement.getThenStatement();
-//				Statement elseStatement= ifStatement.getElseStatement();
 				if (statementIsBaseCase(thenStatement)) {
-					baseCase[0]= thenStatement;
-					counter[0]++;
-//				} else if ((elseStatement != null) && (statementIsBaseCase(elseStatement))) {
-//					baseCase[0]= elseStatement;
-//					counter[0]++;
+					if (counter[0] == 0) {
+						baseCase[0]= thenStatement;
+						counter[0]= 1;
+					}
 				} else {
 					if (isFirst[0] && counter[0] != 1) {
 						isFirst[0]= false;
-						counter[0]++;
+						counter[0]= 2;
 					}
 				}
 				return false;
