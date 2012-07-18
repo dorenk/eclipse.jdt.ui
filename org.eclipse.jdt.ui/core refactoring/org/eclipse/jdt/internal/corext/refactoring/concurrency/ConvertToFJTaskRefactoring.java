@@ -331,8 +331,8 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			while (blockIter.hasNext()) {
 				Block currBlock= blockIter.next();
 				ListRewrite listRewriteForBlock= scratchRewriter.getListRewrite(currBlock, Block.STATEMENTS_PROPERTY);
-				atLeastOneBlockChanged= doBlockWork(ast, result, editGroup, scratchRewriter, allStatementsWithRecursiveMethodInvocation, allPartialComputationsNames, allTypesOfComputations,
-						tasksToBlock, numTasksPerBlock, blockWithoutBraces, blockFlags, atLeastOneBlockChanged, currBlock, listRewriteForBlock);
+				atLeastOneBlockChanged= doBlockWork(ast, result, editGroup, scratchRewriter, allTaskDeclStatements, tasksToASTNode, allTaskDeclFlags,
+						allStatementsWithRecursiveMethodInvocation, allPartialComputationsNames, allTypesOfComputations, tasksToBlock, numTasksPerBlock, blockWithoutBraces, blockFlags, atLeastOneBlockChanged, currBlock, listRewriteForBlock) || atLeastOneBlockChanged;
 			}
 			if (!atLeastOneBlockChanged) {
 				createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_no_change_error, new String[] {fMethod.getElementName()}));
@@ -348,11 +348,15 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 	}
 
 	private boolean doBlockWork(final AST ast, RefactoringStatus result, final TextEditGroup editGroup, final ASTRewrite scratchRewriter,
-			final Map<Block, List<Statement>> allStatementsWithRecursiveMethodInvocation, final Map<Block, List<String>> allPartialComputationsNames,
-			final Map<Block, List<String>> allTypesOfComputations, final Map<Integer, Block> tasksToBlock, final Map<Block, Integer> numTasksPerBlock, final Map<Block, Statement> blockWithoutBraces,
-			final Map<Block, Integer> blockFlags, boolean atLeastOneBlockChanged, Block currBlock, ListRewrite listRewriteForBlock) {
+			Map<Integer, VariableDeclarationStatement> allTaskDeclStatements, Map<Integer, ASTNode> tasksToASTNode,
+			Map<Integer, Integer> allTaskDeclFlags, final Map<Block, List<Statement>> allStatementsWithRecursiveMethodInvocation, final Map<Block, List<String>> allPartialComputationsNames, final Map<Block, List<String>> allTypesOfComputations,
+			final Map<Integer, Block> tasksToBlock, final Map<Block, Integer> numTasksPerBlock, final Map<Block, Statement> blockWithoutBraces, final Map<Block, Integer> blockFlags, boolean atLeastOneBlockChanged, Block currBlock, ListRewrite listRewriteForBlock) {
 		if (allStatementsWithRecursiveMethodInvocation.get(currBlock).size() > 1 && !numTasksPerBlock.get(currBlock).equals(Integer.valueOf(1))) {
 			atLeastOneBlockChanged=  true;
+			if(blockWithoutBraces.containsKey(currBlock)) {
+				scratchRewriter.replace(blockWithoutBraces.get(currBlock), currBlock, editGroup);
+			}
+			
 			MethodInvocation forkJoinInvocation= ast.newMethodInvocation();
 			forkJoinInvocation.setName(ast.newSimpleName("invokeAll")); //$NON-NLS-1$
 			List<Expression> argumentsForkJoin= forkJoinInvocation.arguments();
