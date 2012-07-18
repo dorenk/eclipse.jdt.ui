@@ -428,7 +428,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			final Map<Block, List<String>> allPartialComputationsNames, final Map<Block, List<String>> allTypesOfComputations, final Map<Block, Statement> blockWithoutBraces,
 			final Map<Block, Integer> blockFlags, Block currBlock, ListRewrite listRewriteForBlock, int[] taskNumbers, Statement lastStatementWithRecursiveCall) {
 		if (allPartialComputationsNames.containsKey(currBlock)) {
-			createPartialComputations(editGroup, scratchRewriter, allPartialComputationsNames.get(currBlock), allTypesOfComputations.get(currBlock), listRewriteForBlock, lastStatementWithRecursiveCall, !blockWithoutBraces.containsKey(currBlock), taskNumbers);
+			createPartialComputations(editGroup, scratchRewriter, allPartialComputationsNames.get(currBlock), allTypesOfComputations.get(currBlock), listRewriteForBlock, lastStatementWithRecursiveCall, !blockWithoutBraces.containsKey(currBlock), taskNumbers, blockFlags.get(currBlock).intValue());
 		}
 		
 		Statement lastStatementInBlock;
@@ -536,7 +536,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 	}
 
 	private void createPartialComputations(final TextEditGroup editGroup, final ASTRewrite scratchRewriter, final List<String> partialComputationsNames, final List<String> typesOfComputations,
-			ListRewrite listRewriteForBlock, Statement lastStatementWithRecursiveCall, boolean isNotNewBlock, int[] taskNumbers) {
+			ListRewrite listRewriteForBlock, Statement lastStatementWithRecursiveCall, boolean isNotNewBlock, int[] taskNumbers, int flags) {
 		if (lastStatementWithRecursiveCall instanceof VariableDeclarationStatement) {
 			for (int i= partialComputationsNames.size() - 1; i >= 0 ; ) {
 				String varStatement= typesOfComputations.get(i) + " " + partialComputationsNames.get(i) + " = task" + taskNumbers[i] + ".result;"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
