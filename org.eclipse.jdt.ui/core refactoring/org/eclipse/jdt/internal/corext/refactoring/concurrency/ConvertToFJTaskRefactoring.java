@@ -365,6 +365,11 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			int[] taskNumbers= new int[max];
 			counter= doTaskCreationLoop(ast, tasksToBlock, currBlock, argumentsForkJoin, counter, max, taskNumbers);
 			
+			for (int i = 0; i < max; i++) {
+				Integer taskNum= new Integer(taskNumbers[i]);
+				replaceWithTaskDeclStatement(allTaskDeclStatements.get(taskNum), tasksToASTNode.get(taskNum), allTaskDeclFlags.get(taskNum).intValue(), currBlock, scratchRewriter, editGroup, listRewriteForBlock);
+			}
+			
 			List<Statement> recursiveList= allStatementsWithRecursiveMethodInvocation.get(currBlock);
 			Statement lastStatementWithRecursiveCall;
 			if (!blockWithoutBraces.containsKey(currBlock)) {
@@ -388,6 +393,20 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			}
 		}
 		return atLeastOneBlockChanged;
+	}
+
+	private void replaceWithTaskDeclStatement(VariableDeclarationStatement taskDeclStatement, ASTNode node, int taskDeclFlags, Block currBlock, ASTRewrite scratchRewriter, TextEditGroup editGroup, ListRewrite listRewriteForBlock) {
+		if (taskDeclFlags == 0) {
+			scratchRewriter.replace(node, taskDeclStatement, editGroup);
+		} else if (taskDeclFlags == -1) {
+			List<ASTNode> statementsInBlockWithReturn= currBlock.statements();
+			Statement lastStatementInBlock= (Statement) statementsInBlockWithReturn.get(statementsInBlockWithReturn.size() - 1);
+			if (lastStatementInBlock instanceof ReturnStatement) {
+				listRewriteForBlock.insertBefore(taskDeclStatement, lastStatementInBlock, editGroup);
+			} //TODO Else needed?  Throw error maybe?
+		} else {
+			listRewriteForBlock.insertLast(taskDeclStatement, editGroup);
+		}
 	}
 
 	private int doTaskCreationLoop(final AST ast, final Map<Integer, Block> tasksToBlock, Block currBlock, List<Expression> argumentsForkJoin, int counter, int max, int[] taskNumbers) {
