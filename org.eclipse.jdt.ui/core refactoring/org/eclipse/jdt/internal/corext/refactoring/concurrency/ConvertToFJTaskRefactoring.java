@@ -1189,6 +1189,15 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 							} else {
 								taskDeclFlag= 0;
 							}
+							Expression exprTemp= assignment.getRightHandSide();
+							if (exprTemp instanceof InfixExpression) {
+								infixExpressionFlag= true;
+							} else if (exprTemp instanceof MethodInvocation) {
+								methodInvocationFlag= true;
+							} else {
+								System.err.println(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_scenario_error + parentOfMethodCall.toString() );
+								return false;
+							}
 						} else {
 							System.err.println(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_scenario_error + parentOfMethodCall.toString() );
 							return false;
