@@ -302,6 +302,9 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			doRecursionBaseCaseReturn(ast, editGroup, recursionBaseCaseBranch, scratchRewriter);
 		}
 		
+		final Map<Integer, VariableDeclarationStatement> allTaskDeclStatements= new HashMap<Integer, VariableDeclarationStatement>();
+		final Map<Integer, ASTNode> tasksToASTNode= new HashMap<Integer, ASTNode>();
+		final Map<Integer, Integer> allTaskDeclFlags= new HashMap<Integer, Integer>();
 		final Map<Block, List<Statement> > allStatementsWithRecursiveMethodInvocation= new HashMap<Block, List<Statement> >();
 		final int[] taskNumber= new int[] {0};
 		final Map<Block, List<String> > allPartialComputationsNames= new HashMap<Block, List<String> >();
