@@ -1156,7 +1156,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 						typesOfComputations.add(varDeclaration.getType().toString());
 						ASTNode tempNode= parentOfMethodCall.getParent();
 						if (tempNode instanceof IfStatement) {
-							myBlock= ifStatementWork(taskDeclStatement, myBlock, parentOfMethodCall, tempNode);
+							myBlock= ifStatementWork(myBlock, parentOfMethodCall, tempNode);
 							if (myBlock == null) {
 								return false;
 							}
@@ -1173,7 +1173,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 							typesOfComputations.add(leftHandSide.resolveTypeBinding().getName());
 							ASTNode tempNode= parentOfMethodCall.getParent();
 							if (tempNode instanceof IfStatement) {
-								myBlock= ifStatementWork(taskDeclStatement, myBlock, parentOfMethodCall, tempNode);
+								myBlock= ifStatementWork(myBlock, parentOfMethodCall, tempNode);
 								if (myBlock == null) {
 									return false;
 								}
@@ -1188,14 +1188,13 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 						ASTNode tempNode= parentOfMethodCall.getParent();
 						if (tempNode instanceof Block) {
 							Block blockWithReturn= (Block) tempNode;
-							ListRewrite listRewriteForBlock= fScratchRewriter.getListRewrite(blockWithReturn, Block.STATEMENTS_PROPERTY);
 							List<ASTNode> statementsInBlockWithReturn= blockWithReturn.statements();
 							Statement lastStatementInBlock= (Statement) statementsInBlockWithReturn.get(statementsInBlockWithReturn.size() - 1);
 							if (lastStatementInBlock instanceof ReturnStatement) {
 								taskDeclFlag= -1;
 							}
-						} else if (tempNode instanceof IfStatement) {  //TODO Move this outside of return statement?
-							myBlock= ifStatementWork(taskDeclStatement, myBlock, parentOfMethodCall, tempNode);
+						} else if (tempNode instanceof IfStatement) {
+							myBlock= ifStatementWork(myBlock, parentOfMethodCall, tempNode);
 							if (myBlock == null) {
 								return false;
 							}
@@ -1271,15 +1270,15 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			fBlockFlags.put(myBlock, new Integer(flag));
 		}
 
-		private Block ifStatementWork(VariableDeclarationStatement taskDeclStatement, Block myBlock, Statement parentOfMethodCall, ASTNode tempNode) {
+		private Block ifStatementWork(Block myBlock, Statement parentOfMethodCall, ASTNode tempNode) {
 			IfStatement ifStatement= (IfStatement) tempNode;
 			Statement elseStatement= ifStatement.getElseStatement();
 			if (elseStatement != null && ifStatement.getThenStatement() != null && !ifStatement.getThenStatement().equals(parentOfMethodCall)) {
-				myBlock= replaceStatementInBlock(taskDeclStatement, elseStatement);									
+				myBlock= determineNewBlock(elseStatement);									
 			} else {
 				Statement thenStatement= ifStatement.getThenStatement();
 				if (thenStatement != null && thenStatement.equals(parentOfMethodCall)) {
-					myBlock= replaceStatementInBlock(taskDeclStatement, thenStatement);
+					myBlock= determineNewBlock(thenStatement);
 				} else {
 					return null;
 				}
@@ -1287,7 +1286,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			return myBlock;
 		}
 
-		private Block replaceStatementInBlock(VariableDeclarationStatement taskDeclStatement, Statement targetStatement) {
+		private Block determineNewBlock(Statement targetStatement) {
 			Block myBlock;
 			if (fLocationOfNewBlocks.containsKey(targetStatement)) {
 				myBlock= fLocationOfNewBlocks.get(targetStatement);
