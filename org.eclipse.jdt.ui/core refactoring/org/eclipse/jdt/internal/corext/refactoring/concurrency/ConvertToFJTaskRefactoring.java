@@ -1227,14 +1227,18 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 						myBlock= (Block) tempNode;
 					}
 				}
-				populateAllMaps(partialComputationsNames, typesOfComputations, infixExpressionFlag, methodInvocationFlag, myBlock, parentOfMethodCall);
+				populateAllMaps(partialComputationsNames, typesOfComputations, infixExpressionFlag, methodInvocationFlag, myBlock, parentOfMethodCall, taskDeclStatement, taskDeclFlag);
 			}
 			return true;
 		}
 
 		private void populateAllMaps(List<String> partialComputationsNames, List<String> typesOfComputations, boolean infixExpressionFlag, boolean methodInvocationFlag, Block myBlock,
-				Statement parentOfMethodCall) {
-			fTasksToBlock.put(new Integer(fTaskNumber[0]), myBlock);
+				Statement parentOfMethodCall, VariableDeclarationStatement taskDeclStatement, int taskDeclFlag) {
+			Integer taskNum= new Integer(fTaskNumber[0]);
+			fAllTaskDeclStatements.put(taskNum, taskDeclStatement);
+			fTasksToASTNode.put(taskNum, parentOfMethodCall);
+			fAllTaskDeclFlags.put(taskNum, new Integer(taskDeclFlag));
+			fTasksToBlock.put(taskNum, myBlock);
 			if (fNumTasksPerBlock.containsKey(myBlock)) {
 				Integer newValue= new Integer(fNumTasksPerBlock.get(myBlock).intValue() + 1);
 				fNumTasksPerBlock.put(myBlock, newValue);
