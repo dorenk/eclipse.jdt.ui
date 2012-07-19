@@ -303,7 +303,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		}
 		
 		final Map<Integer, VariableDeclarationStatement> allTaskDeclStatements= new HashMap<Integer, VariableDeclarationStatement>();
-		final Map<Integer, ASTNode> tasksToASTNode= new HashMap<Integer, ASTNode>();
+		final Map<Integer, Statement> tasksToStatement= new HashMap<Integer, Statement>();
 		final Map<Integer, Integer> allTaskDeclFlags= new HashMap<Integer, Integer>();
 		final Map<Block, List<Statement> > allStatementsWithRecursiveMethodInvocation= new HashMap<Block, List<Statement> >();
 		final int[] taskNumber= new int[] {0};
@@ -316,7 +316,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		final Map<Block, Statement> blockWithoutBraces= new HashMap<Block, Statement>();  //Can determine if a block does not have braces so as to use when inserting things to it
 		final Map<Block, Integer> blockFlags= new HashMap<Block, Integer>();  //Can determine flags for each block separately  //TODO Change to be mapped by task or by statement
 		final List<Block> allTheBlocks= new ArrayList<Block>();
-		fMethodDeclaration.accept(new MethodVisitor(allTaskDeclStatements, tasksToASTNode, allTaskDeclFlags, locationOfNewBlocks, scratchRewriter, numTasksPerBlock, allPartialComputationsNames,
+		fMethodDeclaration.accept(new MethodVisitor(allTaskDeclStatements, tasksToStatement, allTaskDeclFlags, locationOfNewBlocks, scratchRewriter, numTasksPerBlock, allPartialComputationsNames,
 				taskNumber, tasksToBlock, blockWithoutBraces, allStatementsWithRecursiveMethodInvocation, allTheBlocks, allTypesOfComputations, switchStatementsFound, blockFlags, ast));
 		try {
 			if (allStatementsWithRecursiveMethodInvocation.size() == 0) {
@@ -331,7 +331,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			while (blockIter.hasNext()) {
 				Block currBlock= blockIter.next();
 				ListRewrite listRewriteForBlock= scratchRewriter.getListRewrite(currBlock, Block.STATEMENTS_PROPERTY);
-				atLeastOneBlockChanged= doBlockWork(ast, result, editGroup, scratchRewriter, allTaskDeclStatements, tasksToASTNode, allTaskDeclFlags,
+				atLeastOneBlockChanged= doBlockWork(ast, result, editGroup, scratchRewriter, allTaskDeclStatements, tasksToStatement, allTaskDeclFlags,
 						allStatementsWithRecursiveMethodInvocation, allPartialComputationsNames, allTypesOfComputations, tasksToBlock, numTasksPerBlock, blockWithoutBraces, blockFlags, atLeastOneBlockChanged, currBlock, listRewriteForBlock) || atLeastOneBlockChanged;
 			}
 			if (!atLeastOneBlockChanged) {
@@ -348,7 +348,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 	}
 
 	private boolean doBlockWork(final AST ast, RefactoringStatus result, final TextEditGroup editGroup, final ASTRewrite scratchRewriter,
-			Map<Integer, VariableDeclarationStatement> allTaskDeclStatements, Map<Integer, ASTNode> tasksToASTNode,
+			Map<Integer, VariableDeclarationStatement> allTaskDeclStatements, Map<Integer, Statement> tasksToStatement,
 			Map<Integer, Integer> allTaskDeclFlags, final Map<Block, List<Statement>> allStatementsWithRecursiveMethodInvocation, final Map<Block, List<String>> allPartialComputationsNames, final Map<Block, List<String>> allTypesOfComputations,
 			final Map<Integer, Block> tasksToBlock, final Map<Block, Integer> numTasksPerBlock, final Map<Block, Statement> blockWithoutBraces, final Map<Block, Integer> blockFlags, boolean atLeastOneBlockChanged, Block currBlock, ListRewrite listRewriteForBlock) {
 		if (allStatementsWithRecursiveMethodInvocation.get(currBlock).size() > 1 && !numTasksPerBlock.get(currBlock).equals(Integer.valueOf(1))) {
@@ -368,7 +368,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			
 			for (int i = 0; i < max; i++) {
 				Integer taskNum= new Integer(taskNumbers[i]);
-				replaceWithTaskDeclStatement(allTaskDeclStatements.get(taskNum), tasksToASTNode.get(taskNum), allTaskDeclFlags.get(taskNum).intValue(), currBlock, scratchRewriter, editGroup, listRewriteForBlock);
+				replaceWithTaskDeclStatement(allTaskDeclStatements.get(taskNum), tasksToStatement.get(taskNum), allTaskDeclFlags.get(taskNum).intValue(), currBlock, scratchRewriter, editGroup, listRewriteForBlock);
 			}
 			
 			List<Statement> recursiveList= allStatementsWithRecursiveMethodInvocation.get(currBlock);
@@ -1125,7 +1125,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 	
 	private final class MethodVisitor extends ASTVisitor {
 		private final Map<Integer, VariableDeclarationStatement> fAllTaskDeclStatements;
-		private final Map<Integer, ASTNode> fTasksToASTNode;
+		private final Map<Integer, Statement> fTasksToStatement;
 		private final Map<Integer, Integer> fAllTaskDeclFlags;
 		private final Map<ASTNode, Block> fLocationOfNewBlocks;
 		private final ASTRewrite fScratchRewriter;
@@ -1141,11 +1141,11 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		private final Map<Block, Integer> fBlockFlags;
 		private final AST fAst;
 
-		private MethodVisitor(Map<Integer, VariableDeclarationStatement> allTaskDeclStatements, Map<Integer, ASTNode> tasksToASTNode, Map<Integer, Integer> allTaskDeclFlags, Map<ASTNode, Block> locationOfNewBlocks,
+		private MethodVisitor(Map<Integer, VariableDeclarationStatement> allTaskDeclStatements, Map<Integer, Statement> tasksToStatement, Map<Integer, Integer> allTaskDeclFlags, Map<ASTNode, Block> locationOfNewBlocks,
 				ASTRewrite scratchRewriter, Map<Block, Integer> numTasksPerBlock, Map<Block, List<String>> allPartialComputationsNames, int[] taskNumber,
 				Map<Integer, Block> tasksToBlock, Map<Block, Statement> blockWithoutBraces, Map<Block, List<Statement>> allStatementsWithRecursiveMethodInvocation, List<Block> allTheBlocks, Map<Block, List<String>> allTypesOfComputations, int[] switchStatementsFound, Map<Block, Integer> blockFlags, AST ast) {
 			fAllTaskDeclStatements= allTaskDeclStatements;
-			fTasksToASTNode= tasksToASTNode;
+			fTasksToStatement= tasksToStatement;
 			fAllTaskDeclFlags= allTaskDeclFlags;
 			fLocationOfNewBlocks= locationOfNewBlocks;
 			fScratchRewriter= scratchRewriter;
@@ -1290,7 +1290,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				Statement parentOfMethodCall, VariableDeclarationStatement taskDeclStatement, int taskDeclFlag) {
 			Integer taskNum= new Integer(fTaskNumber[0]);
 			fAllTaskDeclStatements.put(taskNum, taskDeclStatement);
-			fTasksToASTNode.put(taskNum, parentOfMethodCall);
+			fTasksToStatement.put(taskNum, parentOfMethodCall);
 			fAllTaskDeclFlags.put(taskNum, new Integer(taskDeclFlag));
 			fTasksToBlock.put(taskNum, myBlock);
 			if (fNumTasksPerBlock.containsKey(myBlock)) {
