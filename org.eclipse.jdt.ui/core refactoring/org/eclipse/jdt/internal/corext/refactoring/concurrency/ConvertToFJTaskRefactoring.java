@@ -257,7 +257,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 
 	private void checkIfCommentWarning(RefactoringStatus result) {
 		int start= fMethodDeclaration.getBody().getStartPosition();
-		int end= fMethodDeclaration.getBody().getLength() - start;
+		int end= fMethodDeclaration.getBody().getLength() + start;
 		List<Comment> commentList= fRoot.getCommentList();
 		if (commentList.size() != 0) {
 			for (int i=0; i < commentList.size(); i++) {
@@ -372,7 +372,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			}
 			
 			List<Statement> recursiveList= allStatementsWithRecursiveMethodInvocation.get(currBlock);
-			Statement lastStatementWithRecursiveCall;
+			Statement lastStatementWithRecursiveCall;  //TODO If combination of types of recursive calls within block - this will mess up - need to do a loop potentially through each statement first - then do invoke
 			boolean isNotNewBlock= !blockWithoutBraces.containsKey(currBlock);
 			if (isNotNewBlock) {
 				lastStatementWithRecursiveCall= recursiveList.get(recursiveList.size() - 1);
