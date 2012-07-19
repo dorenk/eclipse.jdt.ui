@@ -361,28 +361,30 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			MethodInvocation forkJoinInvocation= ast.newMethodInvocation();
 			forkJoinInvocation.setName(ast.newSimpleName("invokeAll")); //$NON-NLS-1$
 			List<Expression> argumentsForkJoin= forkJoinInvocation.arguments();
-			int counter= 0;
-			int max= numTasksPerBlock.get(currBlock).intValue();
-			int[] taskNumbers= new int[max];
-			counter= doTaskCreationLoop(ast, tasksToBlock, currBlock, argumentsForkJoin, counter, max, taskNumbers);
-			
-			for (int i = 0; i < max; i++) {
-				Integer taskNum= new Integer(taskNumbers[i]);
-				replaceWithTaskDeclStatement(allTaskDeclStatements.get(taskNum), tasksToStatement.get(taskNum), allTaskDeclFlags.get(taskNum).intValue(), currBlock, scratchRewriter, editGroup, listRewriteForBlock);
-			}
-			
 			List<Statement> recursiveList= allStatementsWithRecursiveMethodInvocation.get(currBlock);
-			Statement lastStatementWithRecursiveCall;  //TODO If combination of types of recursive calls within block - this will mess up - need to do a loop potentially through each statement first - then do invoke
 			boolean isNotNewBlock= !blockWithoutBraces.containsKey(currBlock);
-			if (isNotNewBlock) {
-				lastStatementWithRecursiveCall= recursiveList.get(recursiveList.size() - 1);
-			} else {
-				lastStatementWithRecursiveCall= blockWithoutBraces.get(currBlock);
-			}
-			
-			if (!recursiveMethodReturnsVoid()) {
-				doMethodWithReturnWork(ast, result, editGroup, scratchRewriter, allPartialComputationsNames, allTypesOfComputations, blockWithoutBraces, blockFlags, currBlock, listRewriteForBlock,
-						taskNumbers, lastStatementWithRecursiveCall);
+			Statement lastStatementWithRecursiveCall= null;  //TODO If combination of types of recursive calls within block - this will mess up - need to do a loop potentially through each statement first - then do invoke
+			for (int listIndex=0; listIndex < recursiveList.size(); listIndex++) {
+				int counter= 0;
+				int max= numTasksPerBlock.get(currBlock).intValue();
+				int[] taskNumbers= new int[max];
+				counter= doTaskCreationLoop(ast, tasksToBlock, currBlock, argumentsForkJoin, counter, max, taskNumbers);
+				
+				for (int i = 0; i < max; i++) {
+					Integer taskNum= new Integer(taskNumbers[i]);
+					replaceWithTaskDeclStatement(allTaskDeclStatements.get(taskNum), tasksToStatement.get(taskNum), allTaskDeclFlags.get(taskNum).intValue(), currBlock, scratchRewriter, editGroup, listRewriteForBlock);
+				}
+				
+				if (isNotNewBlock) {
+					lastStatementWithRecursiveCall= recursiveList.get(recursiveList.size() - 1);
+				} else {
+					lastStatementWithRecursiveCall= blockWithoutBraces.get(currBlock);
+				}
+				
+				if (!recursiveMethodReturnsVoid()) {
+					doMethodWithReturnWork(ast, result, editGroup, scratchRewriter, allPartialComputationsNames, allTypesOfComputations, blockWithoutBraces, blockFlags, currBlock, listRewriteForBlock,
+							taskNumbers, lastStatementWithRecursiveCall);
+				}
 			}
 			if (isNotNewBlock) {
 				int flags= blockFlags.get(currBlock).intValue();
