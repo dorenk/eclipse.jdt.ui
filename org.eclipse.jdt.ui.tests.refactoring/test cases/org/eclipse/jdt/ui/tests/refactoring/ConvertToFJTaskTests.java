@@ -202,6 +202,10 @@ public class ConvertToFJTaskTests extends AbstractSelectionTestCase {
 		objectTest("test2", "x < 10");
 	}
 	
+	//=====================================================================================
+	// Basic Invalid Test
+	//=====================================================================================
+	
 	public void testBaseCaseDoesNotHaveReturn() throws Exception {
 		invalidTest("method");
 	}
