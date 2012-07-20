@@ -368,7 +368,8 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				int counter= 0;
 				int max= numTasksPerBlock.get(currBlock).intValue();
 				int[] taskNumbers= new int[max];
-				counter= doTaskCreationLoop(ast, tasksToBlock, currBlock, argumentsForkJoin, counter, max, taskNumbers);
+				Statement currStatement= recursiveList.get(listIndex);
+				counter= doTaskCreationLoop(ast, tasksToStatement, currStatement, argumentsForkJoin, counter, max, taskNumbers);
 				
 				for (int i = 0; i < max; i++) {
 					Integer taskNum= new Integer(taskNumbers[i]);
@@ -414,10 +415,10 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		}
 	}
 
-	private int doTaskCreationLoop(final AST ast, final Map<Integer, Block> tasksToBlock, Block currBlock, List<Expression> argumentsForkJoin, int counter, int max, int[] taskNumbers) {
-		for (int i= 1; i <= tasksToBlock.size(); i++) {
-			Block tempBlock= tasksToBlock.get(Integer.valueOf(i));
-			if (tempBlock.equals(currBlock)) {
+	private int doTaskCreationLoop(final AST ast, final Map<Integer, Statement> tasksToStatement, Statement currStatement, List<Expression> argumentsForkJoin, int counter, int max, int[] taskNumbers) {
+		for (int i= 1; i <= tasksToStatement.size(); i++) {
+			Statement tempStatement= tasksToStatement.get(Integer.valueOf(i));
+			if (tempStatement.equals(currStatement)) {
 				argumentsForkJoin.add(ast.newSimpleName("task" + i)); //$NON-NLS-1$
 				taskNumbers[counter]= i;
 				counter++;
