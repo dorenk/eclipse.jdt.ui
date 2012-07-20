@@ -202,6 +202,38 @@ public class ConvertToFJTaskTests extends AbstractSelectionTestCase {
 		objectTest("test2", "x < 10");
 	}
 	
+	public void testBlockCombination0() throws Exception {
+		objectTest("tryThis", "x < 10");
+	}
+	
+	public void testBlockCombination1() throws Exception {
+		objectTest("tryThis", "x < 10");
+	}
+	
+	public void testBlockCombination2() throws Exception {
+		objectTest("tryThis", "x < 10");
+	}
+	
+	public void testBlockCombination3() throws Exception {
+		objectTest("tryThis", "x < 10");
+	}
+	
+	public void testBlockCombination4() throws Exception {
+		objectTest("tryThis", "x < 10");
+	}
+	
+	public void testBlockCombination5() throws Exception {
+		objectTest("tryThis", "x < 10");
+	}
+	
+	public void testBlockCombination6() throws Exception {
+		objectTest("tryThis", "x < 10");
+	}
+	
+	public void testBlockCombination7() throws Exception {
+		objectTest("tryThis", "x < 10");
+	}
+	
 	//=====================================================================================
 	// Basic Invalid Test
 	//=====================================================================================
