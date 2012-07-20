@@ -1311,7 +1311,9 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			}
 			if (fAllStatementsWithRecursiveMethodInvocation.containsKey(myBlock)) {
 				List<Statement> recursiveList= fAllStatementsWithRecursiveMethodInvocation.get(myBlock);
-				recursiveList.add(parentOfMethodCall);
+				if (!recursiveList.contains(parentOfMethodCall)) {
+					recursiveList.add(parentOfMethodCall);
+				}
 			} else {
 				List<Statement> recursiveList= new ArrayList<Statement>();
 				recursiveList.add(parentOfMethodCall);
