@@ -365,16 +365,16 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			List<Statement> blackList= new ArrayList<Statement>();
 			boolean isNotNewBlock= !blockWithoutBraces.containsKey(currBlock);
 			Statement lastStatementWithRecursiveCall= null;  //TODO If combination of types of recursive calls within block - this will mess up - need to do a loop potentially through each statement first - then do invoke
-			for (int listIndex=0; listIndex < recursiveList.size(); listIndex++) {
-				int counter= 0;
-				int max= numTasksPerBlock.get(currBlock).intValue();
-				int[] taskNumbers= new int[max];
-				Statement currStatement= recursiveList.get(listIndex);
-				counter= doTaskCreationLoop(ast, tasksToStatement, currStatement, argumentsForkJoin, counter, max, taskNumbers);
-				for (int i = 0; i < max; i++) {
-					Integer taskNum= new Integer(taskNumbers[i]);
-					replaceWithTaskDeclStatement(allTaskDeclStatements.get(taskNum), tasksToStatement.get(taskNum), allTaskDeclFlags.get(taskNum).intValue(), currBlock, scratchRewriter, editGroup, listRewriteForBlock);
-				}
+			Statement currStatement= null;
+			
+			for (int listIndex= 0; listIndex < recursiveList.size(); listIndex++) {
+				if (!blackList.contains(currStatement) ) {
+					blackList.add(currStatement);
+					int counter= 0;
+					int max= numTasksPerBlock.get(currBlock).intValue();
+					int[] taskNumbers= new int[max];
+					currStatement= recursiveList.get(listIndex);
+					counter= doTaskCreationLoop(ast, tasksToStatement, currStatement, argumentsForkJoin, counter, max, taskNumbers);
 				
 				
 				if (isNotNewBlock) {
