@@ -377,15 +377,21 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 					counter= doTaskCreationLoop(ast, tasksToStatement, currStatement, argumentsForkJoin, counter, max, taskNumbers);
 				
 				
-				if (isNotNewBlock) {
-					lastStatementWithRecursiveCall= recursiveList.get(recursiveList.size() - 1);
-				} else {
-					lastStatementWithRecursiveCall= blockWithoutBraces.get(currBlock);
-				}
-				
-				if (!recursiveMethodReturnsVoid()) {
-					doMethodWithReturnWork(ast, result, editGroup, scratchRewriter, allPartialComputationsNames, allTypesOfComputations, blockWithoutBraces, blockFlags, currBlock, listRewriteForBlock,
-							taskNumbers, lastStatementWithRecursiveCall);
+					for (int i= 0; i < counter; i++) {
+						Integer taskNum= new Integer(taskNumbers[i]);
+						replaceWithTaskDeclStatement(allTaskDeclStatements.get(taskNum), tasksToStatement.get(taskNum), allTaskDeclFlags.get(taskNum).intValue(), currBlock, scratchRewriter, editGroup, listRewriteForBlock);
+					}
+					
+//					if (isNotNewBlock) {
+//						lastStatementWithRecursiveCall= recursiveList.get(recursiveList.size() - 1);
+//					} else {
+//						lastStatementWithRecursiveCall= blockWithoutBraces.get(currBlock);
+//					}
+					
+					if (!recursiveMethodReturnsVoid()) {
+						doMethodWithReturnWork(ast, result, editGroup, scratchRewriter, allPartialComputationsNames, allTypesOfComputations, blockWithoutBraces, statementFlags, currBlock, listRewriteForBlock,
+								taskNumbers, currStatement);
+					}
 				}
 			}
 			if (isNotNewBlock) {
