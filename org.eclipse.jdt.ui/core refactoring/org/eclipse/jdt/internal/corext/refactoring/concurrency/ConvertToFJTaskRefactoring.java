@@ -446,22 +446,22 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			createPartialComputations(ast, editGroup, scratchRewriter, allPartialComputationsNames.get(currStatement), allTypesOfComputations.get(currStatement), listRewriteForBlock, currStatement, isNotNewBlock, taskNumbers, flags);
 		}
 		
-		Statement lastStatementInBlock;
-		if (isNotNewBlock) {
-			List<ASTNode> statementsInBlockWithTaskDecl= currBlock.statements();
-			lastStatementInBlock= (Statement) statementsInBlockWithTaskDecl.get(statementsInBlockWithTaskDecl.size() - 1);
-		} else {
-			lastStatementInBlock= blockWithoutBraces.get(currBlock);
-		}
-		if (lastStatementInBlock instanceof ReturnStatement) {  //TODO only do when parentOfMethodCall is returnStatement and otherwise just call createLastReturnNoFlags
-			if (flags == 1 || flags == 2) {
-				int errorFlag= createLastReturnStatement(ast, result, editGroup, scratchRewriter, listRewriteForBlock, lastStatementInBlock, isNotNewBlock, taskNumbers, flags);
-				if (errorFlag == -1) {
-					return;  //TODO Check this
-				}
-			} else {
-				createLastReturnNoFlags(ast, editGroup, scratchRewriter, listRewriteForBlock, lastStatementInBlock, isNotNewBlock);
-			}
+//		Statement lastStatementInBlock;
+//		if (isNotNewBlock) {
+//			List<ASTNode> statementsInBlockWithTaskDecl= currBlock.statements();
+//			lastStatementInBlock= (Statement) statementsInBlockWithTaskDecl.get(statementsInBlockWithTaskDecl.size() - 1);
+//		} else {
+//			lastStatementInBlock= blockWithoutBraces.get(currBlock);
+//		}
+		if (currStatement instanceof ReturnStatement) {  //TODO only do when parentOfMethodCall is returnStatement and otherwise just call createLastReturnNoFlags
+//			if (flags == 1 || flags == 2) {
+//				int errorFlag= createLastReturnStatement(ast, result, editGroup, scratchRewriter, listRewriteForBlock, lastStatementInBlock, isNotNewBlock, taskNumbers, flags);
+//				if (errorFlag == -1) {
+//					return;  //TODO Check this
+//				}
+//			} else {
+				createLastReturnNoFlags(ast, editGroup, scratchRewriter, listRewriteForBlock, currStatement, isNotNewBlock);
+//			}
 		}
 	}
 
