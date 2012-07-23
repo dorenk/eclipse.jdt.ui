@@ -623,7 +623,8 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			}
 		} else if (currStatement instanceof ExpressionStatement) {
 			if (flags == 5) {
-				InfixExpression infixExpression= (InfixExpression) ((ExpressionStatement) currStatement).getExpression();
+				Expression expr= ((Expression) (ASTNode.copySubtree(ast, ((ExpressionStatement) currStatement).getExpression())));
+				InfixExpression infixExpression= (InfixExpression) ((Assignment) expr).getRightHandSide();
 				final int[] taskNum= {0};
 				infixExpression.accept(new ASTVisitor() {
 					@Override
@@ -639,14 +640,15 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 					}
 				});
 				
-				ExpressionStatement assignToResult= ast.newExpressionStatement(infixExpression);
+				ExpressionStatement assignToResult= ast.newExpressionStatement(expr);
 				if (isNotNewBlock) {
 					statementsToAdd.add(assignToResult);
 				} else {
 					listRewriteForBlock.insertLast(assignToResult, editGroup);
 				}
 			} else if (flags == 6) {
-				MethodInvocation methodInvocation= (MethodInvocation) ((ExpressionStatement) currStatement).getExpression();
+				Expression expr= ((Expression) (ASTNode.copySubtree(ast, ((ExpressionStatement) currStatement).getExpression())));
+				MethodInvocation methodInvocation= (MethodInvocation) ((Assignment) expr).getRightHandSide();
 				final int[] taskNum= {0};
 				methodInvocation.accept(new ASTVisitor() {
 					@Override
@@ -662,7 +664,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 					}
 				});
 				
-				ExpressionStatement assignToResult= ast.newExpressionStatement(methodInvocation);
+				ExpressionStatement assignToResult= ast.newExpressionStatement(expr);
 				if (isNotNewBlock) {
 					statementsToAdd.add(assignToResult);
 				} else {
