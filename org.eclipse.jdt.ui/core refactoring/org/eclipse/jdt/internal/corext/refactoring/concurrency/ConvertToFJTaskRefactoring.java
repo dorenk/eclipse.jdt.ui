@@ -1174,12 +1174,9 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 						Expression exprTemp= varFragment.getInitializer();
 						if (exprTemp instanceof InfixExpression) {
 							infixExpressionFlag= true;
-						} else if (exprTemp instanceof MethodInvocation) {
+						} else if (exprTemp instanceof MethodInvocation && isMethodNameEqual(exprTemp)) {
 							methodInvocationFlag= true;
-						} else {
-							System.err.println(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_scenario_error + parentOfMethodCall.toString() );
-							return false;
-						}
+						} //TODO Do I need an else?
 					} else if (parentOfMethodCall instanceof ExpressionStatement) {
 						ExpressionStatement exprStatement= (ExpressionStatement) parentOfMethodCall;
 						Expression expressionContainer= exprStatement.getExpression();
@@ -1200,11 +1197,8 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 							Expression exprTemp= assignment.getRightHandSide();
 							if (exprTemp instanceof InfixExpression) {
 								infixExpressionFlag= true;
-							} else if (exprTemp instanceof MethodInvocation) {
+							} else if (exprTemp instanceof MethodInvocation && isMethodNameEqual(exprTemp)) {
 								methodInvocationFlag= true;
-							} else {
-								System.err.println(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_scenario_error + parentOfMethodCall.toString() );
-								return false;
 							}
 						} else {
 							System.err.println(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_scenario_error + parentOfMethodCall.toString() );
@@ -1228,11 +1222,8 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 						Expression exprTemp= ((ReturnStatement) parentOfMethodCall).getExpression();
 						if (exprTemp instanceof InfixExpression) {
 							infixExpressionFlag= true;
-						} else if (exprTemp instanceof MethodInvocation) {
+						} else if (exprTemp instanceof MethodInvocation && isMethodNameEqual(exprTemp)) {
 							methodInvocationFlag= true;
-						} else {
-							System.err.println(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_scenario_error + parentOfMethodCall.toString() );
-							return false;
 						}
 					} else {
 						System.err.println(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_scenario_error + parentOfMethodCall.toString() );
@@ -1256,6 +1247,10 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				populateAllMaps(partialComputationsNames, typesOfComputations, infixExpressionFlag, methodInvocationFlag, myBlock, parentOfMethodCall, taskDeclStatement, taskDeclFlag);
 			}
 			return true;
+		}
+
+		private boolean isMethodNameEqual(Expression exprTemp) {
+			return !(((MethodInvocation) exprTemp).getName().getFullyQualifiedName().equals(fMethodDeclaration.getName().getFullyQualifiedName()));
 		}
 
 		private void populateAllMaps(List<String> partialComputationsNames, List<String> typesOfComputations, boolean infixExpressionFlag, boolean methodInvocationFlag, Block myBlock,
