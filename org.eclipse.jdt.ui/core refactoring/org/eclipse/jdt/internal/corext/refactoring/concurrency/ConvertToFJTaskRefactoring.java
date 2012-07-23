@@ -351,7 +351,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			Map<Integer, VariableDeclarationStatement> allTaskDeclStatements, Map<Integer, Statement> tasksToStatement,
 			Map<Integer, Integer> allTaskDeclFlags, final Map<Block, List<Statement>> allStatementsWithRecursiveMethodInvocation, final Map<Statement, List<String>> allPartialComputationsNames, final Map<Statement, List<String>> allTypesOfComputations,
 			final Map<Block, Integer> numTasksPerBlock, final Map<Block, Statement> blockWithoutBraces, final Map<Statement, Integer> statementFlags, boolean atLeastOneBlockChanged, Block currBlock, ListRewrite listRewriteForBlock) {
-		if (allStatementsWithRecursiveMethodInvocation.get(currBlock).size() > 1 && !numTasksPerBlock.get(currBlock).equals(Integer.valueOf(1))) {
+		if (allStatementsWithRecursiveMethodInvocation.get(currBlock).size() >= 1 && !numTasksPerBlock.get(currBlock).equals(Integer.valueOf(1))) {
 			atLeastOneBlockChanged=  true;
 			
 			if(blockWithoutBraces.containsKey(currBlock)) {
