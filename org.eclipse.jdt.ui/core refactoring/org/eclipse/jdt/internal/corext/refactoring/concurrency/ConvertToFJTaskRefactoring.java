@@ -379,7 +379,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				
 				Statement reverseCurrStatement= recursiveList.get(recursiveList.size() - listIndex - 1);
 				List<Integer> reverseTaskList= statementsToTasks.get(reverseCurrStatement);
-				int reverseFlags= statementFlags.get(currStatement).intValue();
+				int reverseFlags= statementFlags.get(reverseCurrStatement).intValue();
 				if (allPartialComputationsNames.containsKey(reverseCurrStatement)) {
 					createPartialComputations(ast, editGroup, scratchRewriter, allPartialComputationsNames.get(reverseCurrStatement), allTypesOfComputations.get(reverseCurrStatement), listRewriteForBlock, reverseCurrStatement, isNotNewBlock, reverseTaskList, reverseFlags, statementsToAdd);
 				}
