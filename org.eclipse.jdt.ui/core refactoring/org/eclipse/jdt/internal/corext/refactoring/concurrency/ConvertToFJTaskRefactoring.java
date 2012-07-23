@@ -586,8 +586,30 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 					listRewriteForBlock.insertLast(assignToResult, editGroup);
 				}
 			} else if (flags == 4) {
+				VariableDeclarationFragment varFragment= ((VariableDeclarationFragment)(ASTNode.copySubtree(ast, ((VariableDeclarationFragment)(((VariableDeclarationStatement) currStatement).fragments().get(0))))));
+				MethodInvocation methodInvocation= (MethodInvocation) varFragment.getInitializer();
+				final int[] taskNum= {0};
+				methodInvocation.accept(new ASTVisitor() {
+					@Override
+					public boolean visit(MethodInvocation methodCall) {
+					if	(methodCall.getName().getFullyQualifiedName().equals(fMethodDeclaration.getName().getFullyQualifiedName())) {
+						Expression replacement= ast.newQualifiedName(ast.newSimpleName("task" + taskList.get(taskNum[0]++)), ast.newSimpleName("result"));  //$NON-NLS-1$//$NON-NLS-2$
+						scratchRewriter.replace(methodCall, replacement, editGroup);
+					}
+					if (taskNum[0] == taskList.size()) {
+						return false;
+					}
+					return true;
+					}
+				});
 				
-			} else {
+				VariableDeclarationStatement assignToResult= ast.newVariableDeclarationStatement(varFragment);
+				if (isNotNewBlock) {
+					statementsToAdd.add(assignToResult);
+				} else {
+					listRewriteForBlock.insertLast(assignToResult, editGroup);
+				}
+			} else {  //TODO Try to break this - make sure in right order as well
 				for (int i= partialComputationsNames.size() - 1; i >= 0 ; ) {
 					String varStatement= typesOfComputations.get(i) + " " + partialComputationsNames.get(i) + " = task" + taskList.get(i) + ".result;"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 					VariableDeclarationStatement variableStatement= (VariableDeclarationStatement) scratchRewriter.createStringPlaceholder(varStatement, ASTNode.VARIABLE_DECLARATION_STATEMENT);
@@ -601,10 +623,52 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			}
 		} else if (currStatement instanceof ExpressionStatement) {
 			if (flags == 5) {
+				InfixExpression infixExpression= (InfixExpression) ((ExpressionStatement) currStatement).getExpression();
+				final int[] taskNum= {0};
+				infixExpression.accept(new ASTVisitor() {
+					@Override
+					public boolean visit(MethodInvocation methodCall) {
+					if	(methodCall.getName().getFullyQualifiedName().equals(fMethodDeclaration.getName().getFullyQualifiedName())) {
+						Expression replacement= ast.newQualifiedName(ast.newSimpleName("task" + taskList.get(taskNum[0]++)), ast.newSimpleName("result"));  //$NON-NLS-1$//$NON-NLS-2$
+						scratchRewriter.replace(methodCall, replacement, editGroup);
+					}
+					if (taskNum[0] == taskList.size()) {
+						return false;
+					}
+					return true;
+					}
+				});
 				
+				ExpressionStatement assignToResult= ast.newExpressionStatement(infixExpression);
+				if (isNotNewBlock) {
+					statementsToAdd.add(assignToResult);
+				} else {
+					listRewriteForBlock.insertLast(assignToResult, editGroup);
+				}
 			} else if (flags == 6) {
+				MethodInvocation methodInvocation= (MethodInvocation) ((ExpressionStatement) currStatement).getExpression();
+				final int[] taskNum= {0};
+				methodInvocation.accept(new ASTVisitor() {
+					@Override
+					public boolean visit(MethodInvocation methodCall) {
+					if	(methodCall.getName().getFullyQualifiedName().equals(fMethodDeclaration.getName().getFullyQualifiedName())) {
+						Expression replacement= ast.newQualifiedName(ast.newSimpleName("task" + taskList.get(taskNum[0]++)), ast.newSimpleName("result"));  //$NON-NLS-1$//$NON-NLS-2$
+						scratchRewriter.replace(methodCall, replacement, editGroup);
+					}
+					if (taskNum[0] == taskList.size()) {
+						return false;
+					}
+					return true;
+					}
+				});
 				
-			} else {
+				ExpressionStatement assignToResult= ast.newExpressionStatement(methodInvocation);
+				if (isNotNewBlock) {
+					statementsToAdd.add(assignToResult);
+				} else {
+					listRewriteForBlock.insertLast(assignToResult, editGroup);
+				}
+			} else {  //TODO Try to break as well
 				for (int i= partialComputationsNames.size() - 1; i >= 0 ; ) {
 					String exprStatement= partialComputationsNames.get(i) + " = task" + taskList.get(i) + ".result;"; //$NON-NLS-1$ //$NON-NLS-2$
 					ExpressionStatement expressionStatement= (ExpressionStatement) scratchRewriter.createStringPlaceholder(exprStatement, ASTNode.EXPRESSION_STATEMENT);
