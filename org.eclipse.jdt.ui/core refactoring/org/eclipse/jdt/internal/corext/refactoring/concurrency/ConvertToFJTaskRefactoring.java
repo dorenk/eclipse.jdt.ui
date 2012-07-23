@@ -562,7 +562,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 	private void createPartialComputations(final AST ast, final TextEditGroup editGroup, final ASTRewrite scratchRewriter, final List<String> partialComputationsNames,
 			final List<String> typesOfComputations, ListRewrite listRewriteForBlock, Statement currStatement, boolean isNotNewBlock, final List<Integer> taskList, int flags, List<ASTNode> statementsToAdd) {
 		if (currStatement instanceof VariableDeclarationStatement) {
-			if (flags == 3) {  //TODO may need to worry about some recursive calls being together but others that are not that will be left behind - need to also do some sort of linear thing
+			if (flags == 3) {
 				VariableDeclarationFragment varFragment= ((VariableDeclarationFragment)(ASTNode.copySubtree(ast, ((VariableDeclarationFragment)(((VariableDeclarationStatement) currStatement).fragments().get(0))))));
 				InfixExpression infixExpression= (InfixExpression) varFragment.getInitializer();
 				final int[] taskNum= {0};
