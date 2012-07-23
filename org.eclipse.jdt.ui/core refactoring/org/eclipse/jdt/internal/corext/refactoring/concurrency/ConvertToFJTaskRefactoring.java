@@ -1324,8 +1324,8 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			}
 			if (!partialComputationsNames.isEmpty()) {
 				if (fAllPartialComputationsNames.containsKey(parentOfMethodCall)) {
-					fAllPartialComputationsNames.get(myBlock).addAll(partialComputationsNames);
-					fAllTypesOfComputations.get(myBlock).addAll(typesOfComputations);
+					fAllPartialComputationsNames.get(parentOfMethodCall).addAll(partialComputationsNames);
+					fAllTypesOfComputations.get(parentOfMethodCall).addAll(typesOfComputations);
 				} else {
 					fAllPartialComputationsNames.put(parentOfMethodCall, partialComputationsNames);
 					fAllTypesOfComputations.put(parentOfMethodCall, typesOfComputations);
