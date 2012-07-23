@@ -505,11 +505,18 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				return -1;
 			}
 			MethodInvocation methodInvocation= ((MethodInvocation) tempAST);
-			int taskNum= 0;
-			List<Expression> methodArguments= methodInvocation.arguments();
-			for (int index= 0; index < methodArguments.size(); ) {
-				methodArguments.set(index++, ast.newQualifiedName(ast.newSimpleName("task" + taskList.get(taskNum++)), ast.newSimpleName("result"))); //$NON-NLS-1$ //$NON-NLS-2$
-			}
+			final int[] taskNum= {0};
+			methodInvocation.accept(new ASTVisitor() {
+				@Override
+				public boolean visit(MethodInvocation methodCall) {
+				if	(methodCall.getName().getFullyQualifiedName().equals(fMethodDeclaration.getName().getFullyQualifiedName())) {
+					Expression replacement= ast.newQualifiedName(ast.newSimpleName("task" + taskList.get(taskNum[0]++)), ast.newSimpleName("result"));  //$NON-NLS-1$//$NON-NLS-2$
+					scratchRewriter.replace(methodCall, replacement, editGroup);
+				}
+					return true;
+				}
+			});
+			
 			assignToResult.setRightHandSide(methodInvocation);
 			if (isNotNewBlock) {
 				scratchRewriter.replace(lastStatementInBlock, ast.newExpressionStatement(assignToResult), editGroup);
@@ -538,13 +545,18 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			if (flags == 3) {  //TODO may need to worry about some recursive calls being together but others that are not that will be left behind - need to also do some sort of linear thing
 				VariableDeclarationFragment varFragment= ((VariableDeclarationFragment)(ASTNode.copySubtree(ast, ((VariableDeclarationFragment)(((VariableDeclarationStatement) currStatement).fragments().get(0))))));
 				InfixExpression infixExpression= (InfixExpression) varFragment.getInitializer();
-				int taskNum= 0;
-				infixExpression.setLeftOperand(ast.newQualifiedName(ast.newSimpleName("task" + taskList.get(taskNum++)), ast.newSimpleName("result"))); //$NON-NLS-1$ //$NON-NLS-2$
-				infixExpression.setRightOperand(ast.newQualifiedName(ast.newSimpleName("task" + taskList.get(taskNum++)), ast.newSimpleName("result"))); //$NON-NLS-1$ //$NON-NLS-2$
-				List<Expression> extendedOperands = infixExpression.extendedOperands();
-				for (int i= 0; i < extendedOperands.size(); i++) {
-					extendedOperands.set(i, ast.newQualifiedName(ast.newSimpleName("task" + taskList.get(taskNum++)), ast.newSimpleName("result"))); //$NON-NLS-1$ //$NON-NLS-2$
-				}
+				final int[] taskNum= {0};
+				infixExpression.accept(new ASTVisitor() {
+					@Override
+					public boolean visit(MethodInvocation methodCall) {
+					if	(methodCall.getName().getFullyQualifiedName().equals(fMethodDeclaration.getName().getFullyQualifiedName())) {
+						Expression replacement= ast.newQualifiedName(ast.newSimpleName("task" + taskList.get(taskNum[0]++)), ast.newSimpleName("result"));  //$NON-NLS-1$//$NON-NLS-2$
+						scratchRewriter.replace(methodCall, replacement, editGroup);
+					}
+						return true;
+					}
+				});
+				
 				VariableDeclarationStatement assignToResult= ast.newVariableDeclarationStatement(varFragment);  //TODO Make sure type will be correct
 				if (isNotNewBlock) {
 					statementsToAdd.add(assignToResult);
