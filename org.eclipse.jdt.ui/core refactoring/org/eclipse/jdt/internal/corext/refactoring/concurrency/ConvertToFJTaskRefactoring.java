@@ -547,7 +547,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				}
 				VariableDeclarationStatement assignToResult= ast.newVariableDeclarationStatement(varFragment);  //TODO Make sure type will be correct
 				if (isNotNewBlock) {
-					listRewriteForBlock.insertAfter(assignToResult, currStatement, editGroup);
+					statementsToAdd.add(assignToResult);
 				} else {
 					listRewriteForBlock.insertLast(assignToResult, editGroup);
 				}
@@ -558,7 +558,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 					String varStatement= typesOfComputations.get(i) + " " + partialComputationsNames.get(i) + " = task" + taskList.get(i) + ".result;"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 					VariableDeclarationStatement variableStatement= (VariableDeclarationStatement) scratchRewriter.createStringPlaceholder(varStatement, ASTNode.VARIABLE_DECLARATION_STATEMENT);
 					if (isNotNewBlock) {
-						listRewriteForBlock.insertAfter(variableStatement, lastStatementWithRecursiveCall, editGroup);
+						statementsToAdd.add(variableStatement);
 					} else {
 						listRewriteForBlock.insertLast(variableStatement, editGroup);
 					}
@@ -575,7 +575,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 					String exprStatement= partialComputationsNames.get(i) + " = task" + taskList.get(i) + ".result;"; //$NON-NLS-1$ //$NON-NLS-2$
 					ExpressionStatement expressionStatement= (ExpressionStatement) scratchRewriter.createStringPlaceholder(exprStatement, ASTNode.EXPRESSION_STATEMENT);
 					if (isNotNewBlock) {
-						listRewriteForBlock.insertAfter(expressionStatement, currStatement, editGroup);
+						statementsToAdd.add(expressionStatement);
 					} else {
 						listRewriteForBlock.insertLast(expressionStatement, editGroup);
 					}
