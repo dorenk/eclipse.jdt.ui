@@ -364,10 +364,11 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			boolean isNotNewBlock= !blockWithoutBraces.containsKey(currBlock);
 			Statement lastStatementWithRecursiveCall= null;  //TODO If combination of types of recursive calls within block - this will mess up - need to do a loop potentially through each statement first - then do invoke
 			Statement currStatement= null;
-			int flags= statementFlags.get(currStatement).intValue();
+			int flags= 0;
 			
 			for (int listIndex= 0; listIndex < recursiveList.size(); listIndex++) {
 				currStatement= recursiveList.get(listIndex);
+				flags= statementFlags.get(currStatement).intValue();
 				List<Integer> taskList= statementsToTasks.get(currStatement);
 				for (int i=0; i < taskList.size(); i++) {
 					Integer taskNum= taskList.get(i);
