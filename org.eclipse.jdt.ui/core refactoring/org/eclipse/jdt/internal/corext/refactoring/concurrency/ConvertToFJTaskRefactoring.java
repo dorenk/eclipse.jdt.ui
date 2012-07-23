@@ -350,18 +350,18 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 	private boolean doBlockWork(final AST ast, RefactoringStatus result, final TextEditGroup editGroup, final ASTRewrite scratchRewriter,
 			Map<Integer, VariableDeclarationStatement> allTaskDeclStatements, Map<Statement, List<Integer>> statementsToTasks, Map<Integer, Integer> allTaskDeclFlags, final Map<Block, List<Statement>> allStatementsWithRecursiveMethodInvocation, final Map<Statement, List<String>> allPartialComputationsNames,
 			final Map<Statement, List<String>> allTypesOfComputations, final Map<Block, Integer> numTasksPerBlock, final Map<Block, Statement> blockWithoutBraces, final Map<Statement, Integer> statementFlags, boolean atLeastOneBlockChanged, Block currBlock, ListRewrite listRewriteForBlock) {
+		boolean isNewBlock= blockWithoutBraces.containsKey(currBlock);
+		if(isNewBlock) {
+			scratchRewriter.replace(blockWithoutBraces.get(currBlock), currBlock, editGroup);
+		}
 		if (allStatementsWithRecursiveMethodInvocation.get(currBlock).size() >= 1 && !numTasksPerBlock.get(currBlock).equals(Integer.valueOf(1))) {
 			atLeastOneBlockChanged=  true;
-			
-			if(blockWithoutBraces.containsKey(currBlock)) {
-				scratchRewriter.replace(blockWithoutBraces.get(currBlock), currBlock, editGroup);
-			}
 			
 			MethodInvocation forkJoinInvocation= ast.newMethodInvocation();
 			forkJoinInvocation.setName(ast.newSimpleName("invokeAll")); //$NON-NLS-1$
 			List<Expression> argumentsForkJoin= forkJoinInvocation.arguments();
 			List<Statement> recursiveList= allStatementsWithRecursiveMethodInvocation.get(currBlock);
-			boolean isNotNewBlock= !blockWithoutBraces.containsKey(currBlock);
+			boolean isNotNewBlock= !isNewBlock;
 			Statement lastStatementWithRecursiveCall= recursiveList.get(recursiveList.size() - 1);  //TODO assumes not new block, make sure OK
 			Statement currStatement= null;
 			List<ASTNode> statementsToAdd= new ArrayList<ASTNode>();
@@ -418,6 +418,13 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 						listRewriteForBlock.insertBefore(statementsToAdd.get(i), lastStatementWithRecursiveCall, editGroup);
 					}
 				}
+			}
+		}
+		else if (!recursiveMethodReturnsVoid()) {
+			if (!isNewBlock) {
+				createLastReturnNoFlags(ast, editGroup, scratchRewriter, listRewriteForBlock, (Statement) currBlock.statements().get(currBlock.statements().size() - 1), !isNewBlock);
+			} else {
+				createLastReturnNoFlags(ast, editGroup, scratchRewriter, listRewriteForBlock, blockWithoutBraces.get(currBlock), !isNewBlock);
 			}
 		}
 		return atLeastOneBlockChanged;
