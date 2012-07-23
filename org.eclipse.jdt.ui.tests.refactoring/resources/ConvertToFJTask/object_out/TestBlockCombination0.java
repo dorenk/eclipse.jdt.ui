@@ -31,7 +31,6 @@ public class TestBlockCombination0 {
 					result = task1.result + task2.result;
 				} else {
 					result = tryThis(x - 1);
-					return;
 				}
 			}
 		}

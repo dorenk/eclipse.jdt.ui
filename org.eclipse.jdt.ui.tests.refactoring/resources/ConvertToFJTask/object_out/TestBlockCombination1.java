@@ -34,7 +34,6 @@ public class TestBlockCombination1 {
 				} else {
 					int x3 = tryThis(x - 1);
 					result = x3;
-					return x3;
 				}
 			}
 		}
