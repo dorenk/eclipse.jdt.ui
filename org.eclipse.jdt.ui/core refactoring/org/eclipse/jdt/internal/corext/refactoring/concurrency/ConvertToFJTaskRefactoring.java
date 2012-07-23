@@ -381,7 +381,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				List<Integer> reverseTaskList= statementsToTasks.get(reverseCurrStatement);
 				int reverseFlags= statementFlags.get(currStatement).intValue();
 				if (allPartialComputationsNames.containsKey(reverseCurrStatement)) {
-					createPartialComputations(ast, editGroup, scratchRewriter, allPartialComputationsNames.get(reverseCurrStatement), allTypesOfComputations.get(reverseCurrStatement), listRewriteForBlock, reverseCurrStatement, lastStatementWithRecursiveCall, isNotNewBlock, reverseTaskList, reverseFlags, statementsToAdd);
+					createPartialComputations(ast, editGroup, scratchRewriter, allPartialComputationsNames.get(reverseCurrStatement), allTypesOfComputations.get(reverseCurrStatement), listRewriteForBlock, reverseCurrStatement, isNotNewBlock, reverseTaskList, reverseFlags, statementsToAdd);
 				}
 			}
 			if (!recursiveMethodReturnsVoid()) {
@@ -546,7 +546,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 	}
 
 	private void createPartialComputations(final AST ast, final TextEditGroup editGroup, final ASTRewrite scratchRewriter, final List<String> partialComputationsNames,
-			final List<String> typesOfComputations, ListRewrite listRewriteForBlock, Statement currStatement, Statement lastStatementWithRecursiveCall, boolean isNotNewBlock, final List<Integer> taskList, int flags, List<ASTNode> statementsToAdd) {
+			final List<String> typesOfComputations, ListRewrite listRewriteForBlock, Statement currStatement, boolean isNotNewBlock, final List<Integer> taskList, int flags, List<ASTNode> statementsToAdd) {
 		if (currStatement instanceof VariableDeclarationStatement) {
 			if (flags == 3) {  //TODO may need to worry about some recursive calls being together but others that are not that will be left behind - need to also do some sort of linear thing
 				VariableDeclarationFragment varFragment= ((VariableDeclarationFragment)(ASTNode.copySubtree(ast, ((VariableDeclarationFragment)(((VariableDeclarationStatement) currStatement).fragments().get(0))))));
