@@ -391,8 +391,11 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 						if (errorFlag == -1) {
 							return false;  //TODO Check this
 						}
-					} else {
-						createLastReturnNoFlags(ast, editGroup, scratchRewriter, listRewriteForBlock, currStatement, isNotNewBlock);
+					}
+				} else {
+					createLastReturnNoFlags(ast, editGroup, scratchRewriter, listRewriteForBlock, (Statement) currBlock.statements().get(currBlock.statements().size() - 1), isNotNewBlock);
+				}
+			}
 			if (statementsToAdd.size() > 0) {
 				for (int i=0; i < statementsToAdd.size(); i++) {
 					if (!(flags == 1 || flags == 2)) {
