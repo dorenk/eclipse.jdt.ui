@@ -544,6 +544,12 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			boolean isNotNewBlock) {
 		Assignment assignToResult= ast.newAssignment();
 		assignToResult.setLeftHandSide(ast.newSimpleName("result")); //$NON-NLS-1$
+		if (!(lastStatementInBlock instanceof ReturnStatement)) {
+			if (!isNotNewBlock) {
+				listRewriteForBlock.insertLast(lastStatementInBlock, editGroup);
+			}
+			return;
+		}
 		assignToResult.setRightHandSide((Expression) ASTNode.copySubtree(ast, ((ReturnStatement) lastStatementInBlock).getExpression()));
 		if (isNotNewBlock) {
 			scratchRewriter.replace(lastStatementInBlock, ast.newExpressionStatement(assignToResult), editGroup);
