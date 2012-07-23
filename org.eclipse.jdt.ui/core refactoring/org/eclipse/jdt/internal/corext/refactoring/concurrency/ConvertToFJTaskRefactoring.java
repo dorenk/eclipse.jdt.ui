@@ -374,7 +374,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				for (int i=0; i < taskList.size(); i++) {
 					Integer taskNum= taskList.get(i);
 					argumentsForkJoin.add(ast.newSimpleName("task" + taskNum)); //$NON-NLS-1$
-					replaceWithTaskDeclStatement(allTaskDeclStatements.get(taskNum), currStatement, allTaskDeclFlags.get(taskNum).intValue(), currBlock, scratchRewriter, editGroup, listRewriteForBlock);
+					replaceWithTaskDeclStatement(allTaskDeclStatements.get(taskNum), currStatement, allTaskDeclFlags.get(taskNum).intValue(), scratchRewriter, editGroup, listRewriteForBlock, isNotNewBlock);
 				}
 				
 				Statement reverseCurrStatement= recursiveList.get(recursiveList.size() - listIndex - 1);
@@ -430,15 +430,11 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		return atLeastOneBlockChanged;
 	}
 
-	private void replaceWithTaskDeclStatement(VariableDeclarationStatement taskDeclStatement, ASTNode node, int taskDeclFlags, Block currBlock, ASTRewrite scratchRewriter, TextEditGroup editGroup, ListRewrite listRewriteForBlock) {
+	private void replaceWithTaskDeclStatement(VariableDeclarationStatement taskDeclStatement, ASTNode node, int taskDeclFlags, ASTRewrite scratchRewriter, TextEditGroup editGroup, ListRewrite listRewriteForBlock, boolean isNotNewBlock) {
 		if (taskDeclFlags == 0) {
 			scratchRewriter.replace(node, taskDeclStatement, editGroup);
-		} else if (taskDeclFlags == -1) {  //TODO add case for others - methodinvoc flag and infix flag -- also change in MethodVisitor where create taskDeclFlags
-			List<ASTNode> statementsInBlockWithReturn= currBlock.statements();
-			Statement lastStatementInBlock= (Statement) statementsInBlockWithReturn.get(statementsInBlockWithReturn.size() - 1);
-			if (lastStatementInBlock instanceof ReturnStatement) {
-				listRewriteForBlock.insertBefore(taskDeclStatement, lastStatementInBlock, editGroup);
-			} //TODO Else needed?  Throw error maybe?
+		} else if (taskDeclFlags == -1 && isNotNewBlock) {  //TODO add case for others - methodinvoc flag and infix flag -- also change in MethodVisitor where create taskDeclFlags
+			listRewriteForBlock.insertBefore(taskDeclStatement, node, editGroup);  //changed node from lastStatementInBlock
 		} else {
 			listRewriteForBlock.insertLast(taskDeclStatement, editGroup);
 		}
@@ -1289,8 +1285,10 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 						Expression exprTemp= varFragment.getInitializer();
 						if (exprTemp instanceof InfixExpression) {
 							infixExpressionFlag= true;
+							taskDeclFlag= -1;
 						} else if (exprTemp instanceof MethodInvocation && isMethodNameEqual(exprTemp)) {
 							methodInvocationFlag= true;
+							taskDeclFlag= -1;
 						} //TODO Do I need an else?
 					} else if (parentOfMethodCall instanceof ExpressionStatement) {
 						ExpressionStatement exprStatement= (ExpressionStatement) parentOfMethodCall;
@@ -1312,8 +1310,10 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 							Expression exprTemp= assignment.getRightHandSide();
 							if (exprTemp instanceof InfixExpression) {
 								infixExpressionFlag= true;
+								taskDeclFlag= -1;
 							} else if (exprTemp instanceof MethodInvocation && isMethodNameEqual(exprTemp)) {
 								methodInvocationFlag= true;
+								taskDeclFlag= -1;
 							}
 						} else {
 							System.err.println(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_scenario_error + parentOfMethodCall.toString() );
