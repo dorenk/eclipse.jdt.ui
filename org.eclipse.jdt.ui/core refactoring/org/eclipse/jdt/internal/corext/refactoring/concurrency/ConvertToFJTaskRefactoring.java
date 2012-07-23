@@ -362,36 +362,25 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			forkJoinInvocation.setName(ast.newSimpleName("invokeAll")); //$NON-NLS-1$
 			List<Expression> argumentsForkJoin= forkJoinInvocation.arguments();
 			List<Statement> recursiveList= allStatementsWithRecursiveMethodInvocation.get(currBlock);
-			List<Statement> blackList= new ArrayList<Statement>();
 			boolean isNotNewBlock= !blockWithoutBraces.containsKey(currBlock);
 			Statement lastStatementWithRecursiveCall= null;  //TODO If combination of types of recursive calls within block - this will mess up - need to do a loop potentially through each statement first - then do invoke
 			Statement currStatement= null;
 			
 			for (int listIndex= 0; listIndex < recursiveList.size(); listIndex++) {
-				if (!blackList.contains(currStatement) ) {
-					blackList.add(currStatement);
-					int counter= 0;
-					int max= numTasksPerBlock.get(currBlock).intValue();
-					int[] taskNumbers= new int[max];
-					currStatement= recursiveList.get(listIndex);
-					counter= doTaskCreationLoop(ast, tasksToStatement, currStatement, argumentsForkJoin, counter, max, taskNumbers);
+				int counter= 0;
+				int max= numTasksPerBlock.get(currBlock).intValue();
+				int[] taskNumbers= new int[max];
+				currStatement= recursiveList.get(listIndex);
+				counter= doTaskCreationLoop(ast, tasksToStatement, currStatement, argumentsForkJoin, counter, max, taskNumbers);
 				
+				for (int i= 0; i < counter; i++) {
+					Integer taskNum= new Integer(taskNumbers[i]);
+					replaceWithTaskDeclStatement(allTaskDeclStatements.get(taskNum), tasksToStatement.get(taskNum), allTaskDeclFlags.get(taskNum).intValue(), currBlock, scratchRewriter, editGroup, listRewriteForBlock);
+				}
 				
-					for (int i= 0; i < counter; i++) {
-						Integer taskNum= new Integer(taskNumbers[i]);
-						replaceWithTaskDeclStatement(allTaskDeclStatements.get(taskNum), tasksToStatement.get(taskNum), allTaskDeclFlags.get(taskNum).intValue(), currBlock, scratchRewriter, editGroup, listRewriteForBlock);
-					}
-					
-//					if (isNotNewBlock) {
-//						lastStatementWithRecursiveCall= recursiveList.get(recursiveList.size() - 1);
-//					} else {
-//						lastStatementWithRecursiveCall= blockWithoutBraces.get(currBlock);
-//					}
-					
-					if (!recursiveMethodReturnsVoid()) {
-						doMethodWithReturnWork(ast, result, editGroup, scratchRewriter, allPartialComputationsNames, allTypesOfComputations, blockWithoutBraces, statementFlags, currBlock, listRewriteForBlock,
-								taskNumbers, currStatement);
-					}
+				if (!recursiveMethodReturnsVoid()) {
+					doMethodWithReturnWork(ast, result, editGroup, scratchRewriter, allPartialComputationsNames, allTypesOfComputations, blockWithoutBraces, statementFlags, currBlock, listRewriteForBlock,
+							taskNumbers, currStatement);
 				}
 			}
 			if (isNotNewBlock) {
