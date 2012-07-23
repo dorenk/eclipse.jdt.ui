@@ -364,6 +364,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			boolean isNotNewBlock= !blockWithoutBraces.containsKey(currBlock);
 			Statement lastStatementWithRecursiveCall= recursiveList.get(recursiveList.size() - 1);  //TODO assumes not new block, make sure OK
 			Statement currStatement= null;
+			List<ASTNode> statementsToAdd= new ArrayList<ASTNode>();
 			int flags= 0;
 			
 			for (int listIndex= 0; listIndex < recursiveList.size(); listIndex++) {
@@ -376,8 +377,11 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 					replaceWithTaskDeclStatement(allTaskDeclStatements.get(taskNum), currStatement, allTaskDeclFlags.get(taskNum).intValue(), currBlock, scratchRewriter, editGroup, listRewriteForBlock);
 				}
 				
-				if (allPartialComputationsNames.containsKey(currStatement)) {
-					createPartialComputations(ast, editGroup, scratchRewriter, allPartialComputationsNames.get(currStatement), allTypesOfComputations.get(currStatement), listRewriteForBlock, currStatement, lastStatementWithRecursiveCall, isNotNewBlock, taskList, flags);
+				Statement reverseCurrStatement= recursiveList.get(recursiveList.size() - listIndex - 1);
+				List<Integer> reverseTaskList= statementsToTasks.get(reverseCurrStatement);
+				int reverseFlags= statementFlags.get(currStatement).intValue();
+				if (allPartialComputationsNames.containsKey(reverseCurrStatement)) {
+					createPartialComputations(ast, editGroup, scratchRewriter, allPartialComputationsNames.get(reverseCurrStatement), allTypesOfComputations.get(reverseCurrStatement), listRewriteForBlock, reverseCurrStatement, lastStatementWithRecursiveCall, isNotNewBlock, reverseTaskList, reverseFlags, statementsToAdd);
 				}
 			}
 			if (!recursiveMethodReturnsVoid()) {
@@ -389,6 +393,10 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 						}
 					} else {
 						createLastReturnNoFlags(ast, editGroup, scratchRewriter, listRewriteForBlock, currStatement, isNotNewBlock);
+			if (statementsToAdd.size() > 0) {
+				for (int i=0; i < statementsToAdd.size(); i++) {
+					if (!(flags == 1 || flags == 2)) {
+						listRewriteForBlock.insertAfter(statementsToAdd.get(i), lastStatementWithRecursiveCall, editGroup);
 					}
 				}
 			}
@@ -403,6 +411,12 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			} else {
 				lastStatementWithRecursiveCall= blockWithoutBraces.get(currBlock);
 				listRewriteForBlock.insertAt(ast.newExpressionStatement(forkJoinInvocation), numTasksPerBlock.get(currBlock).intValue(), editGroup);  //TODO may need to change index of insert
+			if (statementsToAdd.size() > 0) {
+				for (int i=0; i < statementsToAdd.size(); i++) {
+					if (flags == 1 || flags == 2) {
+						listRewriteForBlock.insertBefore(statementsToAdd.get(i), lastStatementWithRecursiveCall, editGroup);
+					}
+				}
 			}
 		}
 		return atLeastOneBlockChanged;
@@ -517,8 +531,8 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		}
 	}
 
-	private void createPartialComputations(AST ast, final TextEditGroup editGroup, final ASTRewrite scratchRewriter, final List<String> partialComputationsNames,
-			final List<String> typesOfComputations, ListRewrite listRewriteForBlock, Statement currStatement, Statement lastStatementWithRecursiveCall, boolean isNotNewBlock, List<Integer> taskList, int flags) {
+	private void createPartialComputations(final AST ast, final TextEditGroup editGroup, final ASTRewrite scratchRewriter, final List<String> partialComputationsNames,
+			final List<String> typesOfComputations, ListRewrite listRewriteForBlock, Statement currStatement, Statement lastStatementWithRecursiveCall, boolean isNotNewBlock, final List<Integer> taskList, int flags, List<ASTNode> statementsToAdd) {
 		if (currStatement instanceof VariableDeclarationStatement) {
 			if (flags == 3) {  //TODO may need to worry about some recursive calls being together but others that are not that will be left behind - need to also do some sort of linear thing
 				VariableDeclarationFragment varFragment= ((VariableDeclarationFragment)(ASTNode.copySubtree(ast, ((VariableDeclarationFragment)(((VariableDeclarationStatement) currStatement).fragments().get(0))))));
