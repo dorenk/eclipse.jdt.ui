@@ -387,7 +387,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			if (!recursiveMethodReturnsVoid()) {
 				if (lastStatementWithRecursiveCall instanceof ReturnStatement) {  //TODO only do when parentOfMethodCall is returnStatement and otherwise just call createLastReturnNoFlags
 					if (flags == 1 || flags == 2) {
-						int errorFlag= createLastReturnStatement(ast, result, editGroup, scratchRewriter, listRewriteForBlock, currStatement, isNotNewBlock, statementsToTasks.get(currStatement), flags);
+						int errorFlag= createLastReturnStatement(ast, result, editGroup, scratchRewriter, listRewriteForBlock, lastStatementWithRecursiveCall, isNotNewBlock, statementsToTasks.get(lastStatementWithRecursiveCall), flags);
 						if (errorFlag == -1) {
 							return false;  //TODO Check this
 						}
