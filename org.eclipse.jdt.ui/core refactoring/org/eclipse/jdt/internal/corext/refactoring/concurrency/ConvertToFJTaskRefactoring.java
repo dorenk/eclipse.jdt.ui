@@ -486,7 +486,10 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 					Expression replacement= ast.newQualifiedName(ast.newSimpleName("task" + taskList.get(taskNum[0]++)), ast.newSimpleName("result"));  //$NON-NLS-1$//$NON-NLS-2$
 					scratchRewriter.replace(methodCall, replacement, editGroup);
 				}
-					return true;
+				if (taskNum[0] == taskList.size()) {
+					return false;
+				}
+				return true;
 				}
 			});
 			
@@ -513,7 +516,10 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 					Expression replacement= ast.newQualifiedName(ast.newSimpleName("task" + taskList.get(taskNum[0]++)), ast.newSimpleName("result"));  //$NON-NLS-1$//$NON-NLS-2$
 					scratchRewriter.replace(methodCall, replacement, editGroup);
 				}
-					return true;
+				if (taskNum[0] == taskList.size()) {
+					return false;
+				}
+				return true;
 				}
 			});
 			
@@ -553,7 +559,10 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 						Expression replacement= ast.newQualifiedName(ast.newSimpleName("task" + taskList.get(taskNum[0]++)), ast.newSimpleName("result"));  //$NON-NLS-1$//$NON-NLS-2$
 						scratchRewriter.replace(methodCall, replacement, editGroup);
 					}
-						return true;
+					if (taskNum[0] == taskList.size()) {
+						return false;
+					}
+					return true;
 					}
 				});
 				
