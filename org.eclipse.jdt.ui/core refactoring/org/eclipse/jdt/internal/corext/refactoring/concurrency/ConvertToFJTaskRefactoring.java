@@ -314,7 +314,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		final Map<Block, Integer> numTasksPerBlock= new HashMap<Block, Integer>();  //Can determine how many tasks belong to this block easily
 		final Map<ASTNode, Block> locationOfNewBlocks= new HashMap<ASTNode, Block>();  //Can determine where the new block was created so as to see if already has been created (don't create a new one at "same" place)
 		final Map<Block, Statement> blockWithoutBraces= new HashMap<Block, Statement>();  //Can determine if a block does not have braces so as to use when inserting things to it
-		final Map<Statement, Integer> statementFlags= new HashMap<Statement, Integer>();  //Can determine flags for each block separately  //TODO Change to be mapped by task or by statement
+		final Map<Statement, Integer> statementFlags= new HashMap<Statement, Integer>();  //Can determine flags for each block separately
 		final List<Block> allTheBlocks= new ArrayList<Block>();
 		fMethodDeclaration.accept(new MethodVisitor(allTaskDeclStatements, statementsToTasks, allTaskDeclFlags, locationOfNewBlocks, scratchRewriter, numTasksPerBlock,
 				allPartialComputationsNames, taskNumber, tasksToBlock, blockWithoutBraces, allStatementsWithRecursiveMethodInvocation, allTheBlocks, allTypesOfComputations, switchStatementsFound, statementFlags, ast));
@@ -362,7 +362,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			List<Expression> argumentsForkJoin= forkJoinInvocation.arguments();
 			List<Statement> recursiveList= allStatementsWithRecursiveMethodInvocation.get(currBlock);
 			boolean isNotNewBlock= !blockWithoutBraces.containsKey(currBlock);
-			Statement lastStatementWithRecursiveCall= null;  //TODO If combination of types of recursive calls within block - this will mess up - need to do a loop potentially through each statement first - then do invoke
+			Statement lastStatementWithRecursiveCall= null;
 			Statement currStatement= null;
 			int flags= 0;
 			
@@ -458,18 +458,23 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		}
 	}
 
-	private int createLastReturnStatement(AST ast, RefactoringStatus result, final TextEditGroup editGroup, final ASTRewrite scratchRewriter, ListRewrite listRewriteForBlock, Statement lastStatementInBlock, boolean isNotNewBlock, List<Integer> taskList, int flags) {
+	private int createLastReturnStatement(final AST ast, RefactoringStatus result, final TextEditGroup editGroup, final ASTRewrite scratchRewriter, ListRewrite listRewriteForBlock, Statement lastStatementInBlock, boolean isNotNewBlock, final List<Integer> taskList, int flags) {
 		if (flags == 1) {  //InfixExpression
 			Assignment assignToResult= ast.newAssignment();
 			assignToResult.setLeftHandSide(ast.newSimpleName("result")); //$NON-NLS-1$
 			InfixExpression infixExpression= ((InfixExpression)(ASTNode.copySubtree(ast, ((ReturnStatement)lastStatementInBlock).getExpression())));
-			int taskNum= 0;
-			infixExpression.setLeftOperand(ast.newQualifiedName(ast.newSimpleName("task" + taskList.get(taskNum++)), ast.newSimpleName("result"))); //$NON-NLS-1$ //$NON-NLS-2$
-			infixExpression.setRightOperand(ast.newQualifiedName(ast.newSimpleName("task" + taskList.get(taskNum++)), ast.newSimpleName("result"))); //$NON-NLS-1$ //$NON-NLS-2$
-			List<Expression> extendedOperands = infixExpression.extendedOperands();
-			for (int i= 0; i < extendedOperands.size(); i++) {
-				extendedOperands.set(i, ast.newQualifiedName(ast.newSimpleName("task" + taskList.get(taskNum++)), ast.newSimpleName("result"))); //$NON-NLS-1$ //$NON-NLS-2$
-			}
+			final int[] taskNum= {0};
+			infixExpression.accept(new ASTVisitor() {
+				@Override
+				public boolean visit(MethodInvocation methodCall) {
+				if	(methodCall.getName().getFullyQualifiedName().equals(fMethodDeclaration.getName().getFullyQualifiedName())) {
+					Expression replacement= ast.newQualifiedName(ast.newSimpleName("task" + taskList.get(taskNum[0]++)), ast.newSimpleName("result"));  //$NON-NLS-1$//$NON-NLS-2$
+					scratchRewriter.replace(methodCall, replacement, editGroup);
+				}
+					return true;
+				}
+			});
+			
 			assignToResult.setRightHandSide(infixExpression);
 			if (isNotNewBlock) {
 				scratchRewriter.replace(lastStatementInBlock, ast.newExpressionStatement(assignToResult), editGroup);
