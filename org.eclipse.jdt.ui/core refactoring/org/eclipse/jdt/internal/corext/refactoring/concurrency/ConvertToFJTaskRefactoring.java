@@ -518,10 +518,10 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 	}
 
 	private void createPartialComputations(AST ast, final TextEditGroup editGroup, final ASTRewrite scratchRewriter, final List<String> partialComputationsNames,
-			final List<String> typesOfComputations, ListRewrite listRewriteForBlock, Statement lastStatementWithRecursiveCall, boolean isNotNewBlock, List<Integer> taskList, int flags) {
-		if (lastStatementWithRecursiveCall instanceof VariableDeclarationStatement) {
+			final List<String> typesOfComputations, ListRewrite listRewriteForBlock, Statement currStatement, Statement lastStatementWithRecursiveCall, boolean isNotNewBlock, List<Integer> taskList, int flags) {
+		if (currStatement instanceof VariableDeclarationStatement) {
 			if (flags == 3) {  //TODO may need to worry about some recursive calls being together but others that are not that will be left behind - need to also do some sort of linear thing
-				VariableDeclarationFragment varFragment= ((VariableDeclarationFragment)(ASTNode.copySubtree(ast, ((VariableDeclarationFragment)(((VariableDeclarationStatement) lastStatementWithRecursiveCall).fragments().get(0))))));
+				VariableDeclarationFragment varFragment= ((VariableDeclarationFragment)(ASTNode.copySubtree(ast, ((VariableDeclarationFragment)(((VariableDeclarationStatement) currStatement).fragments().get(0))))));
 				InfixExpression infixExpression= (InfixExpression) varFragment.getInitializer();
 				int taskNum= 0;
 				infixExpression.setLeftOperand(ast.newQualifiedName(ast.newSimpleName("task" + taskList.get(taskNum++)), ast.newSimpleName("result"))); //$NON-NLS-1$ //$NON-NLS-2$
@@ -532,7 +532,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				}
 				VariableDeclarationStatement assignToResult= ast.newVariableDeclarationStatement(varFragment);  //TODO Make sure type will be correct
 				if (isNotNewBlock) {
-					listRewriteForBlock.insertAfter(assignToResult, lastStatementWithRecursiveCall, editGroup);
+					listRewriteForBlock.insertAfter(assignToResult, currStatement, editGroup);
 				} else {
 					listRewriteForBlock.insertLast(assignToResult, editGroup);
 				}
@@ -550,7 +550,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 					i--;
 				}
 			}
-		} else if (lastStatementWithRecursiveCall instanceof ExpressionStatement) {
+		} else if (currStatement instanceof ExpressionStatement) {
 			if (flags == 5) {
 				
 			} else if (flags == 6) {
@@ -560,7 +560,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 					String exprStatement= partialComputationsNames.get(i) + " = task" + taskList.get(i) + ".result;"; //$NON-NLS-1$ //$NON-NLS-2$
 					ExpressionStatement expressionStatement= (ExpressionStatement) scratchRewriter.createStringPlaceholder(exprStatement, ASTNode.EXPRESSION_STATEMENT);
 					if (isNotNewBlock) {
-						listRewriteForBlock.insertAfter(expressionStatement, lastStatementWithRecursiveCall, editGroup);
+						listRewriteForBlock.insertAfter(expressionStatement, currStatement, editGroup);
 					} else {
 						listRewriteForBlock.insertLast(expressionStatement, editGroup);
 					}
