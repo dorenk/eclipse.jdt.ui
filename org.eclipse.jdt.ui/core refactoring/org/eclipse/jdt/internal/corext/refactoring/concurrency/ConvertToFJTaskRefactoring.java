@@ -362,7 +362,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			List<Expression> argumentsForkJoin= forkJoinInvocation.arguments();
 			List<Statement> recursiveList= allStatementsWithRecursiveMethodInvocation.get(currBlock);
 			boolean isNotNewBlock= !blockWithoutBraces.containsKey(currBlock);
-			Statement lastStatementWithRecursiveCall= null;
+			Statement lastStatementWithRecursiveCall= recursiveList.get(recursiveList.size() - 1);  //TODO assumes not new block, make sure OK
 			Statement currStatement= null;
 			int flags= 0;
 			
@@ -377,11 +377,11 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				}
 				
 				if (allPartialComputationsNames.containsKey(currStatement)) {
-					createPartialComputations(ast, editGroup, scratchRewriter, allPartialComputationsNames.get(currStatement), allTypesOfComputations.get(currStatement), listRewriteForBlock, currStatement, isNotNewBlock, taskList, flags);
+					createPartialComputations(ast, editGroup, scratchRewriter, allPartialComputationsNames.get(currStatement), allTypesOfComputations.get(currStatement), listRewriteForBlock, currStatement, lastStatementWithRecursiveCall, isNotNewBlock, taskList, flags);
 				}
 			}
 			if (!recursiveMethodReturnsVoid()) {
-				if (currStatement instanceof ReturnStatement) {  //TODO only do when parentOfMethodCall is returnStatement and otherwise just call createLastReturnNoFlags
+				if (lastStatementWithRecursiveCall instanceof ReturnStatement) {  //TODO only do when parentOfMethodCall is returnStatement and otherwise just call createLastReturnNoFlags
 					if (flags == 1 || flags == 2) {
 						int errorFlag= createLastReturnStatement(ast, result, editGroup, scratchRewriter, listRewriteForBlock, currStatement, isNotNewBlock, statementsToTasks.get(currStatement), flags);
 						if (errorFlag == -1) {
