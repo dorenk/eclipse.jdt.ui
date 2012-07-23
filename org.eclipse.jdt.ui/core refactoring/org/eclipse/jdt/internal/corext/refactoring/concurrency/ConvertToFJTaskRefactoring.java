@@ -403,17 +403,15 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 					}
 				}
 			}
-			
 			if (isNotNewBlock) {
-				lastStatementWithRecursiveCall= recursiveList.get(recursiveList.size() - 1);
 				if (flags == 1 || flags == 2) {
 					listRewriteForBlock.insertBefore(ast.newExpressionStatement(forkJoinInvocation), lastStatementWithRecursiveCall, editGroup);
 				} else {
 					listRewriteForBlock.insertAfter(ast.newExpressionStatement(forkJoinInvocation), lastStatementWithRecursiveCall, editGroup);
 				}
 			} else {
-				lastStatementWithRecursiveCall= blockWithoutBraces.get(currBlock);
-				listRewriteForBlock.insertAt(ast.newExpressionStatement(forkJoinInvocation), numTasksPerBlock.get(currBlock).intValue(), editGroup);  //TODO may need to change index of insert
+				listRewriteForBlock.insertAt(ast.newExpressionStatement(forkJoinInvocation), numTasksPerBlock.get(currBlock).intValue(), editGroup);
+			}
 			if (statementsToAdd.size() > 0) {
 				for (int i=0; i < statementsToAdd.size(); i++) {
 					if (flags == 1 || flags == 2) {
