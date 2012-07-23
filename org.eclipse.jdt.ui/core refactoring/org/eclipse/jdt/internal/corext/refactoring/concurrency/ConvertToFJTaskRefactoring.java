@@ -374,7 +374,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				for (int i=0; i < taskList.size(); i++) {
 					Integer taskNum= taskList.get(i);
 					argumentsForkJoin.add(ast.newSimpleName("task" + taskNum)); //$NON-NLS-1$
-					replaceWithTaskDeclStatement(allTaskDeclStatements.get(taskNum), currStatement, allTaskDeclFlags.get(taskNum).intValue(), scratchRewriter, editGroup, listRewriteForBlock, isNotNewBlock);
+					replaceWithTaskDeclStatement(allTaskDeclStatements.get(taskNum), currStatement, allTaskDeclFlags.get(taskNum).intValue(), scratchRewriter, editGroup, listRewriteForBlock, isNotNewBlock, i == taskList.size() - 1);
 				}
 				
 				Statement reverseCurrStatement= recursiveList.get(recursiveList.size() - listIndex - 1);
@@ -430,11 +430,16 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		return atLeastOneBlockChanged;
 	}
 
-	private void replaceWithTaskDeclStatement(VariableDeclarationStatement taskDeclStatement, ASTNode node, int taskDeclFlags, ASTRewrite scratchRewriter, TextEditGroup editGroup, ListRewrite listRewriteForBlock, boolean isNotNewBlock) {
+	private void replaceWithTaskDeclStatement(VariableDeclarationStatement taskDeclStatement, ASTNode node, int taskDeclFlags, ASTRewrite scratchRewriter, TextEditGroup editGroup,
+			ListRewrite listRewriteForBlock, boolean isNotNewBlock, boolean isLast) {
 		if (taskDeclFlags == 0) {
 			scratchRewriter.replace(node, taskDeclStatement, editGroup);
-		} else if (taskDeclFlags == -1 && isNotNewBlock) {  //TODO add case for others - methodinvoc flag and infix flag -- also change in MethodVisitor where create taskDeclFlags
-			listRewriteForBlock.insertBefore(taskDeclStatement, node, editGroup);  //changed node from lastStatementInBlock
+		} else if (taskDeclFlags == -1 && isNotNewBlock) {
+			if (isLast && !(node instanceof ReturnStatement)) {
+				scratchRewriter.replace(node, taskDeclStatement, editGroup);
+			} else {
+				listRewriteForBlock.insertBefore(taskDeclStatement, node, editGroup);
+			}
 		} else {
 			listRewriteForBlock.insertLast(taskDeclStatement, editGroup);
 		}
