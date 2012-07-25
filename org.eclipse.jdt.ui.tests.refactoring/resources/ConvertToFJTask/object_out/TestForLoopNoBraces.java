@@ -24,7 +24,7 @@ public class TestForLoopNoBraces {
 				result = method(end);
 				return;
 			} else {
-				int total= 0;
+				int total = 0;
 				for (int i = 0; i < 10; i++) {
 					MethodImpl task1 = new MethodImpl(end - i);
 					MethodImpl task2 = new MethodImpl(end - i * 2);
@@ -38,9 +38,9 @@ public class TestForLoopNoBraces {
 			if (end <= 0)
 				return 1;
 			else {
-				int total= 0;
-				for (int i= 0; i < 10; i ++)
-					total+= method(end - i) + method(end - i * 2);
+				int total = 0;
+				for (int i = 0; i < 10; i ++)
+					total += method(end - i) + method(end - i * 2);
 				return total;
 			}
 		}

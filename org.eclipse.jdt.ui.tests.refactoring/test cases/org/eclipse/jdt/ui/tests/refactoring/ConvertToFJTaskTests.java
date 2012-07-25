@@ -235,7 +235,7 @@ public class ConvertToFJTaskTests extends AbstractSelectionTestCase {
 	}
 	
 	public void testForLoopNoBraces() throws Exception {
-		objectTest("method", "x < 10");
+		objectTest("method", "end < 10");
 	}
 	
 	//=====================================================================================
