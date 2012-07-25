@@ -57,6 +57,7 @@ import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.ExpressionStatement;
 import org.eclipse.jdt.core.dom.FieldAccess;
 import org.eclipse.jdt.core.dom.FieldDeclaration;
+import org.eclipse.jdt.core.dom.ForStatement;
 import org.eclipse.jdt.core.dom.IMethodBinding;
 import org.eclipse.jdt.core.dom.IfStatement;
 import org.eclipse.jdt.core.dom.InfixExpression;
@@ -1284,6 +1285,11 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 							if (myBlock == null) {
 								return false;
 							}
+						} else if (tempNode instanceof ForStatement) {
+							myBlock= forStatementWork(myBlock, tempNode);
+							if (myBlock == null) {
+								return false;
+							}
 						} else {
 							taskDeclFlag= 0;
 						}
@@ -1306,6 +1312,11 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 							ASTNode tempNode= parentOfMethodCall.getParent();
 							if (tempNode instanceof IfStatement) {
 								myBlock= ifStatementWork(myBlock, parentOfMethodCall, tempNode);
+								if (myBlock == null) {
+									return false;
+								}
+							} else if (tempNode instanceof ForStatement) {
+								myBlock= forStatementWork(myBlock, tempNode);
 								if (myBlock == null) {
 									return false;
 								}
@@ -1338,7 +1349,15 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 							if (myBlock == null) {
 								return false;
 							}
-						}  //TODO Add another case for when block is higher up?
+						} else if (tempNode instanceof ForStatement) {
+							myBlock= forStatementWork(myBlock, tempNode);
+							if (myBlock == null) {
+								return false;
+							}
+						} else {
+							System.err.println(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_scenario_error + parentOfMethodCall.toString() );
+							return false;
+						}
 						Expression exprTemp= ((ReturnStatement) parentOfMethodCall).getExpression();
 						if (exprTemp instanceof InfixExpression) {
 							infixExpressionFlag= true;
@@ -1448,6 +1467,17 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				} else {
 					return null;
 				}
+			}
+			return myBlock;
+		}
+		
+		private Block forStatementWork(Block myBlock, ASTNode tempNode) {
+			ForStatement forStatement= (ForStatement) tempNode;
+			Statement bodyStatement= forStatement.getBody();
+			if (bodyStatement != null) {
+				myBlock= determineNewBlock(bodyStatement);									
+			} else {
+				return null;
 			}
 			return myBlock;
 		}
