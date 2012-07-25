@@ -30,9 +30,8 @@ public class TestBlockCombination7 {
 				int x1 = task1.result;
 				int x2 = task2.result;
 				int x3 = 0;
-				if (x > 15) {
+				if (x > 15)
 					x3 = tryThis(x - 16);
-				}
 				result = x1 + x2 + x3;
 			}
 		}
