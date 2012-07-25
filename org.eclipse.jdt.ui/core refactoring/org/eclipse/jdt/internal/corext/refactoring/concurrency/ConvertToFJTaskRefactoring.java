@@ -371,12 +371,15 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 	private boolean doBlockWork(final AST ast, RefactoringStatus result, final TextEditGroup editGroup, final ASTRewrite scratchRewriter,
 			Map<Integer, VariableDeclarationStatement> allTaskDeclStatements, Map<Statement, List<Integer>> statementsToTasks, Map<Integer, Integer> allTaskDeclFlags, final Map<Block, List<Statement>> allStatementsWithRecursiveMethodInvocation, final Map<Statement, List<String>> allPartialComputationsNames,
 			final Map<Statement, List<String>> allTypesOfComputations, final Map<Block, Integer> numTasksPerBlock, final Map<Block, Statement> blockWithoutBraces, final Map<Statement, Integer> statementFlags, boolean atLeastOneBlockChanged, Block currBlock, ListRewrite listRewriteForBlock) {
+		
 		boolean isNewBlock= blockWithoutBraces.containsKey(currBlock);
-		if(isNewBlock) {
-			scratchRewriter.replace(blockWithoutBraces.get(currBlock), currBlock, editGroup);
-		}
+		
 		if (allStatementsWithRecursiveMethodInvocation.get(currBlock).size() >= 1 && !numTasksPerBlock.get(currBlock).equals(Integer.valueOf(1))) {
 			atLeastOneBlockChanged=  true;
+			
+			if(isNewBlock) {
+				scratchRewriter.replace(blockWithoutBraces.get(currBlock), currBlock, editGroup);
+			}
 			
 			MethodInvocation forkJoinInvocation= ast.newMethodInvocation();
 			forkJoinInvocation.setName(ast.newSimpleName("invokeAll")); //$NON-NLS-1$
