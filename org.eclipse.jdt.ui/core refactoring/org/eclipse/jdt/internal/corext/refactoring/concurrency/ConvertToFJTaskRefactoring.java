@@ -394,7 +394,11 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 						}
 					}
 				} else {
-					createLastReturnNoFlags(ast, editGroup, scratchRewriter, listRewriteForBlock, (Statement) currBlock.statements().get(currBlock.statements().size() - 1), isNotNewBlock);
+					if (isNotNewBlock) {
+						createLastReturnNoFlags(ast, editGroup, scratchRewriter, listRewriteForBlock, (Statement) currBlock.statements().get(currBlock.statements().size() - 1), isNotNewBlock);
+					} else {
+						createLastReturnNoFlags(ast, editGroup, scratchRewriter, listRewriteForBlock, blockWithoutBraces.get(currBlock), isNotNewBlock);
+					}
 				}
 			}
 			if (statementsToAdd.size() > 0) {
