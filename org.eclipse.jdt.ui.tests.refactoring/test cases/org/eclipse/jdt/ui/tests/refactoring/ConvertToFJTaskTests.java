@@ -234,6 +234,10 @@ public class ConvertToFJTaskTests extends AbstractSelectionTestCase {
 		objectTest("tryThis", "x < 10");
 	}
 	
+	public void testForLoopNoBraces() throws Exception {
+		objectTest("method", "x < 10");
+	}
+	
 	//=====================================================================================
 	// Basic Invalid Test
 	//=====================================================================================
