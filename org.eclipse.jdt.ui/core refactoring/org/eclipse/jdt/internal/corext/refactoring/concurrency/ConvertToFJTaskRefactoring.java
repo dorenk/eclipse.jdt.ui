@@ -356,7 +356,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				for (int i=0; i < nonRecursiveBlocks.size(); i++) {
 					Block currBlock= nonRecursiveBlocks.get(i);
 					ListRewrite listRewriteForBlock= scratchRewriter.getListRewrite(currBlock, Block.STATEMENTS_PROPERTY);
-					createLastReturnNoFlags(ast, editGroup, scratchRewriter, listRewriteForBlock, (Statement) currBlock.statements().get(currBlock.statements().size() - 1), true);
+					createLastReturnNoFlags(ast, editGroup, scratchRewriter, listRewriteForBlock, (Statement) currBlock.statements().get(currBlock.statements().size() - 1), true, currBlock, blockWithoutBraces);
 				}
 			}
 			tryApplyEdits(ast, computeMethod, scratchRewriter);
@@ -415,9 +415,9 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 					}
 				} else {
 					if (isNotNewBlock) {
-						createLastReturnNoFlags(ast, editGroup, scratchRewriter, listRewriteForBlock, (Statement) currBlock.statements().get(currBlock.statements().size() - 1), isNotNewBlock);
+						createLastReturnNoFlags(ast, editGroup, scratchRewriter, listRewriteForBlock, (Statement) currBlock.statements().get(currBlock.statements().size() - 1), isNotNewBlock, currBlock, blockWithoutBraces);
 					} else {
-						createLastReturnNoFlags(ast, editGroup, scratchRewriter, listRewriteForBlock, blockWithoutBraces.get(currBlock), isNotNewBlock);
+						createLastReturnNoFlags(ast, editGroup, scratchRewriter, listRewriteForBlock, blockWithoutBraces.get(currBlock), isNotNewBlock, currBlock, blockWithoutBraces);
 					}
 				}
 			}
@@ -447,9 +447,9 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		}
 		else if (!recursiveMethodReturnsVoid()) {
 			if (!isNewBlock) {
-				createLastReturnNoFlags(ast, editGroup, scratchRewriter, listRewriteForBlock, (Statement) currBlock.statements().get(currBlock.statements().size() - 1), !isNewBlock);
+				createLastReturnNoFlags(ast, editGroup, scratchRewriter, listRewriteForBlock, (Statement) currBlock.statements().get(currBlock.statements().size() - 1), !isNewBlock, currBlock, blockWithoutBraces);
 			} else {
-				createLastReturnNoFlags(ast, editGroup, scratchRewriter, listRewriteForBlock, blockWithoutBraces.get(currBlock), !isNewBlock);
+				createLastReturnNoFlags(ast, editGroup, scratchRewriter, listRewriteForBlock, blockWithoutBraces.get(currBlock), !isNewBlock, currBlock, blockWithoutBraces);
 			}
 		}
 		return atLeastOneBlockChanged;
@@ -567,19 +567,17 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 	}
 
 	private void createLastReturnNoFlags(AST ast, final TextEditGroup editGroup, final ASTRewrite scratchRewriter, ListRewrite listRewriteForBlock, Statement lastStatementInBlock,
-			boolean isNotNewBlock) {
+			boolean isNotNewBlock, Block currBlock, Map<Block, Statement> blockWithoutBraces) {
 		Assignment assignToResult= ast.newAssignment();
 		assignToResult.setLeftHandSide(ast.newSimpleName("result")); //$NON-NLS-1$
 		if (!(lastStatementInBlock instanceof ReturnStatement)) {
-			if (!isNotNewBlock) {  //TODO make smarter - don't always add it in
-				listRewriteForBlock.insertLast(lastStatementInBlock, editGroup);
-			}
-			return;
+			return; //do nothing
 		}
 		assignToResult.setRightHandSide((Expression) ASTNode.copySubtree(ast, ((ReturnStatement) lastStatementInBlock).getExpression()));
 		if (isNotNewBlock) {
 			scratchRewriter.replace(lastStatementInBlock, ast.newExpressionStatement(assignToResult), editGroup);
 		} else {
+			scratchRewriter.replace(blockWithoutBraces.get(currBlock), currBlock, editGroup);
 			listRewriteForBlock.insertLast(ast.newExpressionStatement(assignToResult), editGroup);
 		}
 	}
