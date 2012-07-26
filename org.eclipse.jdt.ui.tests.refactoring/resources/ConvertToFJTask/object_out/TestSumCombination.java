@@ -29,7 +29,8 @@ public class TestSumCombination {
 				RecursionSumCombinationImpl task2 = new RecursionSumCombinationImpl(
 						end - 2);
 				invokeAll(task1, task2);
-				result = sumCombination(task1.result, task2.result);
+				int i = task1.result;
+				result = sumCombination(i, task2.result);
 			}
 		}
 		public int recursionSumCombination(int end) {
