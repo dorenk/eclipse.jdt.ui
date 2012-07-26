@@ -10,7 +10,7 @@ import org.eclipse.jdt.core.refactoring.IJavaRefactorings;
 public class AtomicIntegerRefactoringDescriptor extends JavaRefactoringDescriptor {
 
 	public AtomicIntegerRefactoringDescriptor(String project, String description,
-			String comment, @SuppressWarnings("rawtypes") Map arguments, int flags) {
+			String comment, Map arguments, int flags) {
 
 		super(IJavaRefactorings.ATOMIC_INTEGER, project, description, comment, arguments, flags);
 	}
