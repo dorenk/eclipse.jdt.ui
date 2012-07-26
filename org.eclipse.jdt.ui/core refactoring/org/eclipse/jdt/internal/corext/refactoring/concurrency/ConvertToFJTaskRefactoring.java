@@ -1401,9 +1401,8 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		}
 
 		private boolean isMethodDeclarationEqualTo(Expression exprTemp) {
-			boolean paramsMatch= ((MethodInvocation) exprTemp).resolveMethodBinding().getParameterTypes().equals(fMethodDeclaration.resolveBinding().getParameterTypes());
-			boolean namesMatch= ((MethodInvocation) exprTemp).getName().getFullyQualifiedName().equals(fMethodDeclaration.getName().getFullyQualifiedName());  //TODO Do I need check name if check binding?
-			return namesMatch && paramsMatch;
+			boolean bindingsMatch= ((MethodInvocation) exprTemp).resolveMethodBinding().equals(fMethodDeclaration.resolveBinding());
+			return bindingsMatch;
 		}
 
 		private void populateAllMaps(List<String> partialComputationsNames, List<String> typesOfComputations, boolean infixExpressionFlag, boolean methodInvocationFlag, Block myBlock,
