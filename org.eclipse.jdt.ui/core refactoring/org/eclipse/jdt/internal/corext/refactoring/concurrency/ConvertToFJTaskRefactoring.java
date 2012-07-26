@@ -515,19 +515,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			assignToResult.setLeftHandSide(ast.newSimpleName("result")); //$NON-NLS-1$
 			InfixExpression infixExpression= ((InfixExpression)(ASTNode.copySubtree(ast, ((ReturnStatement)lastStatementInBlock).getExpression())));
 			final int[] taskNum= {0};
-			infixExpression.accept(new ASTVisitor() {
-				@Override
-				public boolean visit(MethodInvocation methodCall) {
-				if	(methodCall.getName().getFullyQualifiedName().equals(fMethodDeclaration.getName().getFullyQualifiedName())) {
-					Expression replacement= ast.newQualifiedName(ast.newSimpleName("task" + taskList.get(taskNum[0]++)), ast.newSimpleName("result"));  //$NON-NLS-1$//$NON-NLS-2$
-					scratchRewriter.replace(methodCall, replacement, editGroup);
-				}
-				if (taskNum[0] == taskList.size()) {
-					return false;
-				}
-				return true;
-				}
-			});
+			infixExpression.accept(new ConvertMethodCallToTask(taskList, ast, taskNum, scratchRewriter, editGroup));
 			
 			assignToResult.setRightHandSide(infixExpression);
 			if (isNotNewBlock) {
@@ -545,19 +533,14 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			}
 			MethodInvocation methodInvocation= ((MethodInvocation) tempAST);
 			final int[] taskNum= {0};
-			methodInvocation.accept(new ASTVisitor() {
-				@Override
-				public boolean visit(MethodInvocation methodCall) {
-				if	(methodCall.getName().getFullyQualifiedName().equals(fMethodDeclaration.getName().getFullyQualifiedName())) {
-					Expression replacement= ast.newQualifiedName(ast.newSimpleName("task" + taskList.get(taskNum[0]++)), ast.newSimpleName("result"));  //$NON-NLS-1$//$NON-NLS-2$
-					scratchRewriter.replace(methodCall, replacement, editGroup);
-				}
+			
+			List<Expression> methodArgList= methodInvocation.arguments();
+			for (int i=0; i < methodArgList.size(); i++) {
 				if (taskNum[0] == taskList.size()) {
-					return false;
+					break;
 				}
-				return true;
-				}
-			});
+				methodArgList.get(i).accept(new ConvertMethodCallToTask(taskList, ast, taskNum, scratchRewriter, editGroup));
+			}
 			
 			assignToResult.setRightHandSide(methodInvocation);
 			if (isNotNewBlock) {
@@ -592,19 +575,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				VariableDeclarationFragment varFragment= ((VariableDeclarationFragment)(ASTNode.copySubtree(ast, ((VariableDeclarationFragment)(((VariableDeclarationStatement) currStatement).fragments().get(0))))));
 				InfixExpression infixExpression= (InfixExpression) varFragment.getInitializer();
 				final int[] taskNum= {0};
-				infixExpression.accept(new ASTVisitor() {
-					@Override
-					public boolean visit(MethodInvocation methodCall) {
-					if	(methodCall.getName().getFullyQualifiedName().equals(fMethodDeclaration.getName().getFullyQualifiedName())) {
-						Expression replacement= ast.newQualifiedName(ast.newSimpleName("task" + taskList.get(taskNum[0]++)), ast.newSimpleName("result"));  //$NON-NLS-1$//$NON-NLS-2$
-						scratchRewriter.replace(methodCall, replacement, editGroup);
-					}
-					if (taskNum[0] == taskList.size()) {
-						return false;
-					}
-					return true;
-					}
-				});
+				infixExpression.accept(new ConvertMethodCallToTask(taskList, ast, taskNum, scratchRewriter, editGroup));
 				
 				VariableDeclarationStatement assignToResult= ast.newVariableDeclarationStatement(varFragment);  //TODO Make sure type will be correct
 				if (isNotNewBlock) {
@@ -616,19 +587,14 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				VariableDeclarationFragment varFragment= ((VariableDeclarationFragment)(ASTNode.copySubtree(ast, ((VariableDeclarationFragment)(((VariableDeclarationStatement) currStatement).fragments().get(0))))));
 				MethodInvocation methodInvocation= (MethodInvocation) varFragment.getInitializer();
 				final int[] taskNum= {0};
-				methodInvocation.accept(new ASTVisitor() {
-					@Override
-					public boolean visit(MethodInvocation methodCall) {
-					if	(methodCall.getName().getFullyQualifiedName().equals(fMethodDeclaration.getName().getFullyQualifiedName())) {
-						Expression replacement= ast.newQualifiedName(ast.newSimpleName("task" + taskList.get(taskNum[0]++)), ast.newSimpleName("result"));  //$NON-NLS-1$//$NON-NLS-2$
-						scratchRewriter.replace(methodCall, replacement, editGroup);
-					}
+				
+				List<Expression> methodArgList= methodInvocation.arguments();
+				for (int i=0; i < methodArgList.size(); i++) {
 					if (taskNum[0] == taskList.size()) {
-						return false;
+						break;
 					}
-					return true;
-					}
-				});
+					methodArgList.get(i).accept(new ConvertMethodCallToTask(taskList, ast, taskNum, scratchRewriter, editGroup));
+				}
 				
 				VariableDeclarationStatement assignToResult= ast.newVariableDeclarationStatement(varFragment);
 				if (isNotNewBlock) {
@@ -653,19 +619,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				Expression expr= ((Expression) (ASTNode.copySubtree(ast, ((ExpressionStatement) currStatement).getExpression())));
 				InfixExpression infixExpression= (InfixExpression) ((Assignment) expr).getRightHandSide();
 				final int[] taskNum= {0};
-				infixExpression.accept(new ASTVisitor() {
-					@Override
-					public boolean visit(MethodInvocation methodCall) {
-					if	(methodCall.getName().getFullyQualifiedName().equals(fMethodDeclaration.getName().getFullyQualifiedName())) {
-						Expression replacement= ast.newQualifiedName(ast.newSimpleName("task" + taskList.get(taskNum[0]++)), ast.newSimpleName("result"));  //$NON-NLS-1$//$NON-NLS-2$
-						scratchRewriter.replace(methodCall, replacement, editGroup);
-					}
-					if (taskNum[0] == taskList.size()) {
-						return false;
-					}
-					return true;
-					}
-				});
+				infixExpression.accept(new ConvertMethodCallToTask(taskList, ast, taskNum, scratchRewriter, editGroup));
 				
 				ExpressionStatement assignToResult= ast.newExpressionStatement(expr);
 				if (isNotNewBlock) {
@@ -677,19 +631,14 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				Expression expr= ((Expression) (ASTNode.copySubtree(ast, ((ExpressionStatement) currStatement).getExpression())));
 				MethodInvocation methodInvocation= (MethodInvocation) ((Assignment) expr).getRightHandSide();
 				final int[] taskNum= {0};
-				methodInvocation.accept(new ASTVisitor() {
-					@Override
-					public boolean visit(MethodInvocation methodCall) {
-					if	(methodCall.getName().getFullyQualifiedName().equals(fMethodDeclaration.getName().getFullyQualifiedName())) {
-						Expression replacement= ast.newQualifiedName(ast.newSimpleName("task" + taskList.get(taskNum[0]++)), ast.newSimpleName("result"));  //$NON-NLS-1$//$NON-NLS-2$
-						scratchRewriter.replace(methodCall, replacement, editGroup);
-					}
+				
+				List<Expression> methodArgList= methodInvocation.arguments();
+				for (int i=0; i < methodArgList.size(); i++) {
 					if (taskNum[0] == taskList.size()) {
-						return false;
+						break;
 					}
-					return true;
-					}
-				});
+					methodArgList.get(i).accept(new ConvertMethodCallToTask(taskList, ast, taskNum, scratchRewriter, editGroup));
+				}
 				
 				ExpressionStatement assignToResult= ast.newExpressionStatement(expr);
 				if (isNotNewBlock) {
@@ -1237,6 +1186,44 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		return options;
 	}
 	
+	private final class ConvertMethodCallToTask extends ASTVisitor {
+		private final List<Integer> fTaskList;
+
+		private final AST fAst;
+
+		private final int[] fTaskNum;
+
+		private final ASTRewrite fScratchRewriter;
+
+		private final TextEditGroup fEditGroup;
+
+		private ConvertMethodCallToTask(List<Integer> taskList, AST ast, int[] taskNum, ASTRewrite scratchRewriter, TextEditGroup editGroup) {
+			fTaskList= taskList;
+			fAst= ast;
+			fTaskNum= taskNum;
+			fScratchRewriter= scratchRewriter;
+			fEditGroup= editGroup;
+		}
+
+		@Override
+		public boolean visit(MethodInvocation methodCall) {
+		if	(isMethodDeclarationEqualTo(methodCall)) {
+			Expression replacement= fAst.newQualifiedName(fAst.newSimpleName("task" + fTaskList.get(fTaskNum[0])), fAst.newSimpleName("result"));  //$NON-NLS-1$//$NON-NLS-2$
+			fScratchRewriter.replace(methodCall, replacement, fEditGroup);
+			fTaskNum[0]++;
+		}
+		if (fTaskNum[0] == fTaskList.size()) {
+			return false;
+		}
+		return true;
+		}
+
+		private boolean isMethodDeclarationEqualTo(MethodInvocation methodCall) {
+			boolean namesMatch= methodCall.getName().getFullyQualifiedName().equals(fMethodDeclaration.getName().getFullyQualifiedName());
+			return namesMatch;
+		}
+	}
+
 	private final class MethodVisitor extends ASTVisitor {
 		private final Map<Integer, VariableDeclarationStatement> fAllTaskDeclStatements;
 		private final Map<Statement, List<Integer> > fStatementsToTasks;
