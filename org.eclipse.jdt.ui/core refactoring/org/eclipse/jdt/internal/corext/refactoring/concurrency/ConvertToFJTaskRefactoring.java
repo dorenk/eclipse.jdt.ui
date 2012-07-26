@@ -386,7 +386,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			List<Expression> argumentsForkJoin= forkJoinInvocation.arguments();
 			List<Statement> recursiveList= allStatementsWithRecursiveMethodInvocation.get(currBlock);
 			boolean isNotNewBlock= !isNewBlock;
-			Statement lastStatementWithRecursiveCall= recursiveList.get(recursiveList.size() - 1);  //TODO assumes not new block, make sure OK
+			Statement lastStatementWithRecursiveCall= recursiveList.get(recursiveList.size() - 1);
 			Statement currStatement= null;
 			List<ASTNode> statementsToAdd= new ArrayList<ASTNode>();
 			int flags= 0;
@@ -409,7 +409,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				}
 			}
 			if (!recursiveMethodReturnsVoid()) {
-				if (lastStatementWithRecursiveCall instanceof ReturnStatement) {  //TODO only do when parentOfMethodCall is returnStatement and otherwise just call createLastReturnNoFlags
+				if (lastStatementWithRecursiveCall instanceof ReturnStatement) {
 					if (flags == 1 || flags == 2) {
 						int errorFlag= createLastReturnStatement(ast, result, editGroup, scratchRewriter, listRewriteForBlock, lastStatementWithRecursiveCall, isNotNewBlock, statementsToTasks.get(lastStatementWithRecursiveCall), flags);
 						if (errorFlag == -1) {
@@ -577,7 +577,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				final int[] taskNum= {0};
 				infixExpression.accept(new ConvertMethodCallToTask(taskList, ast, taskNum, scratchRewriter, editGroup));
 				
-				VariableDeclarationStatement assignToResult= ast.newVariableDeclarationStatement(varFragment);  //TODO Make sure type will be correct
+				VariableDeclarationStatement assignToResult= ast.newVariableDeclarationStatement(varFragment);
 				if (isNotNewBlock) {
 					statementsToAdd.add(assignToResult);
 				} else {
@@ -1312,7 +1312,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 						} else if (exprTemp instanceof MethodInvocation && !isMethodDeclarationEqualTo(exprTemp)) {
 							methodInvocationFlag= true;
 							taskDeclFlag= -1;
-						} //TODO Do I need an else?
+						}
 					} else if (parentOfMethodCall instanceof ExpressionStatement) {
 						ExpressionStatement exprStatement= (ExpressionStatement) parentOfMethodCall;
 						Expression expressionContainer= exprStatement.getExpression();
