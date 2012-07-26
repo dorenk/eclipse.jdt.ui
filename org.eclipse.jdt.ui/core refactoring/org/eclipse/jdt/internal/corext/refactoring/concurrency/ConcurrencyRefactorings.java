@@ -12,7 +12,7 @@ public final class ConcurrencyRefactorings extends NLS {
 	private ConcurrencyRefactorings() {
 		// Do not instantiate
 	}
-	
+
 	public static String ConcurrencyRefactorings_update_imports;
 	public static String ConcurrencyRefactorings_type_error;
 	public static String ConcurrencyRefactorings_empty_string;
@@ -27,7 +27,10 @@ public final class ConcurrencyRefactorings extends NLS {
 	public static String ConcurrencyRefactorings_unsafe_op_error_1;
 	public static String ConcurrencyRefactorings_unsafe_op_error_2;
 	public static String ConcurrencyRefactorings_unsafe_op_error_3;
-	
+	public static String ConcurrencyRefactorings_comment;
+	public static String ConcurrencyRefactorings_read_and_write_access;
+
+	public static String AtomicIntegerRefactoring_import;
 	public static String AtomicIntegerRefactoring_descriptor_description;
 	public static String AtomicIntegerRefactoring_field_pattern;
 	public static String AtomicIntegerRefactoring_searching_cunits;
@@ -38,6 +41,8 @@ public final class ConcurrencyRefactorings extends NLS {
 	public static String AtomicIntegerRefactoring_compiler_errors;
 	public static String AtomicIntegerRefactoring_name;
 	public static String AtomicIntegerRefactoring_create_changes;
+	public static String AtomicIntegerRefactoring_java_model_exception_rename;
+	public static String AtomicIntegerRefactoring_rename_okay;
 	public static String AtomicIntegerWizard_name;
 	
 	public static String ConvertToFJTaskRefactoring_check_preconditions;
@@ -68,6 +73,36 @@ public final class ConcurrencyRefactorings extends NLS {
 	public static String ConvertToFJTaskRefactoring_action_name;
 	public static String ConvertToFJTaskRefactoring_no_change_error;
 	
+	public static String Integer_type_signature;
+	public static String AtomicInteger_set;
+	public static String AtomicInteger_get;
+	public static String AtomicInteger_getAndIncrement;
+	public static String AtomicInteger_getAndDecrement;
+	public static String AtomicInteger_incrementAndGet;
+	public static String AtomicInteger_decrementAndGet;
+	public static String AtomicInteger_addAndGet;
+	public static String AtomicInteger_todo_comment_op_cannot_be_executed_atomically;
+	public static String AtomicInteger_todo_comment_statements_not_properly_synchronized;
+	public static String AtomicInteger_todo_comment_statements_not_properly_synchronized_block;
+	public static String AtomicInteger_todo_comment_statements_not_properly_synchronized_method;
+	public static String AtomicInteger_todo_comment_return_statement_could_not_be_executed_atomically;
+	public static String AtomicInteger_warning_cannot_remove_synch_mod_return_assignment;
+	public static String AtomicInteger_warning_cannot_remove_synch_block_return_assignment;
+	public static String AtomicInteger_statement;
+	public static String AtomicInteger_warning_cannot_execute_statement_atomically;
+	public static String AtomicInteger_warning_cannot_be_refactored_atomically;
+	public static String AtomicInteger_unsafe_operator_warning1;
+	public static String AtomicInteger_unsafe_operator_warning2;
+	public static String AtomicInteger_unsafe_operator_warning3;
+	public static String AtomicInteger_unsafe_operator_warning4;
+	public static String AtomicInteger_unsafe_operator_warning5;
+	public static String AtomicInteger_warning_side_effects1;
+	public static String AtomicInteger_warning_side_effects2;
+	public static String AtomicInteger_warning_side_effects3;
+	public static String AtomicInteger_warning_side_effects4;
+	public static String AtomicInteger_warning_two_field_accesses;
+	public static String AtomicInteger_warning_two_field_accesses2;
+
 	static {
 		NLS.initializeMessages(BUNDLE_NAME, ConcurrencyRefactorings.class);
 	}
