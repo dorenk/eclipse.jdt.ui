@@ -1220,7 +1220,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 
 		private boolean isMethodDeclarationEqualTo(MethodInvocation methodCall) {
 			boolean namesMatch= methodCall.getName().getFullyQualifiedName().equals(fMethodDeclaration.getName().getFullyQualifiedName());
-			return namesMatch;
+			return namesMatch;  //TODO Add more logic to better check - make so overloaded methods don't get chosen
 		}
 	}
 
@@ -1402,7 +1402,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 
 		private boolean isMethodDeclarationEqualTo(Expression exprTemp) {
 			boolean paramsMatch= ((MethodInvocation) exprTemp).resolveMethodBinding().getParameterTypes().equals(fMethodDeclaration.resolveBinding().getParameterTypes());
-			boolean namesMatch= ((MethodInvocation) exprTemp).getName().getFullyQualifiedName().equals(fMethodDeclaration.getName().getFullyQualifiedName());
+			boolean namesMatch= ((MethodInvocation) exprTemp).getName().getFullyQualifiedName().equals(fMethodDeclaration.getName().getFullyQualifiedName());  //TODO Do I need check name if check binding?
 			return namesMatch && paramsMatch;
 		}
 
