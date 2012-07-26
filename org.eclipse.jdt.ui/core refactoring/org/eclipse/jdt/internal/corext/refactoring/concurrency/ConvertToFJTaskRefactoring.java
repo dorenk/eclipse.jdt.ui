@@ -1309,7 +1309,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 						if (exprTemp instanceof InfixExpression) {
 							infixExpressionFlag= true;
 							taskDeclFlag= -1;
-						} else if (exprTemp instanceof MethodInvocation && isMethodNameEqual(exprTemp)) {
+						} else if (exprTemp instanceof MethodInvocation && !isMethodDeclarationEqualTo(exprTemp)) {
 							methodInvocationFlag= true;
 							taskDeclFlag= -1;
 						} //TODO Do I need an else?
@@ -1339,7 +1339,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 							if (exprTemp instanceof InfixExpression) {
 								infixExpressionFlag= true;
 								taskDeclFlag= -1;
-							} else if (exprTemp instanceof MethodInvocation && isMethodNameEqual(exprTemp)) {
+							} else if (exprTemp instanceof MethodInvocation && !isMethodDeclarationEqualTo(exprTemp)) {
 								methodInvocationFlag= true;
 								taskDeclFlag= -1;
 							}
@@ -1373,7 +1373,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 						Expression exprTemp= ((ReturnStatement) parentOfMethodCall).getExpression();
 						if (exprTemp instanceof InfixExpression) {
 							infixExpressionFlag= true;
-						} else if (exprTemp instanceof MethodInvocation && isMethodNameEqual(exprTemp)) {
+						} else if (exprTemp instanceof MethodInvocation && !isMethodDeclarationEqualTo(exprTemp)) {
 							methodInvocationFlag= true;
 						}
 					} else {
@@ -1400,8 +1400,10 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			return true;
 		}
 
-		private boolean isMethodNameEqual(Expression exprTemp) {
-			return !(((MethodInvocation) exprTemp).getName().getFullyQualifiedName().equals(fMethodDeclaration.getName().getFullyQualifiedName()));
+		private boolean isMethodDeclarationEqualTo(Expression exprTemp) {
+			boolean paramsMatch= ((MethodInvocation) exprTemp).resolveMethodBinding().getParameterTypes().equals(fMethodDeclaration.resolveBinding().getParameterTypes());
+			boolean namesMatch= ((MethodInvocation) exprTemp).getName().getFullyQualifiedName().equals(fMethodDeclaration.getName().getFullyQualifiedName());
+			return namesMatch && paramsMatch;
 		}
 
 		private void populateAllMaps(List<String> partialComputationsNames, List<String> typesOfComputations, boolean infixExpressionFlag, boolean methodInvocationFlag, Block myBlock,
