@@ -30,7 +30,8 @@ public class TestFibonacciCombination {
 				FibonacciCombinationImpl task2 = new FibonacciCombinationImpl(
 						end - 2);
 				invokeAll(task1, task2);
-				result = task1.result + task2.result;
+				int i = task1.result;
+				result = i + task2.result;
 			}
 		}
 		public int fibonacciCombination(int end) {
