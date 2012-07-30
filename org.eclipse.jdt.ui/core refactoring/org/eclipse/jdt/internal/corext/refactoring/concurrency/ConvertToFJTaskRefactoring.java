@@ -409,7 +409,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			}
 			if (!recursiveMethodReturnsVoid()) {
 				if (lastStatementWithRecursiveCall instanceof ReturnStatement) {
-					if (flags == 1 || flags == 2) {
+					if (flags == 1 || flags == 2 || flags == 7) {
 						int errorFlag= createLastReturnStatement(ast, result, editGroup, scratchRewriter, listRewriteForBlock, lastStatementWithRecursiveCall, isNotNewBlock, statementsToTasks.get(lastStatementWithRecursiveCall), flags);
 						if (errorFlag == -1) {
 							return false;  //TODO Check this
@@ -425,13 +425,13 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			}
 			if (statementsToAdd.size() > 0) {
 				for (int i= 0; i < statementsToAdd.size(); i++) {
-					if (!(flags == 1 || flags == 2)) {
+					if (!(flags == 1 || flags == 2 || flags == 7)) {
 						listRewriteForBlock.insertAfter(statementsToAdd.get(i), lastStatementWithRecursiveCall, editGroup);
 					}
 				}
 			}
 			if (isNotNewBlock) {
-				if (flags == 1 || flags == 2) {
+				if (flags == 1 || flags == 2 || flags == 7) {
 					listRewriteForBlock.insertBefore(ast.newExpressionStatement(forkJoinInvocation), lastStatementWithRecursiveCall, editGroup);
 				} else {
 					listRewriteForBlock.insertAfter(ast.newExpressionStatement(forkJoinInvocation), lastStatementWithRecursiveCall, editGroup);
@@ -441,7 +441,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			}
 			if (statementsToAdd.size() > 0) {
 				for (int i= 0; i < statementsToAdd.size(); i++) {
-					if (flags == 1 || flags == 2) {
+					if (flags == 1 || flags == 2 || flags == 7) {
 						listRewriteForBlock.insertBefore(statementsToAdd.get(i), lastStatementWithRecursiveCall, editGroup);
 					}
 				}
@@ -536,6 +536,19 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			visitMethodArguments(ast, editGroup, scratchRewriter, taskList, methodInvocation, taskNum);
 			
 			assignToResult.setRightHandSide(methodInvocation);
+			if (isNotNewBlock) {
+				scratchRewriter.replace(lastStatementInBlock, ast.newExpressionStatement(assignToResult), editGroup);
+			} else {
+				listRewriteForBlock.insertLast(ast.newExpressionStatement(assignToResult), editGroup);
+			}
+		} else if (flags == 7) {  //Assignment
+			Assignment assignToResult= ast.newAssignment();
+			assignToResult.setLeftHandSide(ast.newSimpleName("result")); //$NON-NLS-1$
+			Assignment assignment= ((Assignment)(ASTNode.copySubtree(ast, ((ReturnStatement)lastStatementInBlock).getExpression())));
+			final int[] taskNum= {0};
+			assignment.accept(new ConvertMethodCallToTask(taskList, ast, taskNum, scratchRewriter, editGroup));
+			
+			assignToResult.setRightHandSide(assignment);
 			if (isNotNewBlock) {
 				scratchRewriter.replace(lastStatementInBlock, ast.newExpressionStatement(assignToResult), editGroup);
 			} else {
@@ -1267,6 +1280,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				List<String> typesOfComputations= new ArrayList<String>();
 				boolean infixExpressionFlag= false;
 				boolean methodInvocationFlag= false;
+				boolean assignmentFlag= false;
 				Block myBlock= null;
 				Statement parentOfMethodCall= findParentStatement(methodCall);
 				if (parentOfMethodCall == null) {
@@ -1366,6 +1380,8 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 							infixExpressionFlag= true;
 						} else if (exprTemp instanceof MethodInvocation && !isMethodDeclarationEqualTo(exprTemp)) {
 							methodInvocationFlag= true;
+						} else if (exprTemp instanceof Assignment) {
+							assignmentFlag= true;
 						}
 					} else {
 						System.err.println(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_scenario_error + parentOfMethodCall.toString() );
@@ -1386,7 +1402,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 						myBlock= (Block) tempNode;
 					}
 				}
-				populateAllMaps(partialComputationsNames, typesOfComputations, infixExpressionFlag, methodInvocationFlag, myBlock, parentOfMethodCall, taskDeclStatement, taskDeclFlag);
+				populateAllMaps(partialComputationsNames, typesOfComputations, infixExpressionFlag, methodInvocationFlag, assignmentFlag, myBlock, parentOfMethodCall, taskDeclStatement, taskDeclFlag);
 			}
 			return true;
 		}
@@ -1396,8 +1412,8 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			return bindingsMatch;
 		}
 
-		private void populateAllMaps(List<String> partialComputationsNames, List<String> typesOfComputations, boolean infixExpressionFlag, boolean methodInvocationFlag, Block myBlock,
-				Statement parentOfMethodCall, VariableDeclarationStatement taskDeclStatement, int taskDeclFlag) {
+		private void populateAllMaps(List<String> partialComputationsNames, List<String> typesOfComputations, boolean infixExpressionFlag, boolean methodInvocationFlag, boolean assignmentFlag,
+				Block myBlock, Statement parentOfMethodCall, VariableDeclarationStatement taskDeclStatement, int taskDeclFlag) {
 			Integer taskNum= new Integer(fTaskNumber[0]);
 			fAllTaskDeclStatements.put(taskNum, taskDeclStatement);
 			fAllTaskDeclFlags.put(taskNum, new Integer(taskDeclFlag));
@@ -1455,6 +1471,8 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				} else {
 					flag= 6;
 				}
+			} else if (assignmentFlag) {
+				flag= 7;
 			}
 			fStatementFlags.put(parentOfMethodCall, new Integer(flag));
 		}
