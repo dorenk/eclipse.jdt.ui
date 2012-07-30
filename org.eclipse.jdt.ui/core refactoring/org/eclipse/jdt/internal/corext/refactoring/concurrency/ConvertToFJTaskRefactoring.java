@@ -394,7 +394,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				currStatement= recursiveList.get(listIndex);
 				flags= statementFlags.get(currStatement).intValue();
 				List<Integer> taskList= statementsToTasks.get(currStatement);
-				for (int i=0; i < taskList.size(); i++) {
+				for (int i= 0; i < taskList.size(); i++) {
 					Integer taskNum= taskList.get(i);
 					argumentsForkJoin.add(ast.newSimpleName("task" + taskNum)); //$NON-NLS-1$
 					replaceWithTaskDeclStatement(allTaskDeclStatements.get(taskNum), currStatement, allTaskDeclFlags.get(taskNum).intValue(), scratchRewriter, editGroup, listRewriteForBlock, isNotNewBlock, i == taskList.size() - 1);
@@ -424,7 +424,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				}
 			}
 			if (statementsToAdd.size() > 0) {
-				for (int i=0; i < statementsToAdd.size(); i++) {
+				for (int i= 0; i < statementsToAdd.size(); i++) {
 					if (!(flags == 1 || flags == 2)) {
 						listRewriteForBlock.insertAfter(statementsToAdd.get(i), lastStatementWithRecursiveCall, editGroup);
 					}
@@ -440,7 +440,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				listRewriteForBlock.insertAt(ast.newExpressionStatement(forkJoinInvocation), numTasksPerBlock.get(currBlock).intValue(), editGroup);
 			}
 			if (statementsToAdd.size() > 0) {
-				for (int i=0; i < statementsToAdd.size(); i++) {
+				for (int i= 0; i < statementsToAdd.size(); i++) {
 					if (flags == 1 || flags == 2) {
 						listRewriteForBlock.insertBefore(statementsToAdd.get(i), lastStatementWithRecursiveCall, editGroup);
 					}
@@ -625,7 +625,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 	private void visitMethodArguments(final AST ast, final TextEditGroup editGroup, final ASTRewrite scratchRewriter, final List<Integer> taskList, MethodInvocation methodInvocation,
 			final int[] taskNum) {
 		List<Expression> methodArgList= methodInvocation.arguments();
-		for (int i=0; i < methodArgList.size(); i++) {
+		for (int i= 0; i < methodArgList.size(); i++) {
 			if (taskNum[0] == taskList.size()) {
 				break;
 			}
