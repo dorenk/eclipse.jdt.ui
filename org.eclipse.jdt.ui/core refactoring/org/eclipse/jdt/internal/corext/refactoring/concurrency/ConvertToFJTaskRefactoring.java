@@ -577,12 +577,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				final int[] taskNum= {0};
 				infixExpression.accept(new ConvertMethodCallToTask(taskList, ast, taskNum, scratchRewriter, editGroup));
 				
-				VariableDeclarationStatement assignToResult= ast.newVariableDeclarationStatement(varFragment);
-				if (isNotNewBlock) {
-					statementsToAdd.add(assignToResult);
-				} else {
-					listRewriteForBlock.insertLast(assignToResult, editGroup);
-				}
+				addVariableDeclarationStatement(ast, editGroup, listRewriteForBlock, isNotNewBlock, statementsToAdd, varFragment);
 			} else if (flags == 4) {
 				VariableDeclarationFragment varFragment= ((VariableDeclarationFragment)(ASTNode.copySubtree(ast, ((VariableDeclarationFragment)(((VariableDeclarationStatement) currStatement).fragments().get(0))))));
 				MethodInvocation methodInvocation= (MethodInvocation) varFragment.getInitializer();
@@ -596,12 +591,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 					methodArgList.get(i).accept(new ConvertMethodCallToTask(taskList, ast, taskNum, scratchRewriter, editGroup));
 				}
 				
-				VariableDeclarationStatement assignToResult= ast.newVariableDeclarationStatement(varFragment);
-				if (isNotNewBlock) {
-					statementsToAdd.add(assignToResult);
-				} else {
-					listRewriteForBlock.insertLast(assignToResult, editGroup);
-				}
+				addVariableDeclarationStatement(ast, editGroup, listRewriteForBlock, isNotNewBlock, statementsToAdd, varFragment);
 			} else {
 				for (int i= partialComputationsNames.size() - 1; i >= 0 ; ) {
 					String varStatement= typesOfComputations.get(i) + " " + partialComputationsNames.get(i) + " = task" + taskList.get(i) + ".result;"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
@@ -621,12 +611,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				final int[] taskNum= {0};
 				infixExpression.accept(new ConvertMethodCallToTask(taskList, ast, taskNum, scratchRewriter, editGroup));
 				
-				ExpressionStatement assignToResult= ast.newExpressionStatement(expr);
-				if (isNotNewBlock) {
-					statementsToAdd.add(assignToResult);
-				} else {
-					listRewriteForBlock.insertLast(assignToResult, editGroup);
-				}
+				addExpressionStatement(ast, editGroup, listRewriteForBlock, isNotNewBlock, statementsToAdd, expr);
 			} else if (flags == 6) {
 				Expression expr= ((Expression) (ASTNode.copySubtree(ast, ((ExpressionStatement) currStatement).getExpression())));
 				MethodInvocation methodInvocation= (MethodInvocation) ((Assignment) expr).getRightHandSide();
@@ -640,12 +625,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 					methodArgList.get(i).accept(new ConvertMethodCallToTask(taskList, ast, taskNum, scratchRewriter, editGroup));
 				}
 				
-				ExpressionStatement assignToResult= ast.newExpressionStatement(expr);
-				if (isNotNewBlock) {
-					statementsToAdd.add(assignToResult);
-				} else {
-					listRewriteForBlock.insertLast(assignToResult, editGroup);
-				}
+				addExpressionStatement(ast, editGroup, listRewriteForBlock, isNotNewBlock, statementsToAdd, expr);
 			} else {
 				for (int i= partialComputationsNames.size() - 1; i >= 0 ; ) {
 					String exprStatement= partialComputationsNames.get(i) + " = task" + taskList.get(i) + ".result;"; //$NON-NLS-1$ //$NON-NLS-2$
@@ -658,6 +638,25 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 					i--;
 				}
 			}
+		}
+	}
+
+	private void addVariableDeclarationStatement(final AST ast, final TextEditGroup editGroup, ListRewrite listRewriteForBlock, boolean isNotNewBlock, List<ASTNode> statementsToAdd,
+			VariableDeclarationFragment varFragment) {
+		VariableDeclarationStatement assignToResult= ast.newVariableDeclarationStatement(varFragment);
+		if (isNotNewBlock) {
+			statementsToAdd.add(assignToResult);
+		} else {
+			listRewriteForBlock.insertLast(assignToResult, editGroup);
+		}
+	}
+
+	private void addExpressionStatement(final AST ast, final TextEditGroup editGroup, ListRewrite listRewriteForBlock, boolean isNotNewBlock, List<ASTNode> statementsToAdd, Expression expr) {
+		ExpressionStatement assignToResult= ast.newExpressionStatement(expr);
+		if (isNotNewBlock) {
+			statementsToAdd.add(assignToResult);
+		} else {
+			listRewriteForBlock.insertLast(assignToResult, editGroup);
 		}
 	}
 
