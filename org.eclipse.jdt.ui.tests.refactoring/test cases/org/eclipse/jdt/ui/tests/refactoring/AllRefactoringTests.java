@@ -40,6 +40,7 @@ public class AllRefactoringTests {
 		suite.addTest(IntroduceParameterTests.suite());
 		suite.addTest(IntroduceParameterTests17.suite());
 		suite.addTest(IntroduceFactoryTests.suite());
+		suite.addTest(ConvertToFJTaskTests.suite());
 
 		//-- structure
 		suite.addTest(ChangeSignatureTests.suite());
