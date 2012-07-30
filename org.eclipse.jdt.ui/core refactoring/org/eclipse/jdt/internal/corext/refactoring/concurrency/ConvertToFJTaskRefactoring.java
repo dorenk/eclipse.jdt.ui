@@ -377,7 +377,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		if (allStatementsWithRecursiveMethodInvocation.get(currBlock).size() >= 1 && !numTasksPerBlock.get(currBlock).equals(Integer.valueOf(1))) {
 			atLeastOneBlockChanged=  true;
 			
-			if(isNewBlock) {
+			if (isNewBlock) {
 				scratchRewriter.replace(blockWithoutBraces.get(currBlock), currBlock, editGroup);
 			}
 			
@@ -534,13 +534,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			MethodInvocation methodInvocation= ((MethodInvocation) tempAST);
 			final int[] taskNum= {0};
 			
-			List<Expression> methodArgList= methodInvocation.arguments();
-			for (int i=0; i < methodArgList.size(); i++) {
-				if (taskNum[0] == taskList.size()) {
-					break;
-				}
-				methodArgList.get(i).accept(new ConvertMethodCallToTask(taskList, ast, taskNum, scratchRewriter, editGroup));
-			}
+			visitMethodArguments(ast, editGroup, scratchRewriter, taskList, methodInvocation, taskNum);
 			
 			assignToResult.setRightHandSide(methodInvocation);
 			if (isNotNewBlock) {
@@ -583,13 +577,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				MethodInvocation methodInvocation= (MethodInvocation) varFragment.getInitializer();
 				final int[] taskNum= {0};
 				
-				List<Expression> methodArgList= methodInvocation.arguments();
-				for (int i=0; i < methodArgList.size(); i++) {
-					if (taskNum[0] == taskList.size()) {
-						break;
-					}
-					methodArgList.get(i).accept(new ConvertMethodCallToTask(taskList, ast, taskNum, scratchRewriter, editGroup));
-				}
+				visitMethodArguments(ast, editGroup, scratchRewriter, taskList, methodInvocation, taskNum);
 				
 				addVariableDeclarationStatement(ast, editGroup, listRewriteForBlock, isNotNewBlock, statementsToAdd, varFragment);
 			} else {
@@ -617,13 +605,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				MethodInvocation methodInvocation= (MethodInvocation) ((Assignment) expr).getRightHandSide();
 				final int[] taskNum= {0};
 				
-				List<Expression> methodArgList= methodInvocation.arguments();
-				for (int i=0; i < methodArgList.size(); i++) {
-					if (taskNum[0] == taskList.size()) {
-						break;
-					}
-					methodArgList.get(i).accept(new ConvertMethodCallToTask(taskList, ast, taskNum, scratchRewriter, editGroup));
-				}
+				visitMethodArguments(ast, editGroup, scratchRewriter, taskList, methodInvocation, taskNum);
 				
 				addExpressionStatement(ast, editGroup, listRewriteForBlock, isNotNewBlock, statementsToAdd, expr);
 			} else {
@@ -638,6 +620,17 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 					i--;
 				}
 			}
+		}
+	}
+
+	private void visitMethodArguments(final AST ast, final TextEditGroup editGroup, final ASTRewrite scratchRewriter, final List<Integer> taskList, MethodInvocation methodInvocation,
+			final int[] taskNum) {
+		List<Expression> methodArgList= methodInvocation.arguments();
+		for (int i=0; i < methodArgList.size(); i++) {
+			if (taskNum[0] == taskList.size()) {
+				break;
+			}
+			methodArgList.get(i).accept(new ConvertMethodCallToTask(taskList, ast, taskNum, scratchRewriter, editGroup));
 		}
 	}
 
