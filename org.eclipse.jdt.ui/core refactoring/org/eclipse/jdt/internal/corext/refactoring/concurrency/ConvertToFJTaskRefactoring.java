@@ -261,8 +261,8 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		int end= fMethodDeclaration.getBody().getLength() + start;
 		List<Comment> commentList= fRoot.getCommentList();
 		if (commentList.size() != 0) {
-			for (int i=0; i < commentList.size(); i++) {
-				int tempStart= commentList.get(i).getStartPosition();
+			for (Comment comment : commentList) {
+				int tempStart= comment.getStartPosition();
 				if (tempStart > start && tempStart < end) {
 					RefactoringStatus warning= new RefactoringStatus();
 					warning.addWarning(Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_comment_warning, new String[] {fMethod.getElementName()}));
@@ -353,8 +353,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 						return true;
 					}
 				});
-				for (int i=0; i < nonRecursiveBlocks.size(); i++) {
-					Block currBlock= nonRecursiveBlocks.get(i);
+				for (Block currBlock : nonRecursiveBlocks) {
 					ListRewrite listRewriteForBlock= scratchRewriter.getListRewrite(currBlock, Block.STATEMENTS_PROPERTY);
 					createLastReturnNoFlags(ast, editGroup, scratchRewriter, listRewriteForBlock, (Statement) currBlock.statements().get(currBlock.statements().size() - 1), true, currBlock, blockWithoutBraces);
 				}
