@@ -325,7 +325,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			if (allStatementsWithRecursiveMethodInvocation.size() == 0) {
 				createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_statement_error, new String[] {fMethod.getElementName()}));
 				return;
-			} else if (switchStatementsFound[0] >= taskNumber[0]) {  //TODO >= or == ?
+			} else if (switchStatementsFound[0] >= taskNumber[0]) {
 				createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_switch_statement_error, new String[] {fMethod.getElementName()}));
 				return;
 			}
@@ -602,7 +602,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				} else {
 					listRewriteForBlock.insertLast(assignToResult, editGroup);
 				}
-			} else {  //TODO Try to break this - make sure in right order as well
+			} else {
 				for (int i= partialComputationsNames.size() - 1; i >= 0 ; ) {
 					String varStatement= typesOfComputations.get(i) + " " + partialComputationsNames.get(i) + " = task" + taskList.get(i) + ".result;"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 					VariableDeclarationStatement variableStatement= (VariableDeclarationStatement) scratchRewriter.createStringPlaceholder(varStatement, ASTNode.VARIABLE_DECLARATION_STATEMENT);
@@ -646,7 +646,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				} else {
 					listRewriteForBlock.insertLast(assignToResult, editGroup);
 				}
-			} else {  //TODO Try to break as well
+			} else {
 				for (int i= partialComputationsNames.size() - 1; i >= 0 ; ) {
 					String exprStatement= partialComputationsNames.get(i) + " = task" + taskList.get(i) + ".result;"; //$NON-NLS-1$ //$NON-NLS-2$
 					ExpressionStatement expressionStatement= (ExpressionStatement) scratchRewriter.createStringPlaceholder(exprStatement, ASTNode.EXPRESSION_STATEMENT);
