@@ -51,7 +51,7 @@ public class TestSequentialMergeSort {
 		}
 		protected void compute() {
 			if (whole.length < 10) {
-				result = sort(whole);
+				result = sort_sequential(whole);
 				return;
 			} else {
 				int[] left = new int[whole.length / 2];
@@ -67,7 +67,7 @@ public class TestSequentialMergeSort {
 				result = whole;
 			}
 		}
-		private int[] sort(int[] whole) {
+		private int[] sort_sequential(int[] whole) {
 			if (whole.length == 1) {
 				return whole;
 			} else {
@@ -75,8 +75,8 @@ public class TestSequentialMergeSort {
 				System.arraycopy(whole, 0, left, 0, left.length);
 				int[] right = new int[whole.length - left.length];
 				System.arraycopy(whole, left.length, right, 0, right.length);
-				left = sort(left);
-				right = sort(right);
+				left = sort_sequential(left);
+				right = sort_sequential(right);
 				merge(left, right, whole);
 				return whole;
 			}

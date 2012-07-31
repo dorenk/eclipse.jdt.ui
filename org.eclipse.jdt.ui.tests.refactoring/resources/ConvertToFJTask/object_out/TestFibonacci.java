@@ -21,7 +21,7 @@ public class TestFibonacci {
 		}
 		protected void compute() {
 			if (end < 10) {
-				result = fibonacci(end);
+				result = fibonacci_sequential(end);
 				return;
 			} else {
 				FibonacciImpl task1 = new FibonacciImpl(end - 1);
@@ -30,11 +30,12 @@ public class TestFibonacci {
 				result = task1.result + task2.result;
 			}
 		}
-		public int fibonacci(int end) {
+		public int fibonacci_sequential(int end) {
 			if (end < 2) {
 				return end;
 			} else {
-				return fibonacci(end - 1) + fibonacci(end - 2);
+				return fibonacci_sequential(end - 1)
+						+ fibonacci_sequential(end - 2);
 			}
 		}
 	}

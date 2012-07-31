@@ -154,8 +154,8 @@ public class ConvertToFJTaskTests extends AbstractSelectionTestCase {
 		objectTest("fibonacciWithCombinationOfRecursiveCalls", "end < 10");
 	}
 	
-	public void testSum() throws Exception {
-		objectTest("recursionSum", "end < 5");
+	public void testReturnWithRecursionAsArgumentsInMethodInvocation() throws Exception {
+		objectTest("recursion", "end < 5");
 	}
 	
 	public void testSumWithCombinationOfRecursiveCalls() throws Exception {

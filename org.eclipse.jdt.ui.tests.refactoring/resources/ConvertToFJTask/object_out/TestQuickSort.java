@@ -32,7 +32,7 @@ public class TestQuickSort {
 		}
 		protected void compute() {
 			if (right - left < 10) {
-				quicksort(a, left, right);
+				quicksort_sequential(a, left, right);
 				return;
 			}
 			int i = partition(a, left, right);
@@ -40,12 +40,12 @@ public class TestQuickSort {
 			QuicksortImpl task2 = new QuicksortImpl(a, i + 1, right);
 			invokeAll(task1, task2);
 		}
-		public void quicksort(double[] a, int left, int right) {
+		public void quicksort_sequential(double[] a, int left, int right) {
 			if (right <= left)
 				return;
 			int i = partition(a, left, right);
-			quicksort(a, left, i - 1);
-			quicksort(a, i + 1, right);
+			quicksort_sequential(a, left, i - 1);
+			quicksort_sequential(a, i + 1, right);
 		}
 	}
 

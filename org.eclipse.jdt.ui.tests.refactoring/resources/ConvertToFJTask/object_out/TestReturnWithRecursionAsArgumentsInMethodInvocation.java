@@ -3,37 +3,38 @@ package object_out;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.RecursiveAction;
 
-public class TestSum {
+public class TestReturnWithRecursionAsArgumentsInMethodInvocation {
 	
-	public int recursionSum(int end) {
+	public int recursion(int end) {
 		int processorCount = Runtime.getRuntime().availableProcessors();
 		ForkJoinPool pool = new ForkJoinPool(processorCount);
-		RecursionSumImpl aRecursionSumImpl = new RecursionSumImpl(end);
-		pool.invoke(aRecursionSumImpl);
-		return aRecursionSumImpl.result;
+		RecursionImpl aRecursionImpl = new RecursionImpl(end);
+		pool.invoke(aRecursionImpl);
+		return aRecursionImpl.result;
 	}
-	public class RecursionSumImpl extends RecursiveAction {
+	public class RecursionImpl extends RecursiveAction {
 		private int end;
 		private int result;
-		private RecursionSumImpl(int end) {
+		private RecursionImpl(int end) {
 			this.end = end;
 		}
 		protected void compute() {
 			if (end < 5) {
-				result = recursionSum(end);
+				result = recursion_sequential(end);
 				return;
 			} else {
-				RecursionSumImpl task1 = new RecursionSumImpl(end - 1);
-				RecursionSumImpl task2 = new RecursionSumImpl(end - 2);
+				RecursionImpl task1 = new RecursionImpl(end - 1);
+				RecursionImpl task2 = new RecursionImpl(end - 2);
 				invokeAll(task1, task2);
 				result = sum(task1.result, task2.result);
 			}
 		}
-		public int recursionSum(int end) {
+		public int recursion_sequential(int end) {
 			if (end <= 0) {
 				return 0;
 			} else {
-				return sum(recursionSum(end - 1), recursionSum(end - 2));
+				return sum(recursion_sequential(end - 1),
+						recursion_sequential(end - 2));
 			}
 		}
 	}

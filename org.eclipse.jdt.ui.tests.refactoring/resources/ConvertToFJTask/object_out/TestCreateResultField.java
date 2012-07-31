@@ -25,7 +25,7 @@ public class TestCreateResultField {
 		}
 		protected void compute() {
 			if (array.length < 10) {
-				result = method(array, start, end);
+				result = method_sequential(array, start, end);
 				return;
 			} else {
 				MethodImpl task1 = new MethodImpl(array, 0, 1);
@@ -36,12 +36,12 @@ public class TestCreateResultField {
 				result = i + j;
 			}
 		}
-		public int method(int[] array, int start, int end) {
+		public int method_sequential(int[] array, int start, int end) {
 			if (array.length == 0) {
 				return 0;
 			} else {
-				int i = method(array, 0, 1);
-				int j = method(new int[]{1, 2, 3}, 0, 3);
+				int i = method_sequential(array, 0, 1);
+				int j = method_sequential(new int[]{1, 2, 3}, 0, 3);
 				return i + j;
 			}
 		}

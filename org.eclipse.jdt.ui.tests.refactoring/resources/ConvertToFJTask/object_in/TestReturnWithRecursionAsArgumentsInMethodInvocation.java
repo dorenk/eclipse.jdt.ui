@@ -1,12 +1,12 @@
 package object_in;
 
-public class TestSum {
+public class TestReturnWithRecursionAsArgumentsInMethodInvocation {
 	
-	public int recursionSum(int end) {
+	public int recursion(int end) {
 		if (end <= 0) {
 			return 0;
 		} else {
-			return sum(recursionSum(end - 1), recursionSum(end - 2));
+			return sum(recursion(end - 1), recursion(end - 2));
 		}
 	}
 	public int sum(int a, int b) {

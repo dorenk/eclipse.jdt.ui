@@ -64,7 +64,7 @@ public class TestMaxConsecutiveSum {
 			int leftBorderSum = 0, rightBorderSum = 0;
 			int center = (left + right) / 2;
 			if (right - left < 4) {
-				result = maxSumRec(a, left, right);
+				result = maxSumRec_sequential(a, left, right);
 				return;
 			}
 			MaxSumRecImpl task1 = new MaxSumRecImpl(a, left, center);
@@ -85,14 +85,14 @@ public class TestMaxConsecutiveSum {
 			result = max3(maxLeftSum, maxRightSum, maxLeftBorderSum
 					+ maxRightBorderSum);
 		}
-		private static int maxSumRec(int[] a, int left, int right) {
+		private static int maxSumRec_sequential(int[] a, int left, int right) {
 			int maxLeftBorderSum = 0, maxRightBorderSum = 0;
 			int leftBorderSum = 0, rightBorderSum = 0;
 			int center = (left + right) / 2;
 			if (left == right)
 				return a[left] > 0 ? a[left] : 0;
-			int maxLeftSum = maxSumRec(a, left, center);
-			int maxRightSum = maxSumRec(a, center + 1, right);
+			int maxLeftSum = maxSumRec_sequential(a, left, center);
+			int maxRightSum = maxSumRec_sequential(a, center + 1, right);
 			for (int i = center; i >= left; i--) {
 				leftBorderSum += a[i];
 				if (leftBorderSum > maxLeftBorderSum)

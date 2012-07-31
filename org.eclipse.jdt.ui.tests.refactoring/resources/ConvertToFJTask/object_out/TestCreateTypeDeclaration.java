@@ -23,7 +23,7 @@ public class TestCreateTypeDeclaration {
 		}
 		protected void compute() {
 			if (array.length < 10) {
-				method(array, start, end);
+				method_sequential(array, start, end);
 				return;
 			} else {
 				MethodImpl task1 = new MethodImpl(array, 0, 1);
@@ -31,12 +31,12 @@ public class TestCreateTypeDeclaration {
 				invokeAll(task1, task2);
 			}
 		}
-		public void method(int[] array, int start, int end) {
+		public void method_sequential(int[] array, int start, int end) {
 			if (array.length == 0) {
 				return;
 			} else {
-				method(array, 0, 1);
-				method(new int[]{1, 2, 3}, 0, 3);
+				method_sequential(array, 0, 1);
+				method_sequential(new int[]{1, 2, 3}, 0, 3);
 			}
 		}
 	}
