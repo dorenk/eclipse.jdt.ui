@@ -259,6 +259,19 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		}
 		
 		ASTNode copyRecursiveMethod= ASTNode.copySubtree(ast, fMethodDeclaration);
+		final SimpleName methodName= ((MethodDeclaration) copyRecursiveMethod).getName();
+		final String newIdentifier= methodName.getIdentifier() + "_sequential"; //$NON-NLS-1$
+		copyRecursiveMethod.accept(new ASTVisitor() {
+			@Override
+			public boolean visit(MethodInvocation methodCall) {
+				SimpleName methodCallName= methodCall.getName();
+				if (methodName.getIdentifier().equals(methodCallName.getIdentifier())) {
+					methodCallName.setIdentifier(newIdentifier);
+				}
+				return true;
+			}
+		});
+		methodName.setIdentifier(newIdentifier);
 		recursiveActionSubtype.bodyDeclarations().add(copyRecursiveMethod);
 		
 	}
@@ -380,7 +393,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		
 		boolean isNewBlock= blockWithoutBraces.containsKey(currBlock);
 		
-		if (allStatementsWithRecursiveMethodInvocation.get(currBlock).size() >= 1 && !numTasksPerBlock.get(currBlock).equals(Integer.valueOf(1))) {
+		if (allStatementsWithRecursiveMethodInvocation.get(currBlock).size() >= 1) { //&& !numTasksPerBlock.get(currBlock).equals(Integer.valueOf(1))) {
 			atLeastOneBlockChanged=  true;
 			
 			if (isNewBlock) {
@@ -455,6 +468,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			}
 		}
 		else if (!recursiveMethodReturnsVoid()) {
+			System.out.println("here");
 			if (!isNewBlock) {
 				createLastReturnNoFlags(ast, editGroup, scratchRewriter, listRewriteForBlock, (Statement) currBlock.statements().get(currBlock.statements().size() - 1), !isNewBlock, currBlock, blockWithoutBraces);
 			} else {
@@ -768,7 +782,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 	private MethodInvocation createSequentialMethodInvocation(AST ast) {
 		
 		MethodInvocation invokeSequentialMethod= ast.newMethodInvocation();
-		invokeSequentialMethod.setName(ast.newSimpleName(fMethod.getElementName()));
+		invokeSequentialMethod.setName(ast.newSimpleName(fMethod.getElementName() + "_sequential")); //$NON-NLS-1$
 		List<Expression> argumentsForInvokingSeqMethod= invokeSequentialMethod.arguments();
 		List<ASTNode> recursiveMethodParameters= fMethodDeclaration.parameters();
 		for (Object par : recursiveMethodParameters) {
@@ -1128,13 +1142,13 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			SingleVariableDeclaration parameter = params.get(0);
 			Type type = parameter.getType();
 			if (type.isPrimitiveType()) {
-				sugSeqThreshold= parameter.getName().getIdentifier() + " < 10"; //$NON-NLS-1$
+				sugSeqThreshold= parameter.getName().getIdentifier() + " < 100"; //$NON-NLS-1$
 			} else if (type.isArrayType()) {
-				sugSeqThreshold= parameter.getName().getIdentifier() + ".length < 10"; //$NON-NLS-1$
+				sugSeqThreshold= parameter.getName().getIdentifier() + ".length < 100"; //$NON-NLS-1$
 			} else if (type.isParameterizedType()) {
-				sugSeqThreshold= parameter.getName().getIdentifier() + ".size() < 10"; //$NON-NLS-1$
+				sugSeqThreshold= parameter.getName().getIdentifier() + ".size() < 100"; //$NON-NLS-1$
 			} else if (type.isSimpleType()) {
-				sugSeqThreshold= parameter.getName().getIdentifier() + ".length() < 10"; //$NON-NLS-1$
+				sugSeqThreshold= parameter.getName().getIdentifier() + ".length() < 100"; //$NON-NLS-1$
 			} else {
 				System.err.println(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_parameter_error);
 			}
@@ -1232,7 +1246,10 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 
 		private boolean isMethodDeclarationEqualTo(MethodInvocation methodCall) {
 			boolean namesMatch= methodCall.getName().getFullyQualifiedName().equals(fMethodDeclaration.getName().getFullyQualifiedName());
-			return namesMatch;  //TODO Add more logic to better check - make so overloaded methods don't get chosen
+			List<Expression> methodArgs= methodCall.arguments();
+			List<SingleVariableDeclaration> declArgs= fMethodDeclaration.parameters();
+			boolean paramSizesMatch= methodArgs.size() == declArgs.size();
+			return namesMatch && paramSizesMatch;  //TODO Add more logic to better check - make so overloaded methods don't get chosen
 		}
 	}
 
