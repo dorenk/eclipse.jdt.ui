@@ -48,12 +48,12 @@ public class ConvertToFJTaskInputPage extends UserInputWizardPage {
 		fRecursiveMethod.setEditable(false);
 
 		Label label2= new Label(result, SWT.NONE);
-		label2.setText("&FJTask class name:"); //$NON-NLS-1$
+		label2.setText("&ForkJoinTask class name:"); //$NON-NLS-1$
 
 		FJTaskClassName= createNameField(result);
 
 		Label label3= new Label(result, SWT.NONE);
-		label3.setText("&Sequential threshold:"); //$NON-NLS-1$
+		label3.setText("&Sequential threshold (example is provided):"); //$NON-NLS-1$
 
 		sequentialThreshold= createNameField(result);
 		
