@@ -1,13 +1,13 @@
 package object_in;
 
-public class TestSumCombination {
+public class TestSumWithCombinationOfRecursiveCalls {
 	
-	public int recursionSumCombination(int end) {
+	public int recursionSumWithCombinationOfRecursiveCalls(int end) {
 		if (end <= 0) {
 			return 0;
 		} else {
-			int i = recursionSumCombination(end - 1);
-			return sumCombination(i, recursionSumCombination(end - 2));
+			int i = recursionSumWithCombinationOfRecursiveCalls(end - 1);
+			return sumCombination(i, recursionSumWithCombinationOfRecursiveCalls(end - 2));
 		}
 	}
 	public int sumCombination(int a, int b) {

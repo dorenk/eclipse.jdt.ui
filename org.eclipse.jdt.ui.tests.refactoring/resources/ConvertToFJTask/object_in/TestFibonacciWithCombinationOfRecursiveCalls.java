@@ -1,14 +1,14 @@
 package object_in;
 
-public class TestFibonacciCombination {
+public class TestFibonacciWithCombinationOfRecursiveCalls {
 	
-	public int fibonacciCombination(int end) {
+	public int fibonacciWithCombinationOfRecursiveCalls(int end) {
 		if (end < 2) {
 			return end;
 		}
 		else {
-			int i = fibonacciCombination(end - 1);
-			return i + fibonacciCombination(end - 2);
+			int i = fibonacciWithCombinationOfRecursiveCalls(end - 1);
+			return i + fibonacciWithCombinationOfRecursiveCalls(end - 2);
 		}
 	}
 }

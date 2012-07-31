@@ -3,43 +3,46 @@ package object_out;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.RecursiveAction;
 
-public class TestFibonacciCombination {
+public class TestFibonacciWithCombinationOfRecursiveCalls {
 	
-	public int fibonacciCombination(int end) {
+	public int fibonacciWithCombinationOfRecursiveCalls(int end) {
 		int processorCount = Runtime.getRuntime().availableProcessors();
 		ForkJoinPool pool = new ForkJoinPool(processorCount);
-		FibonacciCombinationImpl aFibonacciCombinationImpl = new FibonacciCombinationImpl(
+		FibonacciWithCombinationOfRecursiveCallsImpl aFibonacciWithCombinationOfRecursiveCallsImpl = new FibonacciWithCombinationOfRecursiveCallsImpl(
 				end);
-		pool.invoke(aFibonacciCombinationImpl);
-		return aFibonacciCombinationImpl.result;
+		pool.invoke(aFibonacciWithCombinationOfRecursiveCallsImpl);
+		return aFibonacciWithCombinationOfRecursiveCallsImpl.result;
 	}
 
-	public class FibonacciCombinationImpl extends RecursiveAction {
+	public class FibonacciWithCombinationOfRecursiveCallsImpl
+			extends
+				RecursiveAction {
 		private int end;
 		private int result;
-		private FibonacciCombinationImpl(int end) {
+		private FibonacciWithCombinationOfRecursiveCallsImpl(int end) {
 			this.end = end;
 		}
 		protected void compute() {
 			if (end < 10) {
-				result = fibonacciCombination(end);
+				result = fibonacciWithCombinationOfRecursiveCalls_sequential(end);
 				return;
 			} else {
-				FibonacciCombinationImpl task1 = new FibonacciCombinationImpl(
+				FibonacciWithCombinationOfRecursiveCallsImpl task1 = new FibonacciWithCombinationOfRecursiveCallsImpl(
 						end - 1);
-				FibonacciCombinationImpl task2 = new FibonacciCombinationImpl(
+				FibonacciWithCombinationOfRecursiveCallsImpl task2 = new FibonacciWithCombinationOfRecursiveCallsImpl(
 						end - 2);
 				invokeAll(task1, task2);
 				int i = task1.result;
 				result = i + task2.result;
 			}
 		}
-		public int fibonacciCombination(int end) {
+		public int fibonacciWithCombinationOfRecursiveCalls_sequential(int end) {
 			if (end < 2) {
 				return end;
 			} else {
-				int i = fibonacciCombination(end - 1);
-				return i + fibonacciCombination(end - 2);
+				int i = fibonacciWithCombinationOfRecursiveCalls_sequential(end - 1);
+				return i
+						+ fibonacciWithCombinationOfRecursiveCalls_sequential(end - 2);
 			}
 		}
 	}

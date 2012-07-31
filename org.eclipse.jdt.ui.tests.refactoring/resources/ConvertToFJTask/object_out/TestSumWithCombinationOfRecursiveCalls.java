@@ -3,42 +3,47 @@ package object_out;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.RecursiveAction;
 
-public class TestSumCombination {
+public class TestSumWithCombinationOfRecursiveCalls {
 	
-	public int recursionSumCombination(int end) {
+	public int recursionSumWithCombinationOfRecursiveCalls(int end) {
 		int processorCount = Runtime.getRuntime().availableProcessors();
 		ForkJoinPool pool = new ForkJoinPool(processorCount);
-		RecursionSumCombinationImpl aRecursionSumCombinationImpl = new RecursionSumCombinationImpl(
+		RecursionSumWithCombinationOfRecursiveCallsImpl aRecursionSumWithCombinationOfRecursiveCallsImpl = new RecursionSumWithCombinationOfRecursiveCallsImpl(
 				end);
-		pool.invoke(aRecursionSumCombinationImpl);
-		return aRecursionSumCombinationImpl.result;
+		pool.invoke(aRecursionSumWithCombinationOfRecursiveCallsImpl);
+		return aRecursionSumWithCombinationOfRecursiveCallsImpl.result;
 	}
-	public class RecursionSumCombinationImpl extends RecursiveAction {
+	public class RecursionSumWithCombinationOfRecursiveCallsImpl
+			extends
+				RecursiveAction {
 		private int end;
 		private int result;
-		private RecursionSumCombinationImpl(int end) {
+		private RecursionSumWithCombinationOfRecursiveCallsImpl(int end) {
 			this.end = end;
 		}
 		protected void compute() {
 			if (end < 5) {
-				result = recursionSumCombination(end);
+				result = recursionSumWithCombinationOfRecursiveCalls_sequential(end);
 				return;
 			} else {
-				RecursionSumCombinationImpl task1 = new RecursionSumCombinationImpl(
+				RecursionSumWithCombinationOfRecursiveCallsImpl task1 = new RecursionSumWithCombinationOfRecursiveCallsImpl(
 						end - 1);
-				RecursionSumCombinationImpl task2 = new RecursionSumCombinationImpl(
+				RecursionSumWithCombinationOfRecursiveCallsImpl task2 = new RecursionSumWithCombinationOfRecursiveCallsImpl(
 						end - 2);
 				invokeAll(task1, task2);
 				int i = task1.result;
 				result = sumCombination(i, task2.result);
 			}
 		}
-		public int recursionSumCombination(int end) {
+		public int recursionSumWithCombinationOfRecursiveCalls_sequential(
+				int end) {
 			if (end <= 0) {
 				return 0;
 			} else {
-				int i = recursionSumCombination(end - 1);
-				return sumCombination(i, recursionSumCombination(end - 2));
+				int i = recursionSumWithCombinationOfRecursiveCalls_sequential(end - 1);
+				return sumCombination(
+						i,
+						recursionSumWithCombinationOfRecursiveCalls_sequential(end - 2));
 			}
 		}
 	}
