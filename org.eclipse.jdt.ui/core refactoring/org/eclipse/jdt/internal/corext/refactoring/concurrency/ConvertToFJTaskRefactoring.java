@@ -162,7 +162,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		
 	}
 	
-	private Collection<TextEditGroup> reimplementOriginalRecursiveFunction() {
+	private Collection<TextEditGroup> reimplementOriginalRecursiveFunction() {  //TODO extract
 		
 		TextEditGroup gd= new TextEditGroup(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_recursive_method);
 		
@@ -306,10 +306,10 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		
 		Block baseCaseBlock= null;
 		if (recursionBaseCaseBranch instanceof Block) {
-			doRecursionBaseCaseBlock(ast, editGroup, recursionBaseCaseBranch, scratchRewriter);
+			createRecursionBaseCaseBlock(ast, editGroup, recursionBaseCaseBranch, scratchRewriter);
 			baseCaseBlock= (Block) recursionBaseCaseBranch;
 		} else if (recursionBaseCaseBranch instanceof ReturnStatement) {
-			doRecursionBaseCaseReturn(ast, editGroup, recursionBaseCaseBranch, scratchRewriter);
+			createRecursionBaseCaseReturn(ast, editGroup, recursionBaseCaseBranch, scratchRewriter);
 		}
 		
 		final Map<Integer, VariableDeclarationStatement> allTaskDeclStatements= new HashMap<Integer, VariableDeclarationStatement>();
@@ -672,7 +672,8 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		}
 	}
 
-	private void doRecursionBaseCaseReturn(AST ast, final TextEditGroup editGroup, Statement recursionBaseCaseBranch, final ASTRewrite scratchRewriter) {
+	//TODO combine
+	private void createRecursionBaseCaseReturn(AST ast, final TextEditGroup editGroup, Statement recursionBaseCaseBranch, final ASTRewrite scratchRewriter) {
 		Block basecaseBlock= ast.newBlock();
 		List<ASTNode> basecaseStatements= basecaseBlock.statements();
 		if (recursiveMethodReturnsVoid()) {
@@ -689,7 +690,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		scratchRewriter.replace(recursionBaseCaseBranch, basecaseBlock, editGroup);
 	}
 
-	private void doRecursionBaseCaseBlock(AST ast, final TextEditGroup editGroup, Statement recursionBaseCaseBranch, final ASTRewrite scratchRewriter) {
+	private void createRecursionBaseCaseBlock(AST ast, final TextEditGroup editGroup, Statement recursionBaseCaseBranch, final ASTRewrite scratchRewriter) {
 		Block baseCaseBlock= (Block) recursionBaseCaseBranch;
 		List<ASTNode> statementsInBaseCase= baseCaseBlock.statements();
 		ASTNode lastStatementInBaseCase= statementsInBaseCase.get(statementsInBaseCase.size() - 1 );
@@ -881,7 +882,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		recursiveActionSubtype.bodyDeclarations().add(newConstructor);
 	}
 
-	private void createFields(TypeDeclaration recursiveActionSubtype, AST ast) {
+	private void createFields(TypeDeclaration recursiveActionSubtype, AST ast) {  //TODO extract
 		
 		List<ASTNode> recursiveMethodParameters= fMethodDeclaration.parameters();
 		for (Object par : recursiveMethodParameters) {
@@ -1283,7 +1284,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				VariableDeclarationStatement taskDeclStatement= createTaskDeclaration(methodCall);
 				int taskDeclFlag= 1;
 				
-				List<String> partialComputationsNames= new ArrayList<String>();
+				List<String> partialComputationsNames= new ArrayList<String>();  //TODO make string
 				List<String> typesOfComputations= new ArrayList<String>();
 				boolean infixExpressionFlag= false;
 				boolean methodInvocationFlag= false;
@@ -1293,7 +1294,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				if (parentOfMethodCall == null) {
 					return false;
 				} else if (SwitchStatement.class.isInstance(parentOfMethodCall.getParent())) {
-					fSwitchStatementsFound[0]++;
+					fSwitchStatementsFound[0]++;  //TODO update
 					return false;
 				} else if (recursiveMethodReturnsVoid()) {
 					taskDeclFlag= 0;
