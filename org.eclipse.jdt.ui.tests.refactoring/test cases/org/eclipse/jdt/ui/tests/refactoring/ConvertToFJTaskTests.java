@@ -150,16 +150,16 @@ public class ConvertToFJTaskTests extends AbstractSelectionTestCase {
 		objectTest("fibonacci", "end < 10");
 	}
 	
-	public void testFibonacciCombination() throws Exception {
-		objectTest("fibonacciCombination", "end < 10");
+	public void testFibonacciWithCombinationOfRecursiveCalls() throws Exception {
+		objectTest("fibonacciWithCombinationOfRecursiveCalls", "end < 10");
 	}
 	
 	public void testSum() throws Exception {
 		objectTest("recursionSum", "end < 5");
 	}
 	
-	public void testSumCombination() throws Exception {
-		objectTest("recursionSumCombination", "end < 5");
+	public void testSumWithCombinationOfRecursiveCalls() throws Exception {
+		objectTest("recursionSumWithCombinationOfRecursiveCalls", "end < 5");
 	}
 	
 	public void testCreateMultipleTasks() throws Exception {
@@ -278,13 +278,13 @@ public class ConvertToFJTaskTests extends AbstractSelectionTestCase {
 		invalidTest("resolveBinding");
 	}
 	
-	public void testIfStatementWithoutBraces() throws Exception {
-		invalidTest("grayCheckHierarchy");
-	}
+//	public void testIfStatementWithoutBraces() throws Exception {
+//		invalidTest("grayCheckHierarchy");
+//	}
 	
-	public void testOnlyOneCall() throws Exception {
-		invalidTest("yesterday");
-	}
+//	public void testOnlyOneCall() throws Exception {
+//		invalidTest("yesterday");
+//	}
 	
 	public void testAbstractMethod() throws Exception {
 		invalidTest("tomorrow");
