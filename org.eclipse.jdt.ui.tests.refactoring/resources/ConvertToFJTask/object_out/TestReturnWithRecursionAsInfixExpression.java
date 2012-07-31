@@ -3,7 +3,7 @@ package object_out;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.RecursiveAction;
 
-public class TestReturnMultipleTasks {
+public class TestReturnWithRecursionAsInfixExpression {
 	
 	public int method(int num) {
 		int processorCount = Runtime.getRuntime().availableProcessors();
@@ -21,7 +21,7 @@ public class TestReturnMultipleTasks {
 		}
 		protected void compute() {
 			if (num < 10) {
-				result = method(num);
+				result = method_sequential(num);
 				return;
 			} else {
 				MethodImpl task1 = new MethodImpl(num - 1);
@@ -31,11 +31,11 @@ public class TestReturnMultipleTasks {
 				result = task1.result + task2.result + task3.result;
 			}
 		}
-		public int method(int num) {
+		public int method_sequential(int num) {
 			if (num <= 0) {
 				return 0;
 			} else {
-				return method(num - 1) + method(num - 2) + method(num - 3);
+				return method_sequential(num - 1) + method_sequential(num - 2) + method_sequential(num - 3);
 			}
 		}
 	}

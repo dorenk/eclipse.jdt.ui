@@ -162,17 +162,17 @@ public class ConvertToFJTaskTests extends AbstractSelectionTestCase {
 		objectTest("recursionSumWithCombinationOfRecursiveCalls", "end < 5");
 	}
 	
-	public void testCreateMultipleTasks() throws Exception {
+	public void testMultipleVariableDeclarationStatementsWithReturn() throws Exception {
+		objectTest("coordinates", "num < 10");
+	}
+	
+	public void testReturnWithRecursionAsInfixExpression() throws Exception {
 		objectTest("method", "num < 10");
 	}
 	
-	public void testReturnMultipleTasks() throws Exception {
-		objectTest("method", "num < 10");
-	}
-	
-	public void testMethodMultipleTasks() throws Exception {
-		objectTest("method", "num < 10");
-	}
+//	public void testMethodMultipleTasks() throws Exception {
+//		objectTest("method", "num < 10");
+//	}
 	
 	public void testNoBraces() throws Exception {
 		objectTest("method", "end < 10");

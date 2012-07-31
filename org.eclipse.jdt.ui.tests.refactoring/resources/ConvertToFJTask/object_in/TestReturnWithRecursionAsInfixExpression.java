@@ -1,6 +1,6 @@
 package object_in;
 
-public class TestReturnMultipleTasks {
+public class TestReturnWithRecursionAsInfixExpression {
 	
 	public int method(int num) {
 		if (num <= 0) {

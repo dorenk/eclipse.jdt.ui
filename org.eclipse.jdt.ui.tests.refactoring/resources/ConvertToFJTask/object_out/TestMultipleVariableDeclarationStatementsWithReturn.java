@@ -3,45 +3,45 @@ package object_out;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.RecursiveAction;
 
-public class TestCreateMultipleTasks {
+public class TestMultipleVariableDeclarationStatementsWithReturn {
 	
-	public int method(int num) {
+	public int coordinates(int num) {
 		int processorCount = Runtime.getRuntime().availableProcessors();
 		ForkJoinPool pool = new ForkJoinPool(processorCount);
-		MethodImpl aMethodImpl = new MethodImpl(num);
-		pool.invoke(aMethodImpl);
-		return aMethodImpl.result;
+		CoordinatesImpl aCoordinatesImpl = new CoordinatesImpl(num);
+		pool.invoke(aCoordinatesImpl);
+		return aCoordinatesImpl.result;
 	}
 
-	public class MethodImpl extends RecursiveAction {
+	public class CoordinatesImpl extends RecursiveAction {
 		private int num;
 		private int result;
-		private MethodImpl(int num) {
+		private CoordinatesImpl(int num) {
 			this.num = num;
 		}
 		protected void compute() {
 			if (num < 10) {
-				result = method(num);
+				result = coordinates_sequential(num);
 				return;
 			} else {
-				MethodImpl task1 = new MethodImpl(num - 1);
-				MethodImpl task2 = new MethodImpl(num - 2);
-				MethodImpl task3 = new MethodImpl(num - 3);
+				CoordinatesImpl task1 = new CoordinatesImpl(num - 1);
+				CoordinatesImpl task2 = new CoordinatesImpl(num - 2);
+				CoordinatesImpl task3 = new CoordinatesImpl(num - 3);
 				invokeAll(task1, task2, task3);
-				int i = task1.result;
-				int j = task2.result;
-				int k = task3.result;
-				result = i + j + k;
+				int x = task1.result;
+				int y = task2.result;
+				int z = task3.result;
+				result = x + y + z;
 			}
 		}
-		public int method(int num) {
+		public int coordinates_sequential(int num) {
 			if (num <= 0) {
 				return 0;
 			} else {
-				int i = method(num - 1);
-				int j = method(num - 2);
-				int k = method(num - 3);
-				return i + j + k;
+				int x = coordinates_sequential(num - 1);
+				int y = coordinates_sequential(num - 2);
+				int z = coordinates_sequential(num - 3);
+				return x + y + z;
 			}
 		}
 	}

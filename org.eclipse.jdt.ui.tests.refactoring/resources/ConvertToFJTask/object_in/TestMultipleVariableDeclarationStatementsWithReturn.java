@@ -1,15 +1,15 @@
 package object_in;
 
-public class TestCreateMultipleTasks {
+public class TestMultipleVariableDeclarationStatementsWithReturn {
 	
-	public int method(int num) {
+	public int coordinates(int num) {
 		if (num <= 0) {
 			return 0;
 		} else {
-			int i = method(num - 1);
-			int j = method(num - 2);
-			int k = method(num - 3);
-			return i + j + k;
+			int x = coordinates(num - 1);
+			int y = coordinates(num - 2);
+			int z = coordinates(num - 3);
+			return x + y + z;
 		}
 	}
 }
