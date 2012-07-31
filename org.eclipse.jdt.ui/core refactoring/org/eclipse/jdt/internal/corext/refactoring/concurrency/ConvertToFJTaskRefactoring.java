@@ -66,6 +66,7 @@ import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.Modifier;
 import org.eclipse.jdt.core.dom.Modifier.ModifierKeyword;
+import org.eclipse.jdt.core.dom.Name;
 import org.eclipse.jdt.core.dom.NodeFinder;
 import org.eclipse.jdt.core.dom.PrimitiveType;
 import org.eclipse.jdt.core.dom.ReturnStatement;
@@ -249,11 +250,17 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 
 	private void copyRecursiveMethod(TypeDeclaration recursiveActionSubtype, AST ast, RefactoringStatus result) {
 		
-		ASTNode copyRecursiveMethod= ASTNode.copySubtree(ast, fMethodDeclaration);
-		recursiveActionSubtype.bodyDeclarations().add(copyRecursiveMethod);
 		if (fMethodDeclaration.getBody() != null) {
 			checkIfCommentWarning(result);
 		}
+		List<Name> exceptionList= fMethodDeclaration.thrownExceptions();
+		if (exceptionList.size() > 0) {
+			createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_thrown_exception_error, new String[] {fMethod.getElementName()}));
+		}
+		
+		ASTNode copyRecursiveMethod= ASTNode.copySubtree(ast, fMethodDeclaration);
+		recursiveActionSubtype.bodyDeclarations().add(copyRecursiveMethod);
+		
 	}
 
 	private void checkIfCommentWarning(RefactoringStatus result) {
