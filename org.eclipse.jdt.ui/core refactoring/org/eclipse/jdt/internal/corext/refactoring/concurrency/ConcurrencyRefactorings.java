@@ -31,7 +31,7 @@ public final class ConcurrencyRefactorings extends NLS {
 	public static String ConvertToFJTaskRefactoring_check_preconditions;
 	public static String ConvertToFJTaskRefactoring_task_name;
 	public static String ConvertToFJTaskRefactoring_recursive_method;
-	public static String ConvertToFJTaskRefactoring_recursive_action;
+	public static String ConvertToFJTaskRefactoring_recursive_subtype;
 	public static String ConvertToFJTaskRefactoring_generate_compute;
 	public static String ConvertToFJTaskRefactoring_recursion_error;
 	public static String ConvertToFJTaskRefactoring_scenario_error;
