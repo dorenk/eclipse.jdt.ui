@@ -68,6 +68,7 @@ import org.eclipse.jdt.core.dom.Modifier;
 import org.eclipse.jdt.core.dom.Modifier.ModifierKeyword;
 import org.eclipse.jdt.core.dom.Name;
 import org.eclipse.jdt.core.dom.NodeFinder;
+import org.eclipse.jdt.core.dom.ParameterizedType;
 import org.eclipse.jdt.core.dom.PrimitiveType;
 import org.eclipse.jdt.core.dom.ReturnStatement;
 import org.eclipse.jdt.core.dom.SimpleName;
@@ -218,17 +219,27 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 	private void addImports(ImportRewrite importRewrite) {
 		
 		importRewrite.addImport("java.util.concurrent.ForkJoinPool"); //$NON-NLS-1$
-		importRewrite.addImport("java.util.concurrent.RecursiveAction"); //$NON-NLS-1$
+		if (recursiveMethodReturnsVoid()) {
+			importRewrite.addImport("java.util.concurrent.RecursiveAction"); //$NON-NLS-1$
+		} else {
+			importRewrite.addImport("java.util.concurrent.RecursiveTask"); //$NON-NLS-1$
+		}
 	}
 
 	private Collection<TextEditGroup> addCreateTaskClass(CompilationUnit root, RefactoringStatus result) {
 		
-		TextEditGroup gd= new TextEditGroup(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_recursive_action);
+		TextEditGroup gd= new TextEditGroup(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_recursive_subtype);
 		
 		AST ast= root.getAST();
 		TypeDeclaration recursiveActionSubtype= ast.newTypeDeclaration();
 		recursiveActionSubtype.setName(ast.newSimpleName(nameForFJTaskSubtype));
-		recursiveActionSubtype.setSuperclassType(ast.newSimpleType(ast.newSimpleName("RecursiveAction")));	//$NON-NLS-1$	
+		if (recursiveMethodReturnsVoid()) {
+			recursiveActionSubtype.setSuperclassType(ast.newSimpleType(ast.newSimpleName("RecursiveAction")));	//$NON-NLS-1$
+		} else {
+			ParameterizedType superClass= ast.newParameterizedType(ast.newSimpleType(ast.newSimpleName("RecursiveTask"))); //$NON-NLS-1$
+			superClass.typeArguments().add(ast.newSimpleType(ast.newSimpleName(getReturnTypeName())));
+			recursiveActionSubtype.setSuperclassType(superClass);
+		}
 		ModifierRewrite.create(fRewriter, recursiveActionSubtype).copyAllModifiers(fMethodDeclaration, gd);
 		
 		createFields(recursiveActionSubtype, ast);
@@ -246,6 +257,38 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		ArrayList<TextEditGroup> group= new ArrayList<TextEditGroup>();
 		group.add(gd);
 		return group;
+	}
+
+	private String getReturnTypeName() {
+		Type returnType= fMethodDeclaration.getReturnType2();
+		String returnTypeName= returnType.resolveBinding().getName();
+		if (returnType.isPrimitiveType()) {
+			return primitiveTypeToWrapper(returnTypeName);
+		} else {
+			return returnTypeName;
+		}
+	}
+
+	private String primitiveTypeToWrapper(String typeName) {
+		if (typeName.equals("int")) {  //TODO extract //$NON-NLS-1$
+			return "Integer"; //$NON-NLS-1$
+		} else if (typeName.equals("boolean")) { //$NON-NLS-1$
+			return "Boolean";  //$NON-NLS-1$
+		} else if (typeName.equals("long")) { //$NON-NLS-1$
+			return "Long";  //$NON-NLS-1$
+		} else if (typeName.equals("double")) { //$NON-NLS-1$
+			return "Double";  //$NON-NLS-1$
+		} else if (typeName.equals("char")) { //$NON-NLS-1$
+			return "Char";  //$NON-NLS-1$
+		} else if (typeName.equals("float")) { //$NON-NLS-1$
+			return "Float";  //$NON-NLS-1$
+		} else if (typeName.equals("short")) { //$NON-NLS-1$
+			return "Short";  //$NON-NLS-1$
+		} else if (typeName.equals("byte")) { //$NON-NLS-1$
+			return "Byte";  //$NON-NLS-1$
+		} else {
+			return null;
+		}
 	}
 
 	private void copyRecursiveMethod(TypeDeclaration recursiveActionSubtype, AST ast, RefactoringStatus result) {
