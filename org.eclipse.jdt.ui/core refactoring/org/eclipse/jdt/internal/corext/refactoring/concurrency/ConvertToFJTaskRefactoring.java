@@ -270,7 +270,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 	}
 
 	private String primitiveTypeToWrapper(String typeName) {
-		if (typeName.equals("int")) {  //TODO extract //$NON-NLS-1$
+		if (typeName.equals("int")) { //$NON-NLS-1$
 			return "Integer"; //$NON-NLS-1$
 		} else if (typeName.equals("boolean")) { //$NON-NLS-1$
 			return "Boolean";  //$NON-NLS-1$
@@ -988,17 +988,17 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			recursiveActionSubtype.bodyDeclarations().add(newFieldDeclaration);
 		}
 		
-		if (!recursiveMethodReturnsVoid()) {
-			VariableDeclarationFragment newDeclarationFragment= ast.newVariableDeclarationFragment();
-			newDeclarationFragment.setName(ast.newSimpleName("result")); //$NON-NLS-1$
-			
-			FieldDeclaration newFieldDeclaration= ast.newFieldDeclaration(newDeclarationFragment);
-			newFieldDeclaration.setType((Type) ASTNode.copySubtree(ast, fMethodDeclaration.getReturnType2()));
-			List<Modifier> modifiers= newFieldDeclaration.modifiers();
-			modifiers.add(ast.newModifier(ModifierKeyword.PRIVATE_KEYWORD));
-			
-			recursiveActionSubtype.bodyDeclarations().add(newFieldDeclaration);
-		}
+//		if (!recursiveMethodReturnsVoid()) {
+//			VariableDeclarationFragment newDeclarationFragment= ast.newVariableDeclarationFragment();
+//			newDeclarationFragment.setName(ast.newSimpleName("result")); //$NON-NLS-1$
+//			
+//			FieldDeclaration newFieldDeclaration= ast.newFieldDeclaration(newDeclarationFragment);
+//			newFieldDeclaration.setType((Type) ASTNode.copySubtree(ast, fMethodDeclaration.getReturnType2()));
+//			List<Modifier> modifiers= newFieldDeclaration.modifiers();
+//			modifiers.add(ast.newModifier(ModifierKeyword.PRIVATE_KEYWORD));
+//			
+//			recursiveActionSubtype.bodyDeclarations().add(newFieldDeclaration);
+//		}
 	}
 	
 	boolean recursiveMethodReturnsVoid() {
