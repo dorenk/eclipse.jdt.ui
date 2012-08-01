@@ -61,7 +61,7 @@ public class ConvertToFJTaskInputPage extends UserInputWizardPage {
 		
 		fRecursiveMethod.setText(refactoring.getMethodNameAndSignature());
 		FJTaskClassName.setText(refactoring.suggestTaskName());
-		sequentialThreshold.setText(refactoring.suggestSequentialThreshold());
+		sequentialThreshold.setMessage(refactoring.suggestSequentialThreshold());
 
 		InputListener inputListener = new InputListener();
 		FJTaskClassName.addModifyListener(inputListener);
