@@ -167,7 +167,7 @@ public class ConvertToFJTaskTests extends AbstractSelectionTestCase {
 	}
 	
 	public void testReturnWithRecursionAsInfixExpression() throws Exception {
-		objectTest("method", "num < 10");
+		objectTest("bar", "num < 10");
 	}
 	
 //	public void testMethodMultipleTasks() throws Exception {
@@ -294,9 +294,9 @@ public class ConvertToFJTaskTests extends AbstractSelectionTestCase {
 		invalidTest("today");
 	}
 	
-	public void testUnavailableOperation() throws Exception {
-		invalidTest("threeDaysIntoFuture");
-	}
+//	public void testUnavailableOperation() throws Exception {
+//		invalidTest("threeDaysIntoFuture");
+//	}
 	
 	public void testThrowsException() throws Exception {
 		invalidTest("run");
