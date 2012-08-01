@@ -1,21 +1,23 @@
 package object_in;
 
-public class TestMultiple1 {
+public class TestMultipleExpressionStatementAndReturnWithMethodInvocationInSeparateBlocks {
 
-	public int test1(int x) {
-		if (x <= 0) {
-			return x;
+	public int calculateMiles(int data) {
+		if (data <= 0) {
+			return data;
 		} else {
-			if (x < 5) {
-				int x1 = test1(x - 1);
-				int x2 = test1(x - 2);
-				return x1 * x2;
+			if (data < 5) {
+				int gas; 
+				gas= calculateMiles(data - 1);
+				int mpg;
+				mpg= calculateMiles(data - 2);
+				return gas * mpg;
 			} else {
-				return method1(test1(x - 4), test1(x - 3));
+				return electric(calculateMiles(data - 4), calculateMiles(data - 3));
 			}
 		}
 	}
-	private int method1(int x, int y) {
-		return x + y;
+	private int electric(int power, int capacity) {
+		return power + capacity;
 	}
 }

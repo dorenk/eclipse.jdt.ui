@@ -3,55 +3,56 @@ package object_out;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.RecursiveAction;
 
-public class TestMultiple0 {
+public class TestMultipleVariableDeclarationAndReturnInSeparateBlocks {
 
-	public int test0(int x) {
+	public int distance(int vertex) {
 		int processorCount = Runtime.getRuntime().availableProcessors();
 		ForkJoinPool pool = new ForkJoinPool(processorCount);
-		Test0Impl aTest0Impl = new Test0Impl(x);
-		pool.invoke(aTest0Impl);
-		return aTest0Impl.result;
+		DistanceImpl aDistanceImpl = new DistanceImpl(vertex);
+		pool.invoke(aDistanceImpl);
+		return aDistanceImpl.result;
 	}
 
-	public class Test0Impl extends RecursiveAction {
-		private int x;
+	public class DistanceImpl extends RecursiveAction {
+		private int vertex;
 		private int result;
-		private Test0Impl(int x) {
-			this.x = x;
+		private DistanceImpl(int vertex) {
+			this.vertex = vertex;
 		}
 		protected void compute() {
-			if (x < 10) {
-				result = test0(x);
+			if (vertex < 100) {
+				result = distance_sequential(vertex);
 				return;
 			} else {
-				if (x < 20) {
-					Test0Impl task1 = new Test0Impl(x / 3);
-					Test0Impl task2 = new Test0Impl(x - 18);
-					Test0Impl task3 = new Test0Impl(x / 2 - 5);
+				if (vertex < 20) {
+					DistanceImpl task1 = new DistanceImpl(vertex / 3);
+					DistanceImpl task2 = new DistanceImpl(vertex - 18);
+					DistanceImpl task3 = new DistanceImpl(vertex / 2 - 5);
 					invokeAll(task1, task2, task3);
-					int x1 = task1.result;
-					int x2 = task2.result;
-					int x3 = task3.result;
-					result = x1 + x2 - x3;
+					int third = task1.result;
+					int origin = task2.result;
+					int half = task3.result;
+					result = third + origin - half;
 				} else {
-					Test0Impl task4 = new Test0Impl(x - 50);
-					Test0Impl task5 = new Test0Impl(x / 5);
+					DistanceImpl task4 = new DistanceImpl(vertex - 50);
+					DistanceImpl task5 = new DistanceImpl(vertex / 5);
 					invokeAll(task4, task5);
 					result = task4.result - task5.result;
 				}
 			}
 		}
-		public int test0(int x) {
-			if (x < 3) {
+		public int distance_sequential(int vertex) {
+			if (vertex < 3) {
 				return -1;
 			} else {
-				if (x < 20) {
-					int x1 = test0(x / 3);
-					int x2 = test0(x - 18);
-					int x3 = test0(x / 2 - 5);
-					return x1 + x2 - x3;
+				if (vertex < 20) {
+					int third = distance_sequential(vertex / 3);
+					int origin = distance_sequential(vertex - 18);
+					int half = distance_sequential(vertex / 2 - 5);
+					return third + origin - half;
 				} else {
-					return test0(x - 50) - test0(x / 5);
+					return distance_sequential(vertex - 50)
+							- distance_sequential(vertex / 5);
 				}
 			}
 		}

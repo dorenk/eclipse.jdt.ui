@@ -3,56 +3,61 @@ package object_out;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.RecursiveAction;
 
-public class TestMultiple1 {
+public class TestMultipleExpressionStatementAndReturnWithMethodInvocationInSeparateBlocks {
 
-	public int test1(int x) {
+	public int calculateMiles(int data) {
 		int processorCount = Runtime.getRuntime().availableProcessors();
 		ForkJoinPool pool = new ForkJoinPool(processorCount);
-		Test1Impl aTest1Impl = new Test1Impl(x);
-		pool.invoke(aTest1Impl);
-		return aTest1Impl.result;
+		CalculateMilesImpl aCalculateMilesImpl = new CalculateMilesImpl(data);
+		pool.invoke(aCalculateMilesImpl);
+		return aCalculateMilesImpl.result;
 	}
-	public class Test1Impl extends RecursiveAction {
-		private int x;
+	public class CalculateMilesImpl extends RecursiveAction {
+		private int data;
 		private int result;
-		private Test1Impl(int x) {
-			this.x = x;
+		private CalculateMilesImpl(int data) {
+			this.data = data;
 		}
 		protected void compute() {
-			if (x < 10) {
-				result = test1(x);
+			if (data < 100) {
+				result = calculateMiles_sequential(data);
 				return;
 			} else {
-				if (x < 5) {
-					Test1Impl task1 = new Test1Impl(x - 1);
-					Test1Impl task2 = new Test1Impl(x - 2);
+				if (data < 5) {
+					int gas;
+					CalculateMilesImpl task1 = new CalculateMilesImpl(data - 1);
+					int mpg;
+					CalculateMilesImpl task2 = new CalculateMilesImpl(data - 2);
 					invokeAll(task1, task2);
-					int x1 = task1.result;
-					int x2 = task2.result;
-					result = x1 * x2;
+					gas = task1.result;
+					mpg = task2.result;
+					result = gas * mpg;
 				} else {
-					Test1Impl task3 = new Test1Impl(x - 4);
-					Test1Impl task4 = new Test1Impl(x - 3);
+					CalculateMilesImpl task3 = new CalculateMilesImpl(data - 4);
+					CalculateMilesImpl task4 = new CalculateMilesImpl(data - 3);
 					invokeAll(task3, task4);
-					result = method1(task3.result, task4.result);
+					result = electric(task3.result, task4.result);
 				}
 			}
 		}
-		public int test1(int x) {
-			if (x <= 0) {
-				return x;
+		public int calculateMiles_sequential(int data) {
+			if (data <= 0) {
+				return data;
 			} else {
-				if (x < 5) {
-					int x1 = test1(x - 1);
-					int x2 = test1(x - 2);
-					return x1 * x2;
+				if (data < 5) {
+					int gas;
+					gas = calculateMiles_sequential(data - 1);
+					int mpg;
+					mpg = calculateMiles_sequential(data - 2);
+					return gas * mpg;
 				} else {
-					return method1(test1(x - 4), test1(x - 3));
+					return electric(calculateMiles_sequential(data - 4),
+							calculateMiles_sequential(data - 3));
 				}
 			}
 		}
 	}
-	private int method1(int x, int y) {
-		return x + y;
+	private int electric(int power, int capacity) {
+		return power + capacity;
 	}
 }

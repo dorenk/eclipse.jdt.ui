@@ -190,17 +190,17 @@ public class ConvertToFJTaskTests extends AbstractSelectionTestCase {
 		objectTest("foo", "end < 10");
 	}
 	
-	public void testMultiple0() throws Exception {
-		objectTest("test0", "x < 10");
+	public void testMultipleVariableDeclarationAndReturnInSeparateBlocks() throws Exception {
+		objectTest("distance", "vertex < 100");
 	}
 	
-	public void testMultiple1() throws Exception {
-		objectTest("test1", "x < 10");
+	public void testMultipleExpressionStatementAndReturnWithMethodInvocationInSeparateBlocks() throws Exception {
+		objectTest("calculateMiles", "data < 100");
 	}
 	
-	public void testMultiple2() throws Exception {
-		objectTest("test2", "x < 10");
-	}
+//	public void testMultiple2() throws Exception {
+//		objectTest("test2", "x < 10");
+//	}
 	
 	public void testBlockCombination0() throws Exception {
 		objectTest("tryThis", "x < 10");

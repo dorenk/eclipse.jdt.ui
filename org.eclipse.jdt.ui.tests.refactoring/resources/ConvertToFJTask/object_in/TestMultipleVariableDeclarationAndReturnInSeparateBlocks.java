@@ -1,18 +1,18 @@
 package object_in;
 
-public class TestMultiple0 {
+public class TestMultipleVariableDeclarationAndReturnInSeparateBlocks {
 
-	public int test0(int x) {
-		if (x < 3) {
+	public int distance(int vertex) {
+		if (vertex < 3) {
 			return -1;
 		} else {
-			if (x < 20) {
-				int x1 = test0(x / 3);
-				int x2 = test0(x - 18);
-				int x3 = test0(x / 2 - 5);
-				return x1 + x2 - x3;
+			if (vertex < 20) {
+				int third = distance(vertex / 3);
+				int origin = distance(vertex - 18);
+				int half = distance(vertex / 2 - 5);
+				return third + origin - half;
 			} else {
-				return test0(x - 50) - test0(x / 5);
+				return distance(vertex - 50) - distance(vertex / 5);
 			}
 		}
 	}
