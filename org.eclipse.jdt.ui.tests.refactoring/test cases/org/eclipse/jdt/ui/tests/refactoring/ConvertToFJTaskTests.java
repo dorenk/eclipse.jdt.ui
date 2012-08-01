@@ -174,8 +174,8 @@ public class ConvertToFJTaskTests extends AbstractSelectionTestCase {
 //		objectTest("method", "num < 10");
 //	}
 	
-	public void testNoBraces() throws Exception {
-		objectTest("method", "end < 10");
+	public void testElseStatementWithoutBlock() throws Exception {
+		objectTest("count", "end < 10");
 	}
 	
 	public void testNoBracesMultiple() throws Exception {
@@ -186,8 +186,8 @@ public class ConvertToFJTaskTests extends AbstractSelectionTestCase {
 		objectTest("grayCheckHierarchy", "treeElement.length() < 10");
 	}
 	
-	public void testIfception() throws Exception {
-		objectTest("method", "end < 10");
+	public void testMultipleIfStatementsWithoutBlocks() throws Exception {
+		objectTest("foo", "end < 10");
 	}
 	
 	public void testMultiple0() throws Exception {

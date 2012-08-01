@@ -1,11 +1,11 @@
 package object_in;
 
-public class TestNoBraces {
+public class TestElseStatementWithoutBlock {
 	
-	public int method(int end) {
+	public int count(int end) {
 		if (end <= 0)
 			return 1;
 		else
-			return method(end - 1) + method(end - 2);
+			return count(end - 1) + count(end - 2);
 	}
 }

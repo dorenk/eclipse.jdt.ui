@@ -22,7 +22,7 @@ public class TestIfStatementWithoutBracesMethod {
 		}
 		protected void compute() {
 			if (treeElement.length() < 10) {
-				result = grayCheckHierarchy(treeElement);
+				result = grayCheckHierarchy_sequential(treeElement);
 				return;
 			}
 			if (treeElement.endsWith(";")) {
@@ -38,7 +38,7 @@ public class TestIfStatementWithoutBracesMethod {
 				result = task1.result + task2.result;
 			}
 		}
-		protected String grayCheckHierarchy(String treeElement) {
+		protected String grayCheckHierarchy_sequential(String treeElement) {
 			if (treeElement.contentEquals("gray"))
 				return "gray";
 			if (treeElement.endsWith(";")) {
@@ -46,8 +46,8 @@ public class TestIfStatementWithoutBracesMethod {
 			}
 			String parent = treeElement.toUpperCase();
 			if (parent != null)
-				return grayCheckHierarchy(parent)
-						+ grayCheckHierarchy(parent.toLowerCase());
+				return grayCheckHierarchy_sequential(parent)
+						+ grayCheckHierarchy_sequential(parent.toLowerCase());
 		}
 	}
 }

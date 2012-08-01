@@ -20,7 +20,7 @@ public class TestNoBracesMultiple {
 		}
 		protected void compute() {
 			if (end < 10) {
-				result = method(end);
+				result = method_sequential(end);
 				return;
 			} else {
 				MethodImpl task1 = new MethodImpl(end - 1);
@@ -30,12 +30,12 @@ public class TestNoBracesMultiple {
 				result = otherMethod(task1.result, task2.result, task3.result);
 			}
 		}
-		public int method(int end) {
+		public int method_sequential(int end) {
 			if (end <= 0)
 				return 1;
 			else
-				return otherMethod(method(end - 1), method(end - 2),
-						method(end - 3));
+				return otherMethod(method_sequential(end - 1),
+						method_sequential(end - 2), method_sequential(end - 3));
 		}
 	}
 	public int otherMethod(int x, int y, int z) {

@@ -1,20 +1,20 @@
 package object_in;
 
-public class TestIfception {
+public class TestMultipleIfStatementsWithoutBlocks {
 	
-	public int method(int end) {
+	public int foo(int end) {
 		if (end <= 0) {
 				return 1;
 		} else if (end < 10){
 			if (end < 5)
-				return method(end - 1) + method(end - 2);
+				return foo(end - 1) + foo(end - 2);
 			else
-				return method(end - 5) + method(end - 6);
+				return foo(end - 5) + foo(end - 6);
 		} else {
 			if (end > 25)
-				return method(end - 12) + method(end - 16);
+				return foo(end - 12) + foo(end - 16);
 			else
-				return method(end - 8) + method(end - 10);
+				return foo(end - 8) + foo(end - 10);
 		}
 	}
 }

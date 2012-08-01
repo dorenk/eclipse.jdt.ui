@@ -35,7 +35,8 @@ public class TestReturnWithRecursionAsInfixExpression {
 			if (num <= 0) {
 				return 0;
 			} else {
-				return method_sequential(num - 1) + method_sequential(num - 2) + method_sequential(num - 3);
+				return method_sequential(num - 1) + method_sequential(num - 2)
+						+ method_sequential(num - 3);
 			}
 		}
 	}
