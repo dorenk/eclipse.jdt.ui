@@ -3,10 +3,16 @@ package org.eclipse.jdt.internal.ui.refactoring.concurrency;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseListener;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Text;
 
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
@@ -21,10 +27,48 @@ public class ConvertToFJTaskInputPage extends UserInputWizardPage {
 			handleInputChanged();
 		}
 	}
+	
+	private final class MyMouseListener implements MouseListener {
+		boolean used= false;
 
+		public void mouseDoubleClick(MouseEvent e) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		public void mouseDown(MouseEvent e) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		public void mouseUp(MouseEvent e) {
+			// TODO Auto-generated method stub
+			if (!used) {
+				handleSequentialInputChanged();
+				used = true;
+			}
+		}
+		
+	}
+	
+	private final class MySelectionListener implements SelectionListener {
+
+		public void widgetSelected(SelectionEvent e) {
+			handleButtonPressed();
+		}
+
+		public void widgetDefaultSelected(SelectionEvent e) {
+			// TODO Auto-generated method stub
+			
+		}
+		
+	}
+	
 	Text fRecursiveMethod;
 	Text sequentialThreshold;
 	Text FJTaskClassName;
+	Label helpLabel;
+	MessageBox helpDialog;
 
 	//Combo fTypeCombo;
 
@@ -67,6 +111,23 @@ public class ConvertToFJTaskInputPage extends UserInputWizardPage {
 		FJTaskClassName.addModifyListener(inputListener);
 		sequentialThreshold.addModifyListener(inputListener);
 		
+		MyMouseListener mouseListener= new MyMouseListener();
+		sequentialThreshold.addMouseListener(mouseListener);
+		
+		Button helpButton= new Button(result, SWT.PUSH);
+		helpButton.setText("?");
+		
+		MySelectionListener selectionListener= new MySelectionListener();
+		helpButton.addSelectionListener(selectionListener);
+		
+		helpDialog= new MessageBox(getShell());
+		helpDialog.setMessage("The sequential threshold is what is used to determine when the algorithm should switch to the sequential version.");
+		helpDialog.setText("Sequential Threshold Help");
+		
+//		helpLabel= new Label(result, SWT.NONE);
+//		helpLabel.setText("The sequential threshold is what is used to determine when the algorithm should switch to the sequential version.");
+//		helpLabel.setVisible(false);
+		
 		handleInputChanged();
 	}
 
@@ -94,5 +155,17 @@ public class ConvertToFJTaskInputPage extends UserInputWizardPage {
 		} else {
 			setMessage("", NONE); //$NON-NLS-1$
 		}
+	}
+	
+	void handleSequentialInputChanged() {
+		sequentialThreshold.setText(sequentialThreshold.getMessage());
+//		handleInputChanged();
+	}
+	
+	void handleButtonPressed() {
+//		if (!helpLabel.isVisible()) {
+//			helpLabel.setVisible(true);
+//		}
+		helpDialog.open();
 	}
 }
