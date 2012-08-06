@@ -67,7 +67,6 @@ public class ConvertToFJTaskInputPage extends UserInputWizardPage {
 	Text fRecursiveMethod;
 	Text sequentialThreshold;
 	Text FJTaskClassName;
-	Label helpLabel;
 	MessageBox helpDialog;
 
 	//Combo fTypeCombo;
@@ -115,18 +114,14 @@ public class ConvertToFJTaskInputPage extends UserInputWizardPage {
 		sequentialThreshold.addMouseListener(mouseListener);
 		
 		Button helpButton= new Button(result, SWT.PUSH);
-		helpButton.setText("?");
+		helpButton.setText("?"); //$NON-NLS-1$
 		
 		MySelectionListener selectionListener= new MySelectionListener();
 		helpButton.addSelectionListener(selectionListener);
 		
 		helpDialog= new MessageBox(getShell());
-		helpDialog.setMessage("The sequential threshold is what is used to determine when the algorithm should switch to the sequential version.");
-		helpDialog.setText("Sequential Threshold Help");
-		
-//		helpLabel= new Label(result, SWT.NONE);
-//		helpLabel.setText("The sequential threshold is what is used to determine when the algorithm should switch to the sequential version.");
-//		helpLabel.setVisible(false);
+		helpDialog.setMessage("The sequential threshold is what is used to determine when the algorithm should switch to the sequential version."); //$NON-NLS-1$
+		helpDialog.setText("Sequential Threshold Help"); //$NON-NLS-1$
 		
 		handleInputChanged();
 	}
@@ -163,9 +158,6 @@ public class ConvertToFJTaskInputPage extends UserInputWizardPage {
 	}
 	
 	void handleButtonPressed() {
-//		if (!helpLabel.isVisible()) {
-//			helpLabel.setVisible(true);
-//		}
 		helpDialog.open();
 	}
 }
