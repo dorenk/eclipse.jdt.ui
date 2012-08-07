@@ -6,3 +6,5 @@ javacore.*
 heapdump.*
 core.*
 Snap.*
+
+org.eclipse.jdt.ui.tests.refactoring/resources/ConvertToFJTask/.DS_Store

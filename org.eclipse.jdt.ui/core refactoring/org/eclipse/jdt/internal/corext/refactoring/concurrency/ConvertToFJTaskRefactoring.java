@@ -386,9 +386,9 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		scratchRewriter.replace(enclosingIf.getExpression(), sequentialThresholdCheck, editGroup);
 		
 		if (recursionBaseCaseBranch instanceof Block) {
-			createRecursionBaseCaseBlock(ast, editGroup, recursionBaseCaseBranch, scratchRewriter);
-		} else if (recursionBaseCaseBranch instanceof ReturnStatement) {
-			createRecursionBaseCaseReturn(ast, editGroup, recursionBaseCaseBranch, scratchRewriter);
+			computeBaseCaseStatements(ast, editGroup, recursionBaseCaseBranch, scratchRewriter, true);
+		} else {
+			computeBaseCaseStatements(ast, editGroup, recursionBaseCaseBranch, scratchRewriter, false);
 		}
 		
 		final Map<Integer, VariableDeclarationStatement> allTaskDeclStatements= new HashMap<Integer, VariableDeclarationStatement>();
@@ -636,34 +636,34 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		}
 	}
 
-	//TODO combine
-	private void createRecursionBaseCaseReturn(AST ast, final TextEditGroup editGroup, Statement recursionBaseCaseBranch, final ASTRewrite scratchRewriter) {
-		Block basecaseBlock= ast.newBlock();
-		List<ASTNode> basecaseStatements= basecaseBlock.statements();
+	private void computeBaseCaseStatements(AST ast, TextEditGroup editGroup, Statement recursionBaseCaseBranch, ASTRewrite scratchRewriter, boolean isBlock) {
+		Block baseCaseBlock;
+		if (isBlock) {
+			baseCaseBlock= (Block) recursionBaseCaseBranch;
+		} else {
+			baseCaseBlock= ast.newBlock();
+		}
+		List<Statement> baseCaseStatements= baseCaseBlock.statements();
 		if (recursiveMethodReturnsVoid()) {
 			ExpressionStatement sequentialMethodInvocation= ast.newExpressionStatement(createSequentialMethodInvocation(ast));
-			basecaseStatements.add(sequentialMethodInvocation);
-			basecaseStatements.add(ast.newReturnStatement());
+			if (isBlock) { //TODO do i clear the whole block?
+				ListRewrite listRewriteForBaseBlock= scratchRewriter.getListRewrite(baseCaseBlock, Block.STATEMENTS_PROPERTY);
+				listRewriteForBaseBlock.insertBefore(sequentialMethodInvocation, baseCaseStatements.get(baseCaseStatements.size() - 1), editGroup);
+			} else {
+				baseCaseStatements.add(sequentialMethodInvocation);
+				baseCaseStatements.add(ast.newReturnStatement());
+			}
 		} else {
 			ReturnStatement newReturnResult= ast.newReturnStatement();
 			newReturnResult.setExpression(createSequentialMethodInvocation(ast));
-			basecaseStatements.add(newReturnResult);
+			if (isBlock) {
+				scratchRewriter.replace(baseCaseStatements.get(baseCaseStatements.size() - 1), newReturnResult, editGroup);
+			} else {
+				baseCaseStatements.add(newReturnResult);
+			}
 		}
-		scratchRewriter.replace(recursionBaseCaseBranch, basecaseBlock, editGroup);
-	}
-
-	private void createRecursionBaseCaseBlock(AST ast, final TextEditGroup editGroup, Statement recursionBaseCaseBranch, final ASTRewrite scratchRewriter) {
-		Block baseCaseBlock= (Block) recursionBaseCaseBranch;
-		List<ASTNode> statementsInBaseCase= baseCaseBlock.statements();
-		ASTNode lastStatementInBaseCase= statementsInBaseCase.get(statementsInBaseCase.size() - 1 );
-		if (recursiveMethodReturnsVoid()) {  //TODO do i clear the whole block or no?
-			ExpressionStatement sequentialMethodInvocation= ast.newExpressionStatement(createSequentialMethodInvocation(ast));
-			ListRewrite listRewriteForBaseBlock= scratchRewriter.getListRewrite(baseCaseBlock, Block.STATEMENTS_PROPERTY);
-			listRewriteForBaseBlock.insertBefore(sequentialMethodInvocation, lastStatementInBaseCase, editGroup);
-		} else {
-			ReturnStatement newReturnResult= ast.newReturnStatement();
-			newReturnResult.setExpression(createSequentialMethodInvocation(ast));
-			scratchRewriter.replace(lastStatementInBaseCase, newReturnResult, editGroup);
+		if (!isBlock) {
+			scratchRewriter.replace(recursionBaseCaseBranch, baseCaseBlock, editGroup);
 		}
 	}
 
