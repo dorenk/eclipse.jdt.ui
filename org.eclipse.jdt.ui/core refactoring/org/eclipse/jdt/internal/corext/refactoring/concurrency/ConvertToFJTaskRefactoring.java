@@ -410,11 +410,11 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		fMethodDeclaration.accept(new MethodVisitor(allTaskDeclStatements, statementsToTasks, locationOfNewBlocks, scratchRewriter, numTasksPerBlock, taskNumber,
 				blockWithoutBraces, allStatementsWithRecursiveMethodInvocation, allTheBlocks, switchStatementsFound, ast));
 		try {
-			if (allStatementsWithRecursiveMethodInvocation.size() == 0) {
-				createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_statement_error, new String[] {fMethod.getElementName()}));
-				return;
-			} else if (switchStatementsFound[0] >= taskNumber[0]) {  //TODO update at all?
+			if (switchStatementsFound[0] > 0) {  //TODO update at all?
 				createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_switch_statement_error, new String[] {fMethod.getElementName()}));
+				return;
+			} else if (allStatementsWithRecursiveMethodInvocation.size() == 0) {
+				createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_statement_error, new String[] {fMethod.getElementName()}));
 				return;
 			}
 			boolean atLeastOneBlockChanged= false;
