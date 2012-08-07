@@ -409,8 +409,8 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		final Map<ASTNode, Block> locationOfNewBlocks= new HashMap<ASTNode, Block>();  //Can determine where the new block was created so as to see if already has been created (don't create a new one at "same" place)
 		final Map<Block, Statement> blockWithoutBraces= new HashMap<Block, Statement>();  //Can determine if a block does not have braces so as to use when inserting things to it
 		final List<Block> allTheBlocks= new ArrayList<Block>();
-		fMethodDeclaration.accept(new MethodVisitor(allTaskDeclStatements, statementsToTasks, allTaskDeclFlags, locationOfNewBlocks, scratchRewriter, numTasksPerBlock,
-				taskNumber, blockWithoutBraces, allStatementsWithRecursiveMethodInvocation, allTheBlocks, switchStatementsFound, ast));
+		fMethodDeclaration.accept(new MethodVisitor(allTaskDeclStatements, statementsToTasks, locationOfNewBlocks, scratchRewriter, numTasksPerBlock, taskNumber,
+				blockWithoutBraces, allStatementsWithRecursiveMethodInvocation, allTheBlocks, switchStatementsFound, ast));
 		try {
 			if (allStatementsWithRecursiveMethodInvocation.size() == 0) {
 				createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_statement_error, new String[] {fMethod.getElementName()}));
@@ -1198,7 +1198,6 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 	private final class MethodVisitor extends ASTVisitor {
 		private final Map<Integer, VariableDeclarationStatement> fAllTaskDeclStatements;
 		private final Map<Statement, List<Integer> > fStatementsToTasks;
-		private final Map<Integer, Integer> fAllTaskDeclFlags;
 		private final Map<ASTNode, Block> fLocationOfNewBlocks;
 		private final ASTRewrite fScratchRewriter;
 		private final Map<Block, Integer> fNumTasksPerBlock;
@@ -1209,11 +1208,10 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		private final int[] fSwitchStatementsFound;
 		private final AST fAst;
 
-		private MethodVisitor(Map<Integer, VariableDeclarationStatement> allTaskDeclStatements, Map<Statement, List<Integer>> statementsToTasks, Map<Integer, Integer> allTaskDeclFlags,
-				Map<ASTNode, Block> locationOfNewBlocks, ASTRewrite scratchRewriter, Map<Block, Integer> numTasksPerBlock, int[] taskNumber, Map<Block, Statement> blockWithoutBraces, Map<Block, List<Statement>> allStatementsWithRecursiveMethodInvocation, List<Block> allTheBlocks, int[] switchStatementsFound, AST ast) {
+		private MethodVisitor(Map<Integer, VariableDeclarationStatement> allTaskDeclStatements, Map<Statement, List<Integer>> statementsToTasks, Map<ASTNode, Block> locationOfNewBlocks,
+				ASTRewrite scratchRewriter, Map<Block, Integer> numTasksPerBlock, int[] taskNumber, Map<Block, Statement> blockWithoutBraces, Map<Block, List<Statement>> allStatementsWithRecursiveMethodInvocation, List<Block> allTheBlocks, int[] switchStatementsFound, AST ast) {
 			fAllTaskDeclStatements= allTaskDeclStatements;
 			fStatementsToTasks= statementsToTasks;
-			fAllTaskDeclFlags= allTaskDeclFlags;
 			fLocationOfNewBlocks= locationOfNewBlocks;
 			fScratchRewriter= scratchRewriter;
 			fNumTasksPerBlock= numTasksPerBlock;
@@ -1232,7 +1230,6 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			IMethodBinding bindingForMethodDeclaration= fMethodDeclaration.resolveBinding();
 			if (bindingForMethodCall.isEqualTo(bindingForMethodDeclaration)) {
 				VariableDeclarationStatement taskDeclStatement= createTaskDeclaration(methodCall);
-				int taskDeclFlag= 1;
 				
 				Block myBlock= null;
 				Statement parentOfMethodCall= findParentStatement(methodCall);
@@ -1241,12 +1238,8 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				} else if (SwitchStatement.class.isInstance(parentOfMethodCall.getParent())) {
 					fSwitchStatementsFound[0]++;  //TODO update
 					return false;
-				} else if (recursiveMethodReturnsVoid()) {
-					taskDeclFlag= 0;
-				} else {
+				} else if (!recursiveMethodReturnsVoid()) {
 					if (parentOfMethodCall instanceof VariableDeclarationStatement) {
-						VariableDeclarationStatement varDeclaration= (VariableDeclarationStatement) parentOfMethodCall;
-						VariableDeclarationFragment varFragment= (VariableDeclarationFragment) varDeclaration.fragments().get(0);
 						ASTNode tempNode= parentOfMethodCall.getParent();
 						if (tempNode instanceof IfStatement) {
 							myBlock= ifStatementWork(myBlock, parentOfMethodCall, tempNode);
@@ -1258,20 +1251,11 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 							if (myBlock == null) {
 								return false;
 							}
-						} else {
-							taskDeclFlag= 0;
-						}
-						Expression exprTemp= varFragment.getInitializer();
-						if (exprTemp instanceof InfixExpression) {
-							taskDeclFlag= -1;
-						} else if (exprTemp instanceof MethodInvocation && !isMethodDeclarationEqualTo(exprTemp)) {
-							taskDeclFlag= -1;
 						}
 					} else if (parentOfMethodCall instanceof ExpressionStatement) {
 						ExpressionStatement exprStatement= (ExpressionStatement) parentOfMethodCall;
 						Expression expressionContainer= exprStatement.getExpression();
 						if (expressionContainer instanceof Assignment) {
-							Assignment assignment= (Assignment) expressionContainer;
 							ASTNode tempNode= parentOfMethodCall.getParent();
 							if (tempNode instanceof IfStatement) {
 								myBlock= ifStatementWork(myBlock, parentOfMethodCall, tempNode);
@@ -1283,14 +1267,6 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 								if (myBlock == null) {
 									return false;
 								}
-							} else {
-								taskDeclFlag= 0;
-							}
-							Expression exprTemp= assignment.getRightHandSide();
-							if (exprTemp instanceof InfixExpression) {
-								taskDeclFlag= -1;
-							} else if (exprTemp instanceof MethodInvocation && !isMethodDeclarationEqualTo(exprTemp)) {
-								taskDeclFlag= -1;
 							}
 						} else {
 							System.err.println(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_scenario_error + parentOfMethodCall.toString() );
@@ -1298,14 +1274,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 						}
 					} else if (parentOfMethodCall instanceof ReturnStatement) {
 						ASTNode tempNode= parentOfMethodCall.getParent();
-						if (tempNode instanceof Block) {
-							Block blockWithReturn= (Block) tempNode;
-							List<ASTNode> statementsInBlockWithReturn= blockWithReturn.statements();
-							Statement lastStatementInBlock= (Statement) statementsInBlockWithReturn.get(statementsInBlockWithReturn.size() - 1);
-							if (lastStatementInBlock instanceof ReturnStatement) {
-								taskDeclFlag= -1;
-							}
-						} else if (tempNode instanceof IfStatement) {
+						if (tempNode instanceof IfStatement) {
 							myBlock= ifStatementWork(myBlock, parentOfMethodCall, tempNode);
 							if (myBlock == null) {
 								return false;
@@ -1315,9 +1284,6 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 							if (myBlock == null) {
 								return false;
 							}
-						} else {
-							System.err.println(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_scenario_error + parentOfMethodCall.toString() );
-							return false;
 						}
 					} else {
 						System.err.println(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_scenario_error + parentOfMethodCall.toString() );
@@ -1338,7 +1304,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 						myBlock= (Block) tempNode;
 					}
 				}
-				populateAllMaps(myBlock, parentOfMethodCall, taskDeclStatement, taskDeclFlag);
+				populateAllMaps(myBlock, parentOfMethodCall, taskDeclStatement);
 			}
 			return true;
 		}
@@ -1348,13 +1314,12 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			return bindingsMatch;
 		}
 
-		private void populateAllMaps(Block myBlock, Statement parentOfMethodCall, VariableDeclarationStatement taskDeclStatement, int taskDeclFlag) {
+		private void populateAllMaps(Block myBlock, Statement parentOfMethodCall, VariableDeclarationStatement taskDeclStatement) {
 			Integer taskNum= new Integer(fTaskNumber[0]);
 			fAllTaskDeclStatements.put(taskNum, taskDeclStatement);
-			fAllTaskDeclFlags.put(taskNum, new Integer(taskDeclFlag));
 			if (fStatementsToTasks.containsKey(parentOfMethodCall)) {
 				List<Integer> taskList= fStatementsToTasks.get(parentOfMethodCall);
-					taskList.add(taskNum);
+				taskList.add(taskNum);
 			} else {
 				List<Integer> taskList= new ArrayList<Integer>();
 				taskList.add(taskNum);
