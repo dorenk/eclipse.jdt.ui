@@ -402,11 +402,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		fMethodDeclaration.accept(new MethodVisitor(allTaskDeclStatements, statementsToTasks, scratchRewriter, numTasksPerBlock, blockWithoutBraces, allStatementsWithRecursiveMethodInvocation,
 				allTheBlocks, switchStatementsFound, ast));
 		try {
-			if (switchStatementsFound[0] > 0) {  //TODO update at all?
-				createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_switch_statement_error, new String[] {fMethod.getElementName()}));
-				return;
-			} else if (allStatementsWithRecursiveMethodInvocation.size() == 0) {
-				createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_statement_error, new String[] {fMethod.getElementName()}));
+			if (switchStatementError(result, switchStatementsFound) || tooFewStatementsToRefactor(result, allStatementsWithRecursiveMethodInvocation)) {
 				return;
 			}
 			boolean atLeastOneBlockChanged= false;
@@ -428,6 +424,22 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			e.printStackTrace();
 		}
 		recursiveActionSubtype.bodyDeclarations().add(computeMethod);
+	}
+
+	private boolean tooFewStatementsToRefactor(RefactoringStatus result, final Map<Block, List<Statement>> allStatementsWithRecursiveMethodInvocation) {
+		if (allStatementsWithRecursiveMethodInvocation.size() == 0) {
+			createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_statement_error, new String[] {fMethod.getElementName()}));
+			return true;
+		}
+		return false;
+	}
+
+	private boolean switchStatementError(RefactoringStatus result, final int[] switchStatementsFound) {
+		if (switchStatementsFound[0] > 0) {  //TODO update at all?
+			createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_switch_statement_error, new String[] {fMethod.getElementName()}));
+			return true;
+		}
+		return false;
 	}
 
 	private void replaceBaseCaseCheckWithSequentialThreshold(final TextEditGroup editGroup, Statement recursionBaseCaseBranch, final ASTRewrite scratchRewriter, ASTNode sequentialThresholdCheck) {
