@@ -388,8 +388,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		final ASTRewrite scratchRewriter= ASTRewrite.create(fRoot.getAST());
 		ASTNode sequentialThresholdCheck= scratchRewriter.createStringPlaceholder(sequentialThreshold, ASTNode.PARENTHESIZED_EXPRESSION); 
 		
-		IfStatement enclosingIf= (IfStatement) recursionBaseCaseBranch.getParent();
-		scratchRewriter.replace(enclosingIf.getExpression(), sequentialThresholdCheck, editGroup);
+		replaceBaseCaseCheckWithSequentialThreshold(editGroup, recursionBaseCaseBranch, scratchRewriter, sequentialThresholdCheck);
 		
 		if (recursionBaseCaseBranch instanceof Block) {
 			computeBaseCaseStatements(ast, editGroup, recursionBaseCaseBranch, scratchRewriter, true);
@@ -433,6 +432,11 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			e.printStackTrace();
 		}
 		recursiveActionSubtype.bodyDeclarations().add(computeMethod);
+	}
+
+	private void replaceBaseCaseCheckWithSequentialThreshold(final TextEditGroup editGroup, Statement recursionBaseCaseBranch, final ASTRewrite scratchRewriter, ASTNode sequentialThresholdCheck) {
+		IfStatement enclosingIf= (IfStatement) recursionBaseCaseBranch.getParent();
+		scratchRewriter.replace(enclosingIf.getExpression(), sequentialThresholdCheck, editGroup);
 	}
 
 	private boolean methodHasNoBody(RefactoringStatus result) {
