@@ -594,54 +594,16 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		}
 	}
 
-	private int createLastReturnStatement(final AST ast, RefactoringStatus result, final TextEditGroup editGroup, final ASTRewrite scratchRewriter, ListRewrite listRewriteForBlock, Statement lastStatementInBlock, boolean isNotNewBlock, final List<Integer> taskList, int flags) {
-		if (flags == 1) {  //InfixExpression
-			Assignment assignToResult= ast.newAssignment();
-			assignToResult.setLeftHandSide(ast.newSimpleName("result")); //$NON-NLS-1$
-			InfixExpression infixExpression= ((InfixExpression)(ASTNode.copySubtree(ast, ((ReturnStatement)lastStatementInBlock).getExpression())));
-			final int[] taskNum= {0};
-			infixExpression.accept(new ConvertMethodCallToTask(taskList, ast, taskNum, scratchRewriter, editGroup));
+	private void createLastReturnStatement(final AST ast, final TextEditGroup editGroup, final ASTRewrite scratchRewriter, ListRewrite listRewriteForBlock, Statement lastStatementInBlock, boolean isNotNewBlock, final List<Integer> taskList) {
+		ReturnStatement returnStatement= ((ReturnStatement)(ASTNode.copySubtree(ast, lastStatementInBlock)));
+		final int[] taskNum= {0};
+		returnStatement.accept(new ConvertMethodCallToTask(taskList, ast, taskNum, scratchRewriter, editGroup));
 			
-			assignToResult.setRightHandSide(infixExpression);
-			if (isNotNewBlock) {
-				scratchRewriter.replace(lastStatementInBlock, ast.newExpressionStatement(assignToResult), editGroup);
-			} else {
-				listRewriteForBlock.insertLast(ast.newExpressionStatement(assignToResult), editGroup);
-			}
-		} else if (flags == 2) {  //MethodInvocation
-			Assignment assignToResult= ast.newAssignment();
-			assignToResult.setLeftHandSide(ast.newSimpleName("result")); //$NON-NLS-1$
-			ASTNode tempAST= ASTNode.copySubtree(ast, ((ReturnStatement)lastStatementInBlock).getExpression());
-			if (!(tempAST instanceof MethodInvocation)) {
-				createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_analyze_error, new String[] {fMethod.getElementName()}));
-				return -1;
-			}
-			MethodInvocation methodInvocation= ((MethodInvocation) tempAST);
-			final int[] taskNum= {0};
-			
-			visitMethodArguments(ast, editGroup, scratchRewriter, taskList, methodInvocation, taskNum);
-			
-			assignToResult.setRightHandSide(methodInvocation);
-			if (isNotNewBlock) {
-				scratchRewriter.replace(lastStatementInBlock, ast.newExpressionStatement(assignToResult), editGroup);
-			} else {
-				listRewriteForBlock.insertLast(ast.newExpressionStatement(assignToResult), editGroup);
-			}
-		} else if (flags == 7) {  //Assignment
-			Assignment assignToResult= ast.newAssignment();
-			assignToResult.setLeftHandSide(ast.newSimpleName("result")); //$NON-NLS-1$
-			Assignment assignment= ((Assignment)(ASTNode.copySubtree(ast, ((ReturnStatement)lastStatementInBlock).getExpression())));
-			final int[] taskNum= {0};
-			assignment.accept(new ConvertMethodCallToTask(taskList, ast, taskNum, scratchRewriter, editGroup));
-			
-			assignToResult.setRightHandSide(assignment);
-			if (isNotNewBlock) {
-				scratchRewriter.replace(lastStatementInBlock, ast.newExpressionStatement(assignToResult), editGroup);
-			} else {
-				listRewriteForBlock.insertLast(ast.newExpressionStatement(assignToResult), editGroup);
-			}
+		if (isNotNewBlock) {
+			scratchRewriter.replace(lastStatementInBlock, returnStatement, editGroup);
+		} else {
+			listRewriteForBlock.insertLast(returnStatement, editGroup);
 		}
-		return 0;
 	}
 
 	private void createLastReturnNoFlags(AST ast, final TextEditGroup editGroup, final ASTRewrite scratchRewriter, ListRewrite listRewriteForBlock, Statement lastStatementInBlock,
