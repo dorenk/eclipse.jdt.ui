@@ -1094,13 +1094,13 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			SingleVariableDeclaration parameter = params.get(0);
 			Type type = parameter.getType();
 			if (type.isPrimitiveType()) {
-				sugSeqThreshold= parameter.getName().getIdentifier() + " < 100"; //$NON-NLS-1$
+				sugSeqThreshold= parameter.getName().getIdentifier() + " < 1000"; //$NON-NLS-1$
 			} else if (type.isArrayType()) {
-				sugSeqThreshold= parameter.getName().getIdentifier() + ".length < 100"; //$NON-NLS-1$
+				sugSeqThreshold= parameter.getName().getIdentifier() + ".length < 1000"; //$NON-NLS-1$
 			} else if (type.isParameterizedType()) {
-				sugSeqThreshold= parameter.getName().getIdentifier() + ".size() < 100"; //$NON-NLS-1$
+				sugSeqThreshold= parameter.getName().getIdentifier() + ".size() < 1000"; //$NON-NLS-1$
 			} else if (type.isSimpleType()) {
-				sugSeqThreshold= parameter.getName().getIdentifier() + ".length() < 100"; //$NON-NLS-1$
+				sugSeqThreshold= parameter.getName().getIdentifier() + ".length() < 1000"; //$NON-NLS-1$
 			} else {
 				System.err.println(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_parameter_error);
 			}
