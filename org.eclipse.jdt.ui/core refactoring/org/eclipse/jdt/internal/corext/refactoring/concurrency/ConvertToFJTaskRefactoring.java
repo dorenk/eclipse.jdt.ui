@@ -278,7 +278,6 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		Type returnType= fMethodDeclaration.getReturnType2();
 		String returnTypeName= returnType.resolveBinding().getName();
 		if (returnType.isPrimitiveType()) {
-			}
 			return ast.newSimpleType(ast.newSimpleName(primitiveTypeToWrapper(returnTypeName)));
 		} else if (returnType.isArrayType()) {
 			Type tempComponent= (Type) ASTNode.copySubtree(ast, ((ArrayType) returnType).getComponentType());
