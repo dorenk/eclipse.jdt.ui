@@ -842,7 +842,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		recursiveActionSubtype.bodyDeclarations().add(newConstructor);
 	}
 
-	private void createFields(TypeDeclaration recursiveActionSubtype, AST ast) {  //TODO extract
+	private void createFields(TypeDeclaration recursiveActionSubtype, AST ast) {
 		
 		List<SingleVariableDeclaration> recursiveMethodParameters= fMethodDeclaration.parameters();
 		for (SingleVariableDeclaration parameter : recursiveMethodParameters) {
