@@ -1,7 +1,7 @@
 package object_out;
 
 import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.RecursiveAction;
+import java.util.concurrent.RecursiveTask;
 
 public class TestElseStatementWithoutBlock {
 	
@@ -9,25 +9,22 @@ public class TestElseStatementWithoutBlock {
 		int processorCount = Runtime.getRuntime().availableProcessors();
 		ForkJoinPool pool = new ForkJoinPool(processorCount);
 		CountImpl aCountImpl = new CountImpl(end);
-		pool.invoke(aCountImpl);
-		return aCountImpl.result;
+		return pool.invoke(aCountImpl);
 	}
 
-	public class CountImpl extends RecursiveAction {
+	public class CountImpl extends RecursiveTask<Integer> {
 		private int end;
-		private int result;
 		private CountImpl(int end) {
 			this.end = end;
 		}
-		protected void compute() {
+		protected Integer compute() {
 			if (end < 10) {
-				result = count_sequential(end);
-				return;
+				return count_sequential(end);
 			} else {
 				CountImpl task1 = new CountImpl(end - 1);
 				CountImpl task2 = new CountImpl(end - 2);
 				invokeAll(task1, task2);
-				result = task1.result + task2.result;
+				return task1.getRawResult() + task2.getRawResult();
 			}
 		}
 		public int count_sequential(int end) {

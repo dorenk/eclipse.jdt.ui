@@ -1,7 +1,7 @@
 package object_out;
 
 import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.RecursiveAction;
+import java.util.concurrent.RecursiveTask;
 
 public class TestMultipleIfStatementsWithoutBlocks {
 	
@@ -9,43 +9,40 @@ public class TestMultipleIfStatementsWithoutBlocks {
 		int processorCount = Runtime.getRuntime().availableProcessors();
 		ForkJoinPool pool = new ForkJoinPool(processorCount);
 		FooImpl aFooImpl = new FooImpl(end);
-		pool.invoke(aFooImpl);
-		return aFooImpl.result;
+		return pool.invoke(aFooImpl);
 	}
 
-	public class FooImpl extends RecursiveAction {
+	public class FooImpl extends RecursiveTask<Integer> {
 		private int end;
-		private int result;
 		private FooImpl(int end) {
 			this.end = end;
 		}
-		protected void compute() {
+		protected Integer compute() {
 			if (end < 10) {
-				result = foo_sequential(end);
-				return;
+				return foo_sequential(end);
 			} else if (end < 10) {
 				if (end < 5) {
 					FooImpl task1 = new FooImpl(end - 1);
 					FooImpl task2 = new FooImpl(end - 2);
 					invokeAll(task1, task2);
-					result = task1.result + task2.result;
+					return task1.getRawResult() + task2.getRawResult();
 				} else {
 					FooImpl task3 = new FooImpl(end - 5);
 					FooImpl task4 = new FooImpl(end - 6);
 					invokeAll(task3, task4);
-					result = task3.result + task4.result;
+					return task3.getRawResult() + task4.getRawResult();
 				}
 			} else {
 				if (end > 25) {
 					FooImpl task5 = new FooImpl(end - 12);
 					FooImpl task6 = new FooImpl(end - 16);
 					invokeAll(task5, task6);
-					result = task5.result + task6.result;
+					return task5.getRawResult() + task6.getRawResult();
 				} else {
 					FooImpl task7 = new FooImpl(end - 8);
 					FooImpl task8 = new FooImpl(end - 10);
 					invokeAll(task7, task8);
-					result = task7.result + task8.result;
+					return task7.getRawResult() + task8.getRawResult();
 				}
 			}
 		}

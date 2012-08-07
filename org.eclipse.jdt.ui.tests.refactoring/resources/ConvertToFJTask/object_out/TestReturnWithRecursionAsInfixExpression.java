@@ -1,7 +1,7 @@
 package object_out;
 
 import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.RecursiveAction;
+import java.util.concurrent.RecursiveTask;
 
 public class TestReturnWithRecursionAsInfixExpression {
 	
@@ -9,26 +9,24 @@ public class TestReturnWithRecursionAsInfixExpression {
 		int processorCount = Runtime.getRuntime().availableProcessors();
 		ForkJoinPool pool = new ForkJoinPool(processorCount);
 		BarImpl aBarImpl = new BarImpl(num);
-		pool.invoke(aBarImpl);
-		return aBarImpl.result;
+		return pool.invoke(aBarImpl);
 	}
 
-	public class BarImpl extends RecursiveAction {
+	public class BarImpl extends RecursiveTask<Integer> {
 		private int num;
-		private int result;
 		private BarImpl(int num) {
 			this.num = num;
 		}
-		protected void compute() {
+		protected Integer compute() {
 			if (num < 10) {
-				result = bar_sequential(num);
-				return;
+				return bar_sequential(num);
 			} else {
 				BarImpl task1 = new BarImpl(num - 1);
 				BarImpl task2 = new BarImpl(num - 2);
 				BarImpl task3 = new BarImpl(num - 3);
 				invokeAll(task1, task2, task3);
-				result = task1.result + task2.result + task3.result;
+				return task1.getRawResult() + task2.getRawResult()
+						+ task3.getRawResult();
 			}
 		}
 		public int bar_sequential(int num) {

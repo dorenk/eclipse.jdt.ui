@@ -1,7 +1,7 @@
 package object_out;
 
 import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.RecursiveAction;
+import java.util.concurrent.RecursiveTask;
 
 public class TestMultipleExpressionStatementAndReturnWithMethodInvocationInSeparateBlocks {
 
@@ -9,19 +9,16 @@ public class TestMultipleExpressionStatementAndReturnWithMethodInvocationInSepar
 		int processorCount = Runtime.getRuntime().availableProcessors();
 		ForkJoinPool pool = new ForkJoinPool(processorCount);
 		CalculateMilesImpl aCalculateMilesImpl = new CalculateMilesImpl(data);
-		pool.invoke(aCalculateMilesImpl);
-		return aCalculateMilesImpl.result;
+		return pool.invoke(aCalculateMilesImpl);
 	}
-	public class CalculateMilesImpl extends RecursiveAction {
+	public class CalculateMilesImpl extends RecursiveTask<Integer> {
 		private int data;
-		private int result;
 		private CalculateMilesImpl(int data) {
 			this.data = data;
 		}
-		protected void compute() {
+		protected Integer compute() {
 			if (data < 100) {
-				result = calculateMiles_sequential(data);
-				return;
+				return calculateMiles_sequential(data);
 			} else {
 				if (data < 5) {
 					int gas;
@@ -29,14 +26,14 @@ public class TestMultipleExpressionStatementAndReturnWithMethodInvocationInSepar
 					int mpg;
 					CalculateMilesImpl task2 = new CalculateMilesImpl(data - 2);
 					invokeAll(task1, task2);
-					gas = task1.result;
-					mpg = task2.result;
-					result = gas * mpg;
+					gas = task1.getRawResult();
+					mpg = task2.getRawResult();
+					return gas * mpg;
 				} else {
 					CalculateMilesImpl task3 = new CalculateMilesImpl(data - 4);
 					CalculateMilesImpl task4 = new CalculateMilesImpl(data - 3);
 					invokeAll(task3, task4);
-					result = electric(task3.result, task4.result);
+					return electric(task3.getRawResult(), task4.getRawResult());
 				}
 			}
 		}

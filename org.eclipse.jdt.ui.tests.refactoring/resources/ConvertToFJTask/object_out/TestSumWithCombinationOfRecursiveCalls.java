@@ -1,7 +1,7 @@
 package object_out;
 
 import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.RecursiveAction;
+import java.util.concurrent.RecursiveTask;
 
 public class TestSumWithCombinationOfRecursiveCalls {
 	
@@ -10,29 +10,26 @@ public class TestSumWithCombinationOfRecursiveCalls {
 		ForkJoinPool pool = new ForkJoinPool(processorCount);
 		RecursionSumWithCombinationOfRecursiveCallsImpl aRecursionSumWithCombinationOfRecursiveCallsImpl = new RecursionSumWithCombinationOfRecursiveCallsImpl(
 				end);
-		pool.invoke(aRecursionSumWithCombinationOfRecursiveCallsImpl);
-		return aRecursionSumWithCombinationOfRecursiveCallsImpl.result;
+		return pool.invoke(aRecursionSumWithCombinationOfRecursiveCallsImpl);
 	}
 	public class RecursionSumWithCombinationOfRecursiveCallsImpl
 			extends
-				RecursiveAction {
+				RecursiveTask<Integer> {
 		private int end;
-		private int result;
 		private RecursionSumWithCombinationOfRecursiveCallsImpl(int end) {
 			this.end = end;
 		}
-		protected void compute() {
+		protected Integer compute() {
 			if (end < 5) {
-				result = recursionSumWithCombinationOfRecursiveCalls_sequential(end);
-				return;
+				return recursionSumWithCombinationOfRecursiveCalls_sequential(end);
 			} else {
 				RecursionSumWithCombinationOfRecursiveCallsImpl task1 = new RecursionSumWithCombinationOfRecursiveCallsImpl(
 						end - 1);
 				RecursionSumWithCombinationOfRecursiveCallsImpl task2 = new RecursionSumWithCombinationOfRecursiveCallsImpl(
 						end - 2);
 				invokeAll(task1, task2);
-				int i = task1.result;
-				result = sumCombination(i, task2.result);
+				int i = task1.getRawResult();
+				return sumCombination(i, task2.getRawResult());
 			}
 		}
 		public int recursionSumWithCombinationOfRecursiveCalls_sequential(

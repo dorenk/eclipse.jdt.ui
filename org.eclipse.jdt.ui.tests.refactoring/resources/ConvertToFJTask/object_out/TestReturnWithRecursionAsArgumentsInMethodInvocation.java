@@ -1,7 +1,7 @@
 package object_out;
 
 import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.RecursiveAction;
+import java.util.concurrent.RecursiveTask;
 
 public class TestReturnWithRecursionAsArgumentsInMethodInvocation {
 	
@@ -9,24 +9,21 @@ public class TestReturnWithRecursionAsArgumentsInMethodInvocation {
 		int processorCount = Runtime.getRuntime().availableProcessors();
 		ForkJoinPool pool = new ForkJoinPool(processorCount);
 		RecursionImpl aRecursionImpl = new RecursionImpl(end);
-		pool.invoke(aRecursionImpl);
-		return aRecursionImpl.result;
+		return pool.invoke(aRecursionImpl);
 	}
-	public class RecursionImpl extends RecursiveAction {
+	public class RecursionImpl extends RecursiveTask<Integer> {
 		private int end;
-		private int result;
 		private RecursionImpl(int end) {
 			this.end = end;
 		}
-		protected void compute() {
+		protected Integer compute() {
 			if (end < 5) {
-				result = recursion_sequential(end);
-				return;
+				return recursion_sequential(end);
 			} else {
 				RecursionImpl task1 = new RecursionImpl(end - 1);
 				RecursionImpl task2 = new RecursionImpl(end - 2);
 				invokeAll(task1, task2);
-				result = sum(task1.result, task2.result);
+				return sum(task1.getRawResult(), task2.getRawResult());
 			}
 		}
 		public int recursion_sequential(int end) {

@@ -1,7 +1,7 @@
 package object_out;
 
 import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.RecursiveAction;
+import java.util.concurrent.RecursiveTask;
 
 public class TestMultipleVariableDeclarationAndReturnInSeparateBlocks {
 
@@ -9,35 +9,32 @@ public class TestMultipleVariableDeclarationAndReturnInSeparateBlocks {
 		int processorCount = Runtime.getRuntime().availableProcessors();
 		ForkJoinPool pool = new ForkJoinPool(processorCount);
 		DistanceImpl aDistanceImpl = new DistanceImpl(vertex);
-		pool.invoke(aDistanceImpl);
-		return aDistanceImpl.result;
+		return pool.invoke(aDistanceImpl);
 	}
 
-	public class DistanceImpl extends RecursiveAction {
+	public class DistanceImpl extends RecursiveTask<Integer> {
 		private int vertex;
-		private int result;
 		private DistanceImpl(int vertex) {
 			this.vertex = vertex;
 		}
-		protected void compute() {
+		protected Integer compute() {
 			if (vertex < 100) {
-				result = distance_sequential(vertex);
-				return;
+				return distance_sequential(vertex);
 			} else {
 				if (vertex < 20) {
 					DistanceImpl task1 = new DistanceImpl(vertex / 3);
 					DistanceImpl task2 = new DistanceImpl(vertex - 18);
 					DistanceImpl task3 = new DistanceImpl(vertex / 2 - 5);
 					invokeAll(task1, task2, task3);
-					int third = task1.result;
-					int origin = task2.result;
-					int half = task3.result;
-					result = third + origin - half;
+					int third = task1.getRawResult();
+					int origin = task2.getRawResult();
+					int half = task3.getRawResult();
+					return third + origin - half;
 				} else {
 					DistanceImpl task4 = new DistanceImpl(vertex - 50);
 					DistanceImpl task5 = new DistanceImpl(vertex / 5);
 					invokeAll(task4, task5);
-					result = task4.result - task5.result;
+					return task4.getRawResult() - task5.getRawResult();
 				}
 			}
 		}

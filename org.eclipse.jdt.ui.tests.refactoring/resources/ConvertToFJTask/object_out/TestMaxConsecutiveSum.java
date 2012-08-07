@@ -1,7 +1,7 @@
 package object_out;
 
 import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.RecursiveAction;
+import java.util.concurrent.RecursiveTask;
 
 public class TestMaxConsecutiveSum {
 
@@ -45,33 +45,30 @@ public class TestMaxConsecutiveSum {
 		int processorCount = Runtime.getRuntime().availableProcessors();
 		ForkJoinPool pool = new ForkJoinPool(processorCount);
 		MaxSumRecImpl aMaxSumRecImpl = new MaxSumRecImpl(a, left, right);
-		pool.invoke(aMaxSumRecImpl);
-		return aMaxSumRecImpl.result;
+		return pool.invoke(aMaxSumRecImpl);
 	}
 
-	private static class MaxSumRecImpl extends RecursiveAction {
+	private static class MaxSumRecImpl extends RecursiveTask<Integer> {
 		private int[] a;
 		private int left;
 		private int right;
-		private int result;
 		private MaxSumRecImpl(int[] a, int left, int right) {
 			this.a = a;
 			this.left = left;
 			this.right = right;
 		}
-		protected void compute() {
+		protected Integer compute() {
 			int maxLeftBorderSum = 0, maxRightBorderSum = 0;
 			int leftBorderSum = 0, rightBorderSum = 0;
 			int center = (left + right) / 2;
 			if (right - left < 4) {
-				result = maxSumRec_sequential(a, left, right);
-				return;
+				return maxSumRec_sequential(a, left, right);
 			}
 			MaxSumRecImpl task1 = new MaxSumRecImpl(a, left, center);
 			MaxSumRecImpl task2 = new MaxSumRecImpl(a, center + 1, right);
 			invokeAll(task1, task2);
-			int maxLeftSum = task1.result;
-			int maxRightSum = task2.result;
+			int maxLeftSum = task1.getRawResult();
+			int maxRightSum = task2.getRawResult();
 			for (int i = center; i >= left; i--) {
 				leftBorderSum += a[i];
 				if (leftBorderSum > maxLeftBorderSum)
@@ -82,7 +79,7 @@ public class TestMaxConsecutiveSum {
 				if (rightBorderSum > maxRightBorderSum)
 					maxRightBorderSum = rightBorderSum;
 			}
-			result = max3(maxLeftSum, maxRightSum, maxLeftBorderSum
+			return max3(maxLeftSum, maxRightSum, maxLeftBorderSum
 					+ maxRightBorderSum);
 		}
 		private static int maxSumRec_sequential(int[] a, int left, int right) {

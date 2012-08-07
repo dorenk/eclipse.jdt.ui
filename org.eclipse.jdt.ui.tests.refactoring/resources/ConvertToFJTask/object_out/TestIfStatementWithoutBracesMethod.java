@@ -1,7 +1,7 @@
 package object_out;
 
 import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.RecursiveAction;
+import java.util.concurrent.RecursiveTask;
 
 public class TestIfStatementWithoutBracesMethod {
 	
@@ -10,20 +10,17 @@ public class TestIfStatementWithoutBracesMethod {
 		ForkJoinPool pool = new ForkJoinPool(processorCount);
 		GrayCheckHierarchyImpl aGrayCheckHierarchyImpl = new GrayCheckHierarchyImpl(
 				treeElement);
-		pool.invoke(aGrayCheckHierarchyImpl);
-		return aGrayCheckHierarchyImpl.result;
+		return pool.invoke(aGrayCheckHierarchyImpl);
 	}
 
-	protected class GrayCheckHierarchyImpl extends RecursiveAction {
+	protected class GrayCheckHierarchyImpl extends RecursiveTask<String> {
 		private String treeElement;
-		private String result;
 		private GrayCheckHierarchyImpl(String treeElement) {
 			this.treeElement = treeElement;
 		}
-		protected void compute() {
+		protected String compute() {
 			if (treeElement.length() < 10) {
-				result = grayCheckHierarchy_sequential(treeElement);
-				return;
+				return grayCheckHierarchy_sequential(treeElement);
 			}
 			if (treeElement.endsWith(";")) {
 				treeElement.split(";");
@@ -35,7 +32,7 @@ public class TestIfStatementWithoutBracesMethod {
 				GrayCheckHierarchyImpl task2 = new GrayCheckHierarchyImpl(
 						parent.toLowerCase());
 				invokeAll(task1, task2);
-				result = task1.result + task2.result;
+				return task1.getRawResult() + task2.getRawResult();
 			}
 		}
 		protected String grayCheckHierarchy_sequential(String treeElement) {

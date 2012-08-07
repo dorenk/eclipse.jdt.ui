@@ -1,7 +1,7 @@
 package object_out;
 
 import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.RecursiveAction;
+import java.util.concurrent.RecursiveTask;
 
 public class TestFibonacciWithCombinationOfRecursiveCalls {
 	
@@ -10,30 +10,27 @@ public class TestFibonacciWithCombinationOfRecursiveCalls {
 		ForkJoinPool pool = new ForkJoinPool(processorCount);
 		FibonacciWithCombinationOfRecursiveCallsImpl aFibonacciWithCombinationOfRecursiveCallsImpl = new FibonacciWithCombinationOfRecursiveCallsImpl(
 				end);
-		pool.invoke(aFibonacciWithCombinationOfRecursiveCallsImpl);
-		return aFibonacciWithCombinationOfRecursiveCallsImpl.result;
+		return pool.invoke(aFibonacciWithCombinationOfRecursiveCallsImpl);
 	}
 
 	public class FibonacciWithCombinationOfRecursiveCallsImpl
 			extends
-				RecursiveAction {
+				RecursiveTask<Integer> {
 		private int end;
-		private int result;
 		private FibonacciWithCombinationOfRecursiveCallsImpl(int end) {
 			this.end = end;
 		}
-		protected void compute() {
+		protected Integer compute() {
 			if (end < 10) {
-				result = fibonacciWithCombinationOfRecursiveCalls_sequential(end);
-				return;
+				return fibonacciWithCombinationOfRecursiveCalls_sequential(end);
 			} else {
 				FibonacciWithCombinationOfRecursiveCallsImpl task1 = new FibonacciWithCombinationOfRecursiveCallsImpl(
 						end - 1);
 				FibonacciWithCombinationOfRecursiveCallsImpl task2 = new FibonacciWithCombinationOfRecursiveCallsImpl(
 						end - 2);
 				invokeAll(task1, task2);
-				int i = task1.result;
-				result = i + task2.result;
+				int i = task1.getRawResult();
+				return i + task2.getRawResult();
 			}
 		}
 		public int fibonacciWithCombinationOfRecursiveCalls_sequential(int end) {
