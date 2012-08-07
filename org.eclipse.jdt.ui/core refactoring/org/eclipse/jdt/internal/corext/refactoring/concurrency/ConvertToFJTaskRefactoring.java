@@ -665,14 +665,12 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		if (recursiveMethodReturnsVoid()) {
 			ExpressionStatement sequentialMethodInvocation= ast.newExpressionStatement(createSequentialMethodInvocation(ast));
 			basecaseStatements.add(sequentialMethodInvocation);
+			basecaseStatements.add(ast.newReturnStatement());
 		} else {
-			Assignment assignmentToResult= ast.newAssignment();
-			assignmentToResult.setLeftHandSide(ast.newSimpleName("result")); //$NON-NLS-1$
-			assignmentToResult.setRightHandSide(createSequentialMethodInvocation(ast));
-			ExpressionStatement newExpressionStatement= ast.newExpressionStatement(assignmentToResult);
-			basecaseStatements.add(newExpressionStatement);
+			ReturnStatement newReturnResult= ast.newReturnStatement();
+			newReturnResult.setExpression(createSequentialMethodInvocation(ast));
+			basecaseStatements.add(newReturnResult);
 		}
-		basecaseStatements.add(ast.newReturnStatement());
 		scratchRewriter.replace(recursionBaseCaseBranch, basecaseBlock, editGroup);
 	}
 
