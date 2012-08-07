@@ -178,6 +178,10 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		
 		createForkJoinPool(newStatements);
 		
+		String FJTaskSubtypeName= createTaskSubtype(newStatements, ast);
+		
+
+	private String createTaskSubtype(List<ASTNode> newStatements, AST ast) {
 		VariableDeclarationFragment newTaskDeclFragment= ast.newVariableDeclarationFragment();
 		String taskInstanceName= "a" + nameForFJTaskSubtype; //$NON-NLS-1$
 		newTaskDeclFragment.setName(ast.newSimpleName(taskInstanceName));
@@ -195,19 +199,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		VariableDeclarationStatement declTask= ast.newVariableDeclarationStatement(newTaskDeclFragment);
 		declTask.setType(ast.newSimpleType(ast.newSimpleName(nameForFJTaskSubtype)));
 		newStatements.add(declTask);
-		
-		String poolInvoke= "pool.invoke(" + taskInstanceName +");"; //$NON-NLS-1$ //$NON-NLS-2$
-		if (!recursiveMethodReturnsVoid()) {
-			poolInvoke= "return " + poolInvoke; //$NON-NLS-1$
-		}
-		ASTNode poolInvokeNode= fRewriter.createStringPlaceholder(poolInvoke, ASTNode.EXPRESSION_STATEMENT);
-		newStatements.add(poolInvokeNode);
-		
-		fRewriter.replace(originalBody, newMethodBody, gd);
-		
-		ArrayList<TextEditGroup> group= new ArrayList<TextEditGroup>();
-		group.add(gd);
-		return group;
+		return taskInstanceName;
 	}
 
 	private void createForkJoinPool(List<ASTNode> newStatements) {
