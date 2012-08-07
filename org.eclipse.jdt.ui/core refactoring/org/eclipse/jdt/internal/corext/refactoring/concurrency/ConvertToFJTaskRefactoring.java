@@ -465,22 +465,12 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				
 				Statement reverseStatement= recursiveList.get(recursiveList.size() - listIndex - 1);
 				List<Integer> reverseTaskList= statementsToTasks.get(reverseStatement);
-				if (!(reverseStatement instanceof ReturnStatement)) {
+				if (!(reverseStatement instanceof ReturnStatement) && !recursiveMethodReturnsVoid()) {
 					createPartialComputations(ast, editGroup, scratchRewriter, listRewriteForBlock, reverseStatement, isNotNewBlock, reverseTaskList, statementsToAdd);
 				}
 			}
-			if (!recursiveMethodReturnsVoid()) {
-				if (lastStatementWithRecursiveCall instanceof ReturnStatement) {
-					createLastReturnStatement(ast, editGroup, scratchRewriter, listRewriteForBlock, lastStatementWithRecursiveCall, isNotNewBlock, statementsToTasks.get(lastStatementWithRecursiveCall));
-				} /*
-				else {
-					if (isNotNewBlock) {
-						createLastReturnNoFlags(ast, editGroup, scratchRewriter, listRewriteForBlock, (Statement) currBlock.statements().get(currBlock.statements().size() - 1), isNotNewBlock, currBlock, blockWithoutBraces);
-					} else {
-						createLastReturnNoFlags(ast, editGroup, scratchRewriter, listRewriteForBlock, blockWithoutBraces.get(currBlock), isNotNewBlock, currBlock, blockWithoutBraces);
-					}
-				}
-				*/
+			if (!recursiveMethodReturnsVoid() && (lastStatementWithRecursiveCall instanceof ReturnStatement)) {
+				createLastReturnStatement(ast, editGroup, scratchRewriter, listRewriteForBlock, lastStatementWithRecursiveCall, isNotNewBlock, statementsToTasks.get(lastStatementWithRecursiveCall));
 			}
 			if (statementsToAdd.size() > 0) {
 				for (int i= 0; i < statementsToAdd.size(); i++) {
