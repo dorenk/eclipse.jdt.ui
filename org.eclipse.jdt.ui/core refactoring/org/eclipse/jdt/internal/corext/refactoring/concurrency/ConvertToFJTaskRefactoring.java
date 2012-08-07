@@ -47,6 +47,7 @@ import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
 import org.eclipse.jdt.core.dom.AnonymousClassDeclaration;
+import org.eclipse.jdt.core.dom.ArrayType;
 import org.eclipse.jdt.core.dom.Assignment;
 import org.eclipse.jdt.core.dom.Block;
 import org.eclipse.jdt.core.dom.ChildListPropertyDescriptor;
@@ -234,7 +235,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			recursiveActionSubtype.setSuperclassType(ast.newSimpleType(ast.newSimpleName("RecursiveAction")));	//$NON-NLS-1$
 		} else {
 			ParameterizedType superClass= ast.newParameterizedType(ast.newSimpleType(ast.newSimpleName("RecursiveTask"))); //$NON-NLS-1$
-			superClass.typeArguments().add(ast.newSimpleType(ast.newSimpleName(getReturnTypeName())));
+			superClass.typeArguments().add(getReturnType(ast, null));
 			recursiveActionSubtype.setSuperclassType(superClass);
 		}
 		ModifierRewrite.create(fRewriter, recursiveActionSubtype).copyAllModifiers(fMethodDeclaration, gd);
@@ -256,13 +257,35 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		return group;
 	}
 
-	private String getReturnTypeName() {
-		Type returnType= fMethodDeclaration.getReturnType2();
+	private Type getReturnType(AST ast, Type argType) {
+		Type returnType;
+		if (argType == null) {
+			returnType= fMethodDeclaration.getReturnType2();
+		} else {
+			returnType= argType;
+		}
 		String returnTypeName= returnType.resolveBinding().getName();
 		if (returnType.isPrimitiveType()) {
-			return primitiveTypeToWrapper(returnTypeName);
+			if (argType == null) {
+				return ast.newSimpleType(ast.newSimpleName(primitiveTypeToWrapper(returnTypeName)));
+			} else {
+				return ast.newPrimitiveType(((PrimitiveType) returnType).getPrimitiveTypeCode());
+			}
+		} else if (returnType.isArrayType()) {
+			Type tempComponent= getReturnType(ast, ((ArrayType) returnType).getComponentType());
+			return ast.newArrayType(tempComponent);
+		} else if (returnType.isParameterizedType()) {
+			return ast.newParameterizedType(returnType);
+		} else if (returnType.isQualifiedType()) {
+			return ast.newQualifiedType(returnType, ast.newSimpleName(returnTypeName));  //TODO check these below
+		} else if (returnType.isSimpleType()) {
+			return ast.newSimpleType(ast.newName(returnTypeName));
+		} else if (returnType.isUnionType()) {
+			return ast.newUnionType(); 
+		} else if (returnType.isWildcardType()) {
+			return ast.newWildcardType();
 		} else {
-			return returnTypeName;
+			return null;
 		}
 	}
 
@@ -341,7 +364,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		computeMethod.setName(ast.newSimpleName("compute")); //$NON-NLS-1$
 		computeMethod.modifiers().add(ast.newModifier(ModifierKeyword.PROTECTED_KEYWORD));
 		if (!recursiveMethodReturnsVoid()) {
-			computeMethod.setReturnType2(ast.newSimpleType(ast.newSimpleName(getReturnTypeName())));
+			computeMethod.setReturnType2(getReturnType(ast, null));
 		}
 		
 		final TextEditGroup editGroup= new TextEditGroup(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_generate_compute);
