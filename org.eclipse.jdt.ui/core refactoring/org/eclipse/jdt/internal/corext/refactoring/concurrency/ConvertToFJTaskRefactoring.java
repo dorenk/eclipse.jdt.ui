@@ -848,20 +848,22 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 
 	private void createFields(TypeDeclaration recursiveActionSubtype, AST ast) {  //TODO extract
 		
-		List<ASTNode> recursiveMethodParameters= fMethodDeclaration.parameters();
-		for (Object par : recursiveMethodParameters) {
-			SingleVariableDeclaration parameter= (SingleVariableDeclaration) par;
-			
-			VariableDeclarationFragment newDeclarationFragment= ast.newVariableDeclarationFragment();
-			newDeclarationFragment.setName(ast.newSimpleName(parameter.getName().getIdentifier()));
-			
-			FieldDeclaration newFieldDeclaration= ast.newFieldDeclaration(newDeclarationFragment);
-			newFieldDeclaration.setType((Type) ASTNode.copySubtree(ast, parameter.getType()));
-			List<Modifier> modifiers= newFieldDeclaration.modifiers();
-			modifiers.add(ast.newModifier(ModifierKeyword.PRIVATE_KEYWORD));
-			
-			recursiveActionSubtype.bodyDeclarations().add(newFieldDeclaration);
+		List<SingleVariableDeclaration> recursiveMethodParameters= fMethodDeclaration.parameters();
+		for (SingleVariableDeclaration parameter : recursiveMethodParameters) {
+			createNewFieldDeclaration(recursiveActionSubtype, ast, parameter);
 		}
+	}
+
+	private void createNewFieldDeclaration(TypeDeclaration recursiveActionSubtype, AST ast, SingleVariableDeclaration parameter) {
+		VariableDeclarationFragment newDeclarationFragment= ast.newVariableDeclarationFragment();
+		newDeclarationFragment.setName(ast.newSimpleName(parameter.getName().getIdentifier()));
+		
+		FieldDeclaration newFieldDeclaration= ast.newFieldDeclaration(newDeclarationFragment);
+		newFieldDeclaration.setType((Type) ASTNode.copySubtree(ast, parameter.getType()));
+		List<Modifier> modifiers= newFieldDeclaration.modifiers();
+		modifiers.add(ast.newModifier(ModifierKeyword.PRIVATE_KEYWORD));
+		
+		recursiveActionSubtype.bodyDeclarations().add(newFieldDeclaration);
 	}
 	
 	boolean recursiveMethodReturnsVoid() {
