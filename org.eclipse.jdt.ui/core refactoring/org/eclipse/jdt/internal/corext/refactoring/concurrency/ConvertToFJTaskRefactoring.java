@@ -385,10 +385,8 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		IfStatement enclosingIf= (IfStatement) recursionBaseCaseBranch.getParent();
 		scratchRewriter.replace(enclosingIf.getExpression(), sequentialThresholdCheck, editGroup);
 		
-		Block baseCaseBlock= null;
 		if (recursionBaseCaseBranch instanceof Block) {
 			createRecursionBaseCaseBlock(ast, editGroup, recursionBaseCaseBranch, scratchRewriter);
-			baseCaseBlock= (Block) recursionBaseCaseBranch;
 		} else if (recursionBaseCaseBranch instanceof ReturnStatement) {
 			createRecursionBaseCaseReturn(ast, editGroup, recursionBaseCaseBranch, scratchRewriter);
 		}
@@ -424,23 +422,6 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			if (!atLeastOneBlockChanged) {
 				createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_no_change_error, new String[] {fMethod.getElementName()}));
 				return;
-			}
-			allTheBlocks.add(baseCaseBlock);  //black list base case block
-			if (!recursiveMethodReturnsVoid()) {
-				final List<Block> nonRecursiveBlocks= new ArrayList<Block>();
-				fMethodDeclaration.accept(new ASTVisitor() {
-					@Override
-					public boolean visit(Block block){
-						if (!allTheBlocks.contains(block)) {
-							nonRecursiveBlocks.add(block);
-						}
-						return true;
-					}
-				});
-				for (Block currBlock : nonRecursiveBlocks) {
-					ListRewrite listRewriteForBlock= scratchRewriter.getListRewrite(currBlock, Block.STATEMENTS_PROPERTY);
-//					createLastReturnNoFlags(ast, editGroup, scratchRewriter, listRewriteForBlock, (Statement) currBlock.statements().get(currBlock.statements().size() - 1), true, currBlock, blockWithoutBraces);
-				}
 			}
 			tryApplyEdits(ast, computeMethod, scratchRewriter);
 		} catch (JavaModelException e) {
