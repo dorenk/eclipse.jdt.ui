@@ -174,9 +174,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		Block newMethodBody= ast.newBlock();
 		List<ASTNode> newStatements= newMethodBody.statements();
 		
-		String declareNumOfAvailableResource= "int processorCount = Runtime.getRuntime().availableProcessors();"; //$NON-NLS-1$
-		ASTNode declNumOfAvailableResources= fRewriter.createStringPlaceholder(declareNumOfAvailableResource, ASTNode.EXPRESSION_STATEMENT);
-		newStatements.add(declNumOfAvailableResources);
+		createProcessorCount(newStatements);
 		
 		String pool= new String("ForkJoinPool pool = new ForkJoinPool(processorCount);"); //$NON-NLS-1$
 		ASTNode poolNode= fRewriter.createStringPlaceholder(pool, ASTNode.EXPRESSION_STATEMENT);
@@ -212,6 +210,12 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		ArrayList<TextEditGroup> group= new ArrayList<TextEditGroup>();
 		group.add(gd);
 		return group;
+	}
+
+	private void createProcessorCount(List<ASTNode> newStatements) {
+		String declareNumOfAvailableResource= "int processorCount = Runtime.getRuntime().availableProcessors();"; //$NON-NLS-1$
+		ASTNode declNumOfAvailableResources= fRewriter.createStringPlaceholder(declareNumOfAvailableResource, ASTNode.EXPRESSION_STATEMENT);
+		newStatements.add(declNumOfAvailableResources);
 	}
 
 	private void addImports(ImportRewrite importRewrite) {
