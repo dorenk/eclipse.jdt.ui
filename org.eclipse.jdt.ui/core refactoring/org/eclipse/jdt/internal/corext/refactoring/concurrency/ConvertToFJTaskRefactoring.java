@@ -425,7 +425,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				Block currBlock= blockIter.next();
 				ListRewrite listRewriteForBlock= scratchRewriter.getListRewrite(currBlock, Block.STATEMENTS_PROPERTY);
 				atLeastOneBlockChanged= doBlockWork(ast, editGroup, scratchRewriter, allTaskDeclStatements, statementsToTasks,
-						allTaskDeclFlags, allStatementsWithRecursiveMethodInvocation, numTasksPerBlock, blockWithoutBraces, atLeastOneBlockChanged, currBlock, listRewriteForBlock) || atLeastOneBlockChanged;
+						allStatementsWithRecursiveMethodInvocation, numTasksPerBlock, blockWithoutBraces, atLeastOneBlockChanged, currBlock, listRewriteForBlock) || atLeastOneBlockChanged;
 			}
 			if (!atLeastOneBlockChanged) {
 				createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_no_change_error, new String[] {fMethod.getElementName()}));
@@ -441,7 +441,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 	}
 
 	private boolean doBlockWork(final AST ast, final TextEditGroup editGroup, final ASTRewrite scratchRewriter,
-			Map<Integer, VariableDeclarationStatement> allTaskDeclStatements, Map<Statement, List<Integer>> statementsToTasks, Map<Integer, Integer> allTaskDeclFlags, final Map<Block, List<Statement>> allStatementsWithRecursiveMethodInvocation,
+			Map<Integer, VariableDeclarationStatement> allTaskDeclStatements, Map<Statement, List<Integer>> statementsToTasks, final Map<Block, List<Statement>> allStatementsWithRecursiveMethodInvocation,
 			final Map<Block, Integer> numTasksPerBlock, final Map<Block, Statement> blockWithoutBraces, boolean atLeastOneBlockChanged, Block currBlock, ListRewrite listRewriteForBlock) {
 
 		boolean isNewBlock= blockWithoutBraces.containsKey(currBlock);
