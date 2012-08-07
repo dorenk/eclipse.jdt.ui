@@ -176,9 +176,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		
 		createProcessorCount(newStatements);
 		
-		String pool= new String("ForkJoinPool pool = new ForkJoinPool(processorCount);"); //$NON-NLS-1$
-		ASTNode poolNode= fRewriter.createStringPlaceholder(pool, ASTNode.EXPRESSION_STATEMENT);
-		newStatements.add(poolNode);
+		createForkJoinPool(newStatements);
 		
 		VariableDeclarationFragment newTaskDeclFragment= ast.newVariableDeclarationFragment();
 		String taskInstanceName= "a" + nameForFJTaskSubtype; //$NON-NLS-1$
@@ -210,6 +208,12 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		ArrayList<TextEditGroup> group= new ArrayList<TextEditGroup>();
 		group.add(gd);
 		return group;
+	}
+
+	private void createForkJoinPool(List<ASTNode> newStatements) {
+		String pool= new String("ForkJoinPool pool = new ForkJoinPool(processorCount);"); //$NON-NLS-1$
+		ASTNode poolNode= fRewriter.createStringPlaceholder(pool, ASTNode.EXPRESSION_STATEMENT);
+		newStatements.add(poolNode);
 	}
 
 	private void createProcessorCount(List<ASTNode> newStatements) {
