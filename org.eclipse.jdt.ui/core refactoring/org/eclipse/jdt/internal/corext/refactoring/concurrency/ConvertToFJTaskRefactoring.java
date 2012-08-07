@@ -678,19 +678,13 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		Block baseCaseBlock= (Block) recursionBaseCaseBranch;
 		List<ASTNode> statementsInBaseCase= baseCaseBlock.statements();
 		ASTNode lastStatementInBaseCase= statementsInBaseCase.get(statementsInBaseCase.size() - 1 );
-		if (recursiveMethodReturnsVoid()) {
+		if (recursiveMethodReturnsVoid()) {  //TODO do i clear the whole block or no?
 			ExpressionStatement sequentialMethodInvocation= ast.newExpressionStatement(createSequentialMethodInvocation(ast));
 			ListRewrite listRewriteForBaseBlock= scratchRewriter.getListRewrite(baseCaseBlock, Block.STATEMENTS_PROPERTY);
 			listRewriteForBaseBlock.insertBefore(sequentialMethodInvocation, lastStatementInBaseCase, editGroup);
 		} else {
-			Assignment assignmentToResult= ast.newAssignment();
-			assignmentToResult.setLeftHandSide(ast.newSimpleName("result")); //$NON-NLS-1$
-			assignmentToResult.setRightHandSide(createSequentialMethodInvocation(ast));
-			ExpressionStatement newExpressionStatement= ast.newExpressionStatement(assignmentToResult);
-			
-			ListRewrite listRewriteForBaseBlock= scratchRewriter.getListRewrite(baseCaseBlock, Block.STATEMENTS_PROPERTY);
-			listRewriteForBaseBlock.insertBefore(newExpressionStatement, lastStatementInBaseCase, editGroup);
 			ReturnStatement newReturnResult= ast.newReturnStatement();
+			newReturnResult.setExpression(createSequentialMethodInvocation(ast));
 			scratchRewriter.replace(lastStatementInBaseCase, newReturnResult, editGroup);
 		}
 	}
@@ -882,18 +876,6 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			
 			recursiveActionSubtype.bodyDeclarations().add(newFieldDeclaration);
 		}
-		
-//		if (!recursiveMethodReturnsVoid()) {
-//			VariableDeclarationFragment newDeclarationFragment= ast.newVariableDeclarationFragment();
-//			newDeclarationFragment.setName(ast.newSimpleName("result")); //$NON-NLS-1$
-//			
-//			FieldDeclaration newFieldDeclaration= ast.newFieldDeclaration(newDeclarationFragment);
-//			newFieldDeclaration.setType((Type) ASTNode.copySubtree(ast, fMethodDeclaration.getReturnType2()));
-//			List<Modifier> modifiers= newFieldDeclaration.modifiers();
-//			modifiers.add(ast.newModifier(ModifierKeyword.PRIVATE_KEYWORD));
-//			
-//			recursiveActionSubtype.bodyDeclarations().add(newFieldDeclaration);
-//		}
 	}
 	
 	boolean recursiveMethodReturnsVoid() {
