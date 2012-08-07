@@ -375,11 +375,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		}
 		
 		MethodDeclaration computeMethod= ast.newMethodDeclaration();
-		computeMethod.setName(ast.newSimpleName("compute")); //$NON-NLS-1$
-		computeMethod.modifiers().add(ast.newModifier(ModifierKeyword.PROTECTED_KEYWORD));
-		if (!recursiveMethodReturnsVoid()) {
-			computeMethod.setReturnType2(getReturnType(ast));
-		}
+		initializeComputeMethod(ast, computeMethod);
 		
 		final TextEditGroup editGroup= new TextEditGroup(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_generate_compute);
 		
@@ -441,6 +437,14 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			e.printStackTrace();
 		}
 		recursiveActionSubtype.bodyDeclarations().add(computeMethod);
+	}
+
+	private void initializeComputeMethod(final AST ast, MethodDeclaration computeMethod) {
+		computeMethod.setName(ast.newSimpleName("compute")); //$NON-NLS-1$
+		computeMethod.modifiers().add(ast.newModifier(ModifierKeyword.PROTECTED_KEYWORD));
+		if (!recursiveMethodReturnsVoid()) {
+			computeMethod.setReturnType2(getReturnType(ast));
+		}
 	}
 
 	private boolean methodThrowsExceptions(RefactoringStatus result) {
