@@ -1,7 +1,7 @@
 package object_out;
 
 import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.RecursiveAction;
+import java.util.concurrent.RecursiveTask;
 
 public class TestBlockCombination4 {
 	
@@ -9,43 +9,40 @@ public class TestBlockCombination4 {
 		int processorCount = Runtime.getRuntime().availableProcessors();
 		ForkJoinPool pool = new ForkJoinPool(processorCount);
 		TryThisImpl aTryThisImpl = new TryThisImpl(x);
-		pool.invoke(aTryThisImpl);
-		return aTryThisImpl.result;
+		return pool.invoke(aTryThisImpl);
 	}
 
-	public class TryThisImpl extends RecursiveAction {
+	public class TryThisImpl extends RecursiveTask<Integer> {
 		private int x;
-		private int result;
 		private TryThisImpl(int x) {
 			this.x = x;
 		}
-		protected void compute() {
+		protected Integer compute() {
 			if (x < 10) {
-				result = tryThis(x);
-				return;
+				return tryThis_sequential(x);
 			} else {
 				if (x < 15) {
 					int x12;
 					TryThisImpl task1 = new TryThisImpl(x - 12);
 					TryThisImpl task2 = new TryThisImpl(x - 15);
 					invokeAll(task1, task2);
-					x12 = task1.result + task2.result;
-					result = x12;
-				} else {
-					result = 1 + tryThis(x - 1);
-				}
+					x12 = task1.getRawResult() + task2.getRawResult();
+					return x12;
+				} else
+					return 1 + tryThis_sequential(x - 1);
 			}
 		}
-		public int tryThis(int x) {
+		public int tryThis_sequential(int x) {
 			if (x < 0)
 				return 0;
 			else {
 				if (x < 15) {
 					int x12;
-					x12 = tryThis(x - 12) + tryThis(x - 15);
+					x12 = tryThis_sequential(x - 12)
+							+ tryThis_sequential(x - 15);
 					return x12;
 				} else
-					return 1 + tryThis(x - 1);
+					return 1 + tryThis_sequential(x - 1);
 			}
 		}
 	}
