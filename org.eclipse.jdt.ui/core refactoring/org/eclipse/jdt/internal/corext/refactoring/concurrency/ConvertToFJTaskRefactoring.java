@@ -370,9 +370,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 
 	private void createComputeMethod(TypeDeclaration recursiveActionSubtype, final AST ast, RefactoringStatus result) {
 		
-		List<Name> exceptionList= fMethodDeclaration.thrownExceptions();
-		if (exceptionList.size() > 0) {
-			createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_thrown_exception_error, new String[] {fMethod.getElementName()}));
+		if(methodThrowsExceptions(result)) {
 			return;
 		}
 		
@@ -443,6 +441,15 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			e.printStackTrace();
 		}
 		recursiveActionSubtype.bodyDeclarations().add(computeMethod);
+	}
+
+	private boolean methodThrowsExceptions(RefactoringStatus result) {
+		List<Name> exceptionList= fMethodDeclaration.thrownExceptions();
+		if (exceptionList.size() > 0) {
+			createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_thrown_exception_error, new String[] {fMethod.getElementName()}));
+			return true;
+		}
+		return false;
 	}
 
 	private boolean doBlockWork(final AST ast, final TextEditGroup editGroup, final ASTRewrite scratchRewriter,
