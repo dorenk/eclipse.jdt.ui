@@ -416,7 +416,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				});
 				for (Block currBlock : nonRecursiveBlocks) {
 					ListRewrite listRewriteForBlock= scratchRewriter.getListRewrite(currBlock, Block.STATEMENTS_PROPERTY);
-					createLastReturnNoFlags(ast, editGroup, scratchRewriter, listRewriteForBlock, (Statement) currBlock.statements().get(currBlock.statements().size() - 1), true, currBlock, blockWithoutBraces);
+//					createLastReturnNoFlags(ast, editGroup, scratchRewriter, listRewriteForBlock, (Statement) currBlock.statements().get(currBlock.statements().size() - 1), true, currBlock, blockWithoutBraces);
 				}
 			}
 			tryApplyEdits(ast, computeMethod, scratchRewriter);
