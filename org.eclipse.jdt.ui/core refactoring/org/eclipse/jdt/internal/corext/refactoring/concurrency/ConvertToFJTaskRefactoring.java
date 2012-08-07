@@ -247,13 +247,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		AST ast= root.getAST();
 		TypeDeclaration recursiveActionSubtype= ast.newTypeDeclaration();
 		recursiveActionSubtype.setName(ast.newSimpleName(nameForFJTaskSubtype));
-		if (recursiveMethodReturnsVoid()) {
-			recursiveActionSubtype.setSuperclassType(ast.newSimpleType(ast.newSimpleName("RecursiveAction")));	//$NON-NLS-1$
-		} else {
-			ParameterizedType superClass= ast.newParameterizedType(ast.newSimpleType(ast.newSimpleName("RecursiveTask"))); //$NON-NLS-1$
-			superClass.typeArguments().add(getReturnType(ast));
-			recursiveActionSubtype.setSuperclassType(superClass);
-		}
+		setSuperClass(ast, recursiveActionSubtype);
 		ModifierRewrite.create(fRewriter, recursiveActionSubtype).copyAllModifiers(fMethodDeclaration, gd);
 		
 		createFields(recursiveActionSubtype, ast);
@@ -271,6 +265,16 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		ArrayList<TextEditGroup> group= new ArrayList<TextEditGroup>();
 		group.add(gd);
 		return group;
+	}
+
+	private void setSuperClass(AST ast, TypeDeclaration recursiveActionSubtype) {
+		if (recursiveMethodReturnsVoid()) {
+			recursiveActionSubtype.setSuperclassType(ast.newSimpleType(ast.newSimpleName("RecursiveAction")));	//$NON-NLS-1$
+		} else {
+			ParameterizedType superClass= ast.newParameterizedType(ast.newSimpleType(ast.newSimpleName("RecursiveTask"))); //$NON-NLS-1$
+			superClass.typeArguments().add(getReturnType(ast));
+			recursiveActionSubtype.setSuperclassType(superClass);
+		}
 	}
 
 	private Type getReturnType(AST ast) {
