@@ -200,14 +200,11 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		newStatements.add(declTask);
 		
 		String poolInvoke= "pool.invoke(" + taskInstanceName +");"; //$NON-NLS-1$ //$NON-NLS-2$
+		if (!recursiveMethodReturnsVoid()) {
+			poolInvoke= "return " + poolInvoke; //$NON-NLS-1$
+		}
 		ASTNode poolInvokeNode= fRewriter.createStringPlaceholder(poolInvoke, ASTNode.EXPRESSION_STATEMENT);
 		newStatements.add(poolInvokeNode);
-		
-		if (!recursiveMethodReturnsVoid()) {
-			String returnSt= "return " + taskInstanceName + ".result;"; //$NON-NLS-1$ //$NON-NLS-2$
-			ASTNode returnNode= fRewriter.createStringPlaceholder(returnSt, ASTNode.EXPRESSION_STATEMENT);
-			newStatements.add(returnNode);
-		}
 		
 		fRewriter.replace(originalBody, newMethodBody, gd);
 		
