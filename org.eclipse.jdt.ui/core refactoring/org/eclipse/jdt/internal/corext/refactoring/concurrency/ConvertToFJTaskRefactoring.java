@@ -164,7 +164,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		
 	}
 	
-	private Collection<TextEditGroup> reimplementOriginalRecursiveFunction() {  //TODO extract
+	private Collection<TextEditGroup> reimplementOriginalRecursiveFunction() {
 		
 		TextEditGroup gd= new TextEditGroup(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_recursive_method);
 		
@@ -180,6 +180,23 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		
 		String FJTaskSubtypeName= createTaskSubtype(newStatements, ast);
 		
+		createInvocationOfPool(newStatements, FJTaskSubtypeName);
+		
+		fRewriter.replace(originalBody, newMethodBody, gd);
+		
+		ArrayList<TextEditGroup> group= new ArrayList<TextEditGroup>();
+		group.add(gd);
+		return group;
+	}
+
+	private void createInvocationOfPool(List<ASTNode> newStatements, String taskInstanceName) {
+		String poolInvoke= "pool.invoke(" + taskInstanceName +");"; //$NON-NLS-1$ //$NON-NLS-2$
+		if (!recursiveMethodReturnsVoid()) {
+			poolInvoke= "return " + poolInvoke; //$NON-NLS-1$
+		}
+		ASTNode poolInvokeNode= fRewriter.createStringPlaceholder(poolInvoke, ASTNode.EXPRESSION_STATEMENT);
+		newStatements.add(poolInvokeNode);
+	}
 
 	private String createTaskSubtype(List<ASTNode> newStatements, AST ast) {
 		VariableDeclarationFragment newTaskDeclFragment= ast.newVariableDeclarationFragment();
