@@ -395,8 +395,8 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			while (blockIter.hasNext()) {
 				Block currBlock= blockIter.next();
 				ListRewrite listRewriteForBlock= scratchRewriter.getListRewrite(currBlock, Block.STATEMENTS_PROPERTY);
-				atLeastOneBlockChanged= doBlockWork(ast, result, editGroup, scratchRewriter, allTaskDeclStatements, statementsToTasks,
-						allTaskDeclFlags, allStatementsWithRecursiveMethodInvocation, allPartialComputationsNames, allTypesOfComputations, numTasksPerBlock, blockWithoutBraces, statementFlags, atLeastOneBlockChanged, currBlock, listRewriteForBlock) || atLeastOneBlockChanged;
+				atLeastOneBlockChanged= doBlockWork(ast, editGroup, scratchRewriter, allTaskDeclStatements, statementsToTasks,
+						allTaskDeclFlags, allStatementsWithRecursiveMethodInvocation, numTasksPerBlock, blockWithoutBraces, atLeastOneBlockChanged, currBlock, listRewriteForBlock) || atLeastOneBlockChanged;
 			}
 			if (!atLeastOneBlockChanged) {
 				createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_no_change_error, new String[] {fMethod.getElementName()}));
@@ -428,10 +428,10 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		recursiveActionSubtype.bodyDeclarations().add(computeMethod);
 	}
 
-	private boolean doBlockWork(final AST ast, RefactoringStatus result, final TextEditGroup editGroup, final ASTRewrite scratchRewriter,
-			Map<Integer, VariableDeclarationStatement> allTaskDeclStatements, Map<Statement, List<Integer>> statementsToTasks, Map<Integer, Integer> allTaskDeclFlags, final Map<Block, List<Statement>> allStatementsWithRecursiveMethodInvocation, final Map<Statement, List<String>> allPartialComputationsNames,
-			final Map<Statement, List<String>> allTypesOfComputations, final Map<Block, Integer> numTasksPerBlock, final Map<Block, Statement> blockWithoutBraces, final Map<Statement, Integer> statementFlags, boolean atLeastOneBlockChanged, Block currBlock, ListRewrite listRewriteForBlock) {
-		
+	private boolean doBlockWork(final AST ast, final TextEditGroup editGroup, final ASTRewrite scratchRewriter,
+			Map<Integer, VariableDeclarationStatement> allTaskDeclStatements, Map<Statement, List<Integer>> statementsToTasks, Map<Integer, Integer> allTaskDeclFlags, final Map<Block, List<Statement>> allStatementsWithRecursiveMethodInvocation,
+			final Map<Block, Integer> numTasksPerBlock, final Map<Block, Statement> blockWithoutBraces, boolean atLeastOneBlockChanged, Block currBlock, ListRewrite listRewriteForBlock) {
+
 		boolean isNewBlock= blockWithoutBraces.containsKey(currBlock);
 		
 		if (allStatementsWithRecursiveMethodInvocation.get(currBlock).size() >= 1 && !numTasksPerBlock.get(currBlock).equals(Integer.valueOf(1))) {
@@ -449,11 +449,9 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			Statement lastStatementWithRecursiveCall= recursiveList.get(recursiveList.size() - 1);
 			Statement currStatement= null;
 			List<ASTNode> statementsToAdd= new ArrayList<ASTNode>();
-			int flags= 0;
 			
 			for (int listIndex= 0; listIndex < recursiveList.size(); listIndex++) {
 				currStatement= recursiveList.get(listIndex);
-				flags= statementFlags.get(currStatement).intValue();
 				List<Integer> taskList= statementsToTasks.get(currStatement);
 				for (int i= 0; i < taskList.size(); i++) {
 					Integer taskNum= taskList.get(i);
@@ -461,38 +459,34 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 					replaceWithTaskDeclStatement(allTaskDeclStatements.get(taskNum), currStatement, allTaskDeclFlags.get(taskNum).intValue(), scratchRewriter, editGroup, listRewriteForBlock, isNotNewBlock, i == taskList.size() - 1);
 				}
 				
-				Statement reverseCurrStatement= recursiveList.get(recursiveList.size() - listIndex - 1);
-				List<Integer> reverseTaskList= statementsToTasks.get(reverseCurrStatement);
-				int reverseFlags= statementFlags.get(reverseCurrStatement).intValue();
-				if (allPartialComputationsNames.containsKey(reverseCurrStatement)) {
-					createPartialComputations(ast, editGroup, scratchRewriter, allPartialComputationsNames.get(reverseCurrStatement), allTypesOfComputations.get(reverseCurrStatement), listRewriteForBlock, reverseCurrStatement, isNotNewBlock, reverseTaskList, reverseFlags, statementsToAdd);
+				Statement reverseStatement= recursiveList.get(recursiveList.size() - listIndex - 1);
+				List<Integer> reverseTaskList= statementsToTasks.get(reverseStatement);
+				if (!(reverseStatement instanceof ReturnStatement)) {
+					createPartialComputations(ast, editGroup, scratchRewriter, listRewriteForBlock, reverseStatement, isNotNewBlock, reverseTaskList, statementsToAdd);
 				}
 			}
 			if (!recursiveMethodReturnsVoid()) {
 				if (lastStatementWithRecursiveCall instanceof ReturnStatement) {
-					if (flags == 1 || flags == 2 || flags == 7) {
-						int errorFlag= createLastReturnStatement(ast, result, editGroup, scratchRewriter, listRewriteForBlock, lastStatementWithRecursiveCall, isNotNewBlock, statementsToTasks.get(lastStatementWithRecursiveCall), flags);
-						if (errorFlag == -1) {
-							return false;  //TODO Check this
-						}
-					}
-				} else {
+					createLastReturnStatement(ast, editGroup, scratchRewriter, listRewriteForBlock, lastStatementWithRecursiveCall, isNotNewBlock, statementsToTasks.get(lastStatementWithRecursiveCall));
+				} /*
+				else {
 					if (isNotNewBlock) {
 						createLastReturnNoFlags(ast, editGroup, scratchRewriter, listRewriteForBlock, (Statement) currBlock.statements().get(currBlock.statements().size() - 1), isNotNewBlock, currBlock, blockWithoutBraces);
 					} else {
 						createLastReturnNoFlags(ast, editGroup, scratchRewriter, listRewriteForBlock, blockWithoutBraces.get(currBlock), isNotNewBlock, currBlock, blockWithoutBraces);
 					}
 				}
+				*/
 			}
 			if (statementsToAdd.size() > 0) {
 				for (int i= 0; i < statementsToAdd.size(); i++) {
-					if (!(flags == 1 || flags == 2 || flags == 7)) {
+					if (!(lastStatementWithRecursiveCall instanceof ReturnStatement)) {
 						listRewriteForBlock.insertAfter(statementsToAdd.get(i), lastStatementWithRecursiveCall, editGroup);
 					}
 				}
 			}
 			if (isNotNewBlock) {
-				if (flags == 1 || flags == 2 || flags == 7) {
+				if (lastStatementWithRecursiveCall instanceof ReturnStatement) {
 					listRewriteForBlock.insertBefore(ast.newExpressionStatement(forkJoinInvocation), lastStatementWithRecursiveCall, editGroup);
 				} else {
 					listRewriteForBlock.insertAfter(ast.newExpressionStatement(forkJoinInvocation), lastStatementWithRecursiveCall, editGroup);
@@ -502,7 +496,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			}
 			if (statementsToAdd.size() > 0) {
 				for (int i= 0; i < statementsToAdd.size(); i++) {
-					if (flags == 1 || flags == 2 || flags == 7) {
+					if (lastStatementWithRecursiveCall instanceof ReturnStatement) {
 						listRewriteForBlock.insertBefore(statementsToAdd.get(i), lastStatementWithRecursiveCall, editGroup);
 					}
 				}
@@ -510,7 +504,6 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		}
 		else if (!recursiveMethodReturnsVoid()) {
 			if (!isNewBlock) {
-//				createLastReturnNoFlags(ast, editGroup, scratchRewriter, listRewriteForBlock, (Statement) currBlock.statements().get(currBlock.statements().size() - 1), !isNewBlock, currBlock, blockWithoutBraces);
 				Block newBlock= (Block) ASTNode.copySubtree(ast, currBlock);
 				newBlock.accept(new ASTVisitor() {
 					@Override
@@ -528,7 +521,6 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				});
 				scratchRewriter.replace(currBlock, newBlock, editGroup);
 			} else {
-//				createLastReturnNoFlags(ast, editGroup, scratchRewriter, listRewriteForBlock, blockWithoutBraces.get(currBlock), !isNewBlock, currBlock, blockWithoutBraces);
 				Statement newStatement= (Statement) ASTNode.copySubtree(ast, blockWithoutBraces.get(currBlock));
 				newStatement.accept(new ASTVisitor() {
 					@Override
