@@ -600,22 +600,6 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		}
 	}
 
-	private void createLastReturnNoFlags(AST ast, final TextEditGroup editGroup, final ASTRewrite scratchRewriter, ListRewrite listRewriteForBlock, Statement lastStatementInBlock,
-			boolean isNotNewBlock, Block currBlock, Map<Block, Statement> blockWithoutBraces) {
-		Assignment assignToResult= ast.newAssignment();
-		assignToResult.setLeftHandSide(ast.newSimpleName("result")); //$NON-NLS-1$
-		if (!(lastStatementInBlock instanceof ReturnStatement)) {
-			return; //do nothing
-		}
-		assignToResult.setRightHandSide((Expression) ASTNode.copySubtree(ast, ((ReturnStatement) lastStatementInBlock).getExpression()));
-		if (isNotNewBlock) {
-			scratchRewriter.replace(lastStatementInBlock, ast.newExpressionStatement(assignToResult), editGroup);
-		} else {
-			scratchRewriter.replace(blockWithoutBraces.get(currBlock), currBlock, editGroup);
-			listRewriteForBlock.insertLast(ast.newExpressionStatement(assignToResult), editGroup);
-		}
-	}
-
 	private void createPartialComputations(final AST ast, final TextEditGroup editGroup, final ASTRewrite scratchRewriter, ListRewrite listRewriteForBlock, Statement currStatement,
 			boolean isNotNewBlock, final List<Integer> taskList, List<ASTNode> statementsToAdd) {
 		if (currStatement instanceof VariableDeclarationStatement) {	
