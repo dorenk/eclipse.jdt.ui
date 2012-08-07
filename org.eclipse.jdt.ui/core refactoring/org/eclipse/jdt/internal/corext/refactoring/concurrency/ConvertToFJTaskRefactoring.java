@@ -340,6 +340,9 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		MethodDeclaration computeMethod= ast.newMethodDeclaration();
 		computeMethod.setName(ast.newSimpleName("compute")); //$NON-NLS-1$
 		computeMethod.modifiers().add(ast.newModifier(ModifierKeyword.PROTECTED_KEYWORD));
+		if (!recursiveMethodReturnsVoid()) {
+			computeMethod.setReturnType2(ast.newSimpleType(ast.newSimpleName(getReturnTypeName())));
+		}
 		
 		final TextEditGroup editGroup= new TextEditGroup(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_generate_compute);
 		
