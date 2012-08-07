@@ -408,11 +408,10 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		final int[] taskNumber= new int[] {0};
 		final int[] switchStatementsFound= new int[] {0};
 		final Map<Block, Integer> numTasksPerBlock= new HashMap<Block, Integer>();  //Can determine how many tasks belong to this block easily
-		final Map<ASTNode, Block> locationOfNewBlocks= new HashMap<ASTNode, Block>();  //Can determine where the new block was created so as to see if already has been created (don't create a new one at "same" place)
 		final Map<Block, Statement> blockWithoutBraces= new HashMap<Block, Statement>();  //Can determine if a block does not have braces so as to use when inserting things to it
 		final List<Block> allTheBlocks= new ArrayList<Block>();
-		fMethodDeclaration.accept(new MethodVisitor(allTaskDeclStatements, statementsToTasks, locationOfNewBlocks, scratchRewriter, numTasksPerBlock, taskNumber,
-				blockWithoutBraces, allStatementsWithRecursiveMethodInvocation, allTheBlocks, switchStatementsFound, ast));
+		fMethodDeclaration.accept(new MethodVisitor(allTaskDeclStatements, statementsToTasks, scratchRewriter, numTasksPerBlock, taskNumber, blockWithoutBraces,
+				allStatementsWithRecursiveMethodInvocation, allTheBlocks, switchStatementsFound, ast));
 		try {
 			if (switchStatementsFound[0] > 0) {  //TODO update at all?
 				createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_switch_statement_error, new String[] {fMethod.getElementName()}));
@@ -1208,11 +1207,10 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		private final int[] fSwitchStatementsFound;
 		private final AST fAst;
 
-		private MethodVisitor(Map<Integer, VariableDeclarationStatement> allTaskDeclStatements, Map<Statement, List<Integer>> statementsToTasks, Map<ASTNode, Block> locationOfNewBlocks,
-				ASTRewrite scratchRewriter, Map<Block, Integer> numTasksPerBlock, int[] taskNumber, Map<Block, Statement> blockWithoutBraces, Map<Block, List<Statement>> allStatementsWithRecursiveMethodInvocation, List<Block> allTheBlocks, int[] switchStatementsFound, AST ast) {
+		private MethodVisitor(Map<Integer, VariableDeclarationStatement> allTaskDeclStatements, Map<Statement, List<Integer>> statementsToTasks, ASTRewrite scratchRewriter,
+				Map<Block, Integer> numTasksPerBlock, int[] taskNumber, Map<Block, Statement> blockWithoutBraces, Map<Block, List<Statement>> allStatementsWithRecursiveMethodInvocation, List<Block> allTheBlocks, int[] switchStatementsFound, AST ast) {
 			fAllTaskDeclStatements= allTaskDeclStatements;
 			fStatementsToTasks= statementsToTasks;
-			fLocationOfNewBlocks= locationOfNewBlocks;
 			fScratchRewriter= scratchRewriter;
 			fNumTasksPerBlock= numTasksPerBlock;
 			fTaskNumber= taskNumber;
@@ -1221,6 +1219,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			fAllTheBlocks= allTheBlocks;
 			fSwitchStatementsFound= switchStatementsFound;
 			fAst= ast;
+			fLocationOfNewBlocks= new HashMap<ASTNode, Block>();
 		}
 
 		@Override
