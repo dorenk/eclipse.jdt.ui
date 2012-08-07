@@ -246,8 +246,10 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		
 		AST ast= root.getAST();
 		TypeDeclaration recursiveActionSubtype= ast.newTypeDeclaration();
+		
 		recursiveActionSubtype.setName(ast.newSimpleName(nameForFJTaskSubtype));
 		setSuperClass(ast, recursiveActionSubtype);
+		
 		ModifierRewrite.create(fRewriter, recursiveActionSubtype).copyAllModifiers(fMethodDeclaration, gd);
 		
 		createFields(recursiveActionSubtype, ast);
@@ -260,7 +262,6 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		
 		ChildListPropertyDescriptor descriptor= getBodyDeclarationsProperty(fMethodDeclaration.getParent());
 		fRewriter.getListRewrite(fMethodDeclaration.getParent(), descriptor).insertAfter(recursiveActionSubtype, fMethodDeclaration, gd);
-		
 		
 		ArrayList<TextEditGroup> group= new ArrayList<TextEditGroup>();
 		group.add(gd);
@@ -329,6 +330,12 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		}
 		
 		ASTNode copyRecursiveMethod= ASTNode.copySubtree(ast, fMethodDeclaration);
+		changeMethodCallsToSequential(copyRecursiveMethod);
+		recursiveActionSubtype.bodyDeclarations().add(copyRecursiveMethod);
+		
+	}
+
+	private void changeMethodCallsToSequential(ASTNode copyRecursiveMethod) {
 		final SimpleName methodName= ((MethodDeclaration) copyRecursiveMethod).getName();
 		final String newIdentifier= methodName.getIdentifier() + "_sequential"; //$NON-NLS-1$
 		copyRecursiveMethod.accept(new ASTVisitor() {
@@ -342,8 +349,6 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			}
 		});
 		methodName.setIdentifier(newIdentifier);
-		recursiveActionSubtype.bodyDeclarations().add(copyRecursiveMethod);
-		
 	}
 
 	private void checkIfCommentWarning(RefactoringStatus result) {
