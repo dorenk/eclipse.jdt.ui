@@ -622,75 +622,20 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		}
 	}
 
-	private void createPartialComputations(final AST ast, final TextEditGroup editGroup, final ASTRewrite scratchRewriter, final List<String> partialComputationsNames,
-			final List<String> typesOfComputations, ListRewrite listRewriteForBlock, Statement currStatement, boolean isNotNewBlock, final List<Integer> taskList, int flags, List<ASTNode> statementsToAdd) {
-		if (currStatement instanceof VariableDeclarationStatement) {
-			if (flags == 3) {
-				VariableDeclarationFragment varFragment= ((VariableDeclarationFragment)(ASTNode.copySubtree(ast, ((VariableDeclarationFragment)(((VariableDeclarationStatement) currStatement).fragments().get(0))))));
-				InfixExpression infixExpression= (InfixExpression) varFragment.getInitializer();
-				final int[] taskNum= {0};
-				infixExpression.accept(new ConvertMethodCallToTask(taskList, ast, taskNum, scratchRewriter, editGroup));
+	private void createPartialComputations(final AST ast, final TextEditGroup editGroup, final ASTRewrite scratchRewriter, ListRewrite listRewriteForBlock, Statement currStatement,
+			boolean isNotNewBlock, final List<Integer> taskList, List<ASTNode> statementsToAdd) {
+		if (currStatement instanceof VariableDeclarationStatement) {	
+			VariableDeclarationFragment varFragment= ((VariableDeclarationFragment)(ASTNode.copySubtree(ast, ((VariableDeclarationFragment)(((VariableDeclarationStatement) currStatement).fragments().get(0))))));
+			final int[] taskNum= {0};
+			varFragment.accept(new ConvertMethodCallToTask(taskList, ast, taskNum, scratchRewriter, editGroup));
 				
-				addVariableDeclarationStatement(ast, editGroup, listRewriteForBlock, isNotNewBlock, statementsToAdd, varFragment);
-			} else if (flags == 4) {
-				VariableDeclarationFragment varFragment= ((VariableDeclarationFragment)(ASTNode.copySubtree(ast, ((VariableDeclarationFragment)(((VariableDeclarationStatement) currStatement).fragments().get(0))))));
-				MethodInvocation methodInvocation= (MethodInvocation) varFragment.getInitializer();
-				final int[] taskNum= {0};
-				
-				visitMethodArguments(ast, editGroup, scratchRewriter, taskList, methodInvocation, taskNum);
-				
-				addVariableDeclarationStatement(ast, editGroup, listRewriteForBlock, isNotNewBlock, statementsToAdd, varFragment);
-			} else {
-				for (int i= partialComputationsNames.size() - 1; i >= 0 ; ) {
-					String varStatement= typesOfComputations.get(i) + " " + partialComputationsNames.get(i) + " = task" + taskList.get(i) + ".result;"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-					VariableDeclarationStatement variableStatement= (VariableDeclarationStatement) scratchRewriter.createStringPlaceholder(varStatement, ASTNode.VARIABLE_DECLARATION_STATEMENT);
-					if (isNotNewBlock) {
-						statementsToAdd.add(variableStatement);
-					} else {
-						listRewriteForBlock.insertLast(variableStatement, editGroup);
-					}
-					i--;
-				}
-			}
+			addVariableDeclarationStatement(ast, editGroup, listRewriteForBlock, isNotNewBlock, statementsToAdd, varFragment);
 		} else if (currStatement instanceof ExpressionStatement) {
-			if (flags == 5) {
-				Expression expr= ((Expression) (ASTNode.copySubtree(ast, ((ExpressionStatement) currStatement).getExpression())));
-				InfixExpression infixExpression= (InfixExpression) ((Assignment) expr).getRightHandSide();
-				final int[] taskNum= {0};
-				infixExpression.accept(new ConvertMethodCallToTask(taskList, ast, taskNum, scratchRewriter, editGroup));
+			Expression expr= ((Expression) (ASTNode.copySubtree(ast, ((ExpressionStatement) currStatement).getExpression())));
+			final int[] taskNum= {0};
+			expr.accept(new ConvertMethodCallToTask(taskList, ast, taskNum, scratchRewriter, editGroup));
 				
-				addExpressionStatement(ast, editGroup, listRewriteForBlock, isNotNewBlock, statementsToAdd, expr);
-			} else if (flags == 6) {
-				Expression expr= ((Expression) (ASTNode.copySubtree(ast, ((ExpressionStatement) currStatement).getExpression())));
-				MethodInvocation methodInvocation= (MethodInvocation) ((Assignment) expr).getRightHandSide();
-				final int[] taskNum= {0};
-				
-				visitMethodArguments(ast, editGroup, scratchRewriter, taskList, methodInvocation, taskNum);
-				
-				addExpressionStatement(ast, editGroup, listRewriteForBlock, isNotNewBlock, statementsToAdd, expr);
-			} else {
-				for (int i= partialComputationsNames.size() - 1; i >= 0 ; ) {
-					String exprStatement= partialComputationsNames.get(i) + " = task" + taskList.get(i) + ".result;"; //$NON-NLS-1$ //$NON-NLS-2$
-					ExpressionStatement expressionStatement= (ExpressionStatement) scratchRewriter.createStringPlaceholder(exprStatement, ASTNode.EXPRESSION_STATEMENT);
-					if (isNotNewBlock) {
-						statementsToAdd.add(expressionStatement);
-					} else {
-						listRewriteForBlock.insertLast(expressionStatement, editGroup);
-					}
-					i--;
-				}
-			}
-		}
-	}
-
-	private void visitMethodArguments(final AST ast, final TextEditGroup editGroup, final ASTRewrite scratchRewriter, final List<Integer> taskList, MethodInvocation methodInvocation,
-			final int[] taskNum) {
-		List<Expression> methodArgList= methodInvocation.arguments();
-		for (int i= 0; i < methodArgList.size(); i++) {
-			if (taskNum[0] == taskList.size()) {
-				break;
-			}
-			methodArgList.get(i).accept(new ConvertMethodCallToTask(taskList, ast, taskNum, scratchRewriter, editGroup));
+			addExpressionStatement(ast, editGroup, listRewriteForBlock, isNotNewBlock, statementsToAdd, expr);
 		}
 	}
 
