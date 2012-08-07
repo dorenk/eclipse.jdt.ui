@@ -1224,8 +1224,6 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				VariableDeclarationStatement taskDeclStatement= createTaskDeclaration(methodCall);
 				int taskDeclFlag= 1;
 				
-				List<String> partialComputationsNames= new ArrayList<String>();  //TODO make string
-				List<String> typesOfComputations= new ArrayList<String>();
 				Block myBlock= null;
 				Statement parentOfMethodCall= findParentStatement(methodCall);
 				if (parentOfMethodCall == null) {
@@ -1239,8 +1237,6 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 					if (parentOfMethodCall instanceof VariableDeclarationStatement) {
 						VariableDeclarationStatement varDeclaration= (VariableDeclarationStatement) parentOfMethodCall;
 						VariableDeclarationFragment varFragment= (VariableDeclarationFragment) varDeclaration.fragments().get(0);
-						partialComputationsNames.add(varFragment.getName().getIdentifier());
-						typesOfComputations.add(varDeclaration.getType().toString());
 						ASTNode tempNode= parentOfMethodCall.getParent();
 						if (tempNode instanceof IfStatement) {
 							myBlock= ifStatementWork(myBlock, parentOfMethodCall, tempNode);
@@ -1266,9 +1262,6 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 						Expression expressionContainer= exprStatement.getExpression();
 						if (expressionContainer instanceof Assignment) {
 							Assignment assignment= (Assignment) expressionContainer;
-							Expression leftHandSide= assignment.getLeftHandSide();
-							partialComputationsNames.add(leftHandSide.toString());
-							typesOfComputations.add(leftHandSide.resolveTypeBinding().getName());
 							ASTNode tempNode= parentOfMethodCall.getParent();
 							if (tempNode instanceof IfStatement) {
 								myBlock= ifStatementWork(myBlock, parentOfMethodCall, tempNode);
