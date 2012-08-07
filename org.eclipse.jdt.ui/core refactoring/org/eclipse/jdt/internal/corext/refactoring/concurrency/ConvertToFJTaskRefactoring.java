@@ -1231,7 +1231,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 					return false;
 				} else if (SwitchStatement.class.isInstance(parentOfMethodCall.getParent())) {
 					fSwitchStatementsFound[0]++;  //TODO update
-					return false;
+					return true;
 				} else if (!recursiveMethodReturnsVoid()) {
 					if (parentOfMethodCall instanceof VariableDeclarationStatement) {
 						ASTNode tempNode= parentOfMethodCall.getParent();
