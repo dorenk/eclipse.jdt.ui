@@ -390,11 +390,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		
 		replaceBaseCaseCheckWithSequentialThreshold(editGroup, recursionBaseCaseBranch, scratchRewriter, sequentialThresholdCheck);
 		
-		if (recursionBaseCaseBranch instanceof Block) {
-			computeBaseCaseStatements(ast, editGroup, recursionBaseCaseBranch, scratchRewriter, true);
-		} else {
-			computeBaseCaseStatements(ast, editGroup, recursionBaseCaseBranch, scratchRewriter, false);
-		}
+		computeBaseCaseStatements(ast, editGroup, recursionBaseCaseBranch, scratchRewriter);
 		
 		final Map<Integer, VariableDeclarationStatement> allTaskDeclStatements= new HashMap<Integer, VariableDeclarationStatement>();
 		final Map<Statement, List<Integer> > statementsToTasks= new HashMap<Statement, List<Integer> >();
@@ -666,10 +662,12 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		}
 	}
 
-	private void computeBaseCaseStatements(AST ast, TextEditGroup editGroup, Statement recursionBaseCaseBranch, ASTRewrite scratchRewriter, boolean isBlock) {
+	private void computeBaseCaseStatements(AST ast, TextEditGroup editGroup, Statement recursionBaseCaseBranch, ASTRewrite scratchRewriter) {
 		Block baseCaseBlock;
-		if (isBlock) {
+		boolean isBlock= false;
+		if (recursionBaseCaseBranch instanceof Block) {
 			baseCaseBlock= (Block) recursionBaseCaseBranch;
+			isBlock= true;
 		} else {
 			baseCaseBlock= ast.newBlock();
 		}
