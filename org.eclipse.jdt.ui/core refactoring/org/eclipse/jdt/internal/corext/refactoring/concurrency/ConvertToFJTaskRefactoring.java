@@ -1222,9 +1222,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		@Override
 		public boolean visit(MethodInvocation methodCall) {
 			
-			IMethodBinding bindingForMethodCall= methodCall.resolveMethodBinding();
-			IMethodBinding bindingForMethodDeclaration= fMethodDeclaration.resolveBinding();
-			if (bindingForMethodCall.isEqualTo(bindingForMethodDeclaration)) {
+			if (isRecursiveMethod(methodCall)) {
 				VariableDeclarationStatement taskDeclStatement= createTaskDeclaration(methodCall);
 				
 				Block myBlock= null;
@@ -1305,9 +1303,11 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			return true;
 		}
 
-		private boolean isMethodDeclarationEqualTo(Expression exprTemp) {
-			boolean bindingsMatch= ((MethodInvocation) exprTemp).resolveMethodBinding().equals(fMethodDeclaration.resolveBinding());
-			return bindingsMatch;
+		private boolean isRecursiveMethod(MethodInvocation methodCall) {
+			IMethodBinding bindingForMethodCall= methodCall.resolveMethodBinding();
+			IMethodBinding bindingForMethodDeclaration= fMethodDeclaration.resolveBinding();
+			boolean isRecursiveMethod= bindingForMethodCall.isEqualTo(bindingForMethodDeclaration);
+			return isRecursiveMethod;
 		}
 
 		private void populateAllMaps(Block myBlock, Statement parentOfMethodCall, VariableDeclarationStatement taskDeclStatement) {
