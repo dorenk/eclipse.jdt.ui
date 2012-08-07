@@ -278,13 +278,13 @@ public class ConvertToFJTaskTests extends AbstractSelectionTestCase {
 		invalidTest("resolveBinding");
 	}
 	
-//	public void testIfStatementWithoutBraces() throws Exception {
-//		invalidTest("grayCheckHierarchy");
-//	}
+	public void testIfStatementWithoutBraces() throws Exception {
+		invalidTest("grayCheckHierarchy");
+	}
 	
-//	public void testOnlyOneCall() throws Exception {
-//		invalidTest("yesterday");
-//	}
+	public void testOnlyOneCall() throws Exception {
+		invalidTest("yesterday");
+	}
 	
 	public void testAbstractMethod() throws Exception {
 		invalidTest("tomorrow");
@@ -294,9 +294,9 @@ public class ConvertToFJTaskTests extends AbstractSelectionTestCase {
 		invalidTest("today");
 	}
 	
-//	public void testUnavailableOperation() throws Exception {
-//		invalidTest("threeDaysIntoFuture");
-//	}
+	public void testUnavailableOperation() throws Exception {
+		invalidTest("threeDaysIntoFuture");
+	}
 	
 	public void testThrowsException() throws Exception {
 		invalidTest("run");
