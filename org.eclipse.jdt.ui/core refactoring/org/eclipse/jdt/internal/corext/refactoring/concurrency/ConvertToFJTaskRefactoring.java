@@ -293,10 +293,6 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		if (fMethodDeclaration.getBody() != null) {
 			checkIfCommentWarning(result);
 		}
-		List<Name> exceptionList= fMethodDeclaration.thrownExceptions();
-		if (exceptionList.size() > 0) {
-			createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_thrown_exception_error, new String[] {fMethod.getElementName()}));
-		}
 		
 		ASTNode copyRecursiveMethod= ASTNode.copySubtree(ast, fMethodDeclaration);
 		final SimpleName methodName= ((MethodDeclaration) copyRecursiveMethod).getName();
@@ -334,6 +330,12 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 	}
 
 	private void createComputeMethod(TypeDeclaration recursiveActionSubtype, final AST ast, RefactoringStatus result) {
+		
+		List<Name> exceptionList= fMethodDeclaration.thrownExceptions();
+		if (exceptionList.size() > 0) {
+			createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_thrown_exception_error, new String[] {fMethod.getElementName()}));
+			return;
+		}
 		
 		MethodDeclaration computeMethod= ast.newMethodDeclaration();
 		computeMethod.setName(ast.newSimpleName("compute")); //$NON-NLS-1$
