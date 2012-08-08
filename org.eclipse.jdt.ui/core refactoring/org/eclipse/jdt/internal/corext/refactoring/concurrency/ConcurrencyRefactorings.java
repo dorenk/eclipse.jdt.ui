@@ -49,7 +49,7 @@ public final class ConcurrencyRefactorings extends NLS {
 	public static String ConvertToFJTaskRefactoring_check_preconditions;
 	public static String ConvertToFJTaskRefactoring_task_name;
 	public static String ConvertToFJTaskRefactoring_recursive_method;
-	public static String ConvertToFJTaskRefactoring_recursive_action;
+	public static String ConvertToFJTaskRefactoring_recursive_subtype;
 	public static String ConvertToFJTaskRefactoring_generate_compute;
 	public static String ConvertToFJTaskRefactoring_recursion_error;
 	public static String ConvertToFJTaskRefactoring_scenario_error;
@@ -73,6 +73,7 @@ public final class ConcurrencyRefactorings extends NLS {
 	public static String ConvertToFJTaskRefactoring_multiple_block_error;
 	public static String ConvertToFJTaskRefactoring_action_name;
 	public static String ConvertToFJTaskRefactoring_no_change_error;
+	public static String ConvertToFJTaskRefactoring_thrown_exception_error;
 	
 	public static String Integer_type_signature;
 	public static String AtomicInteger_set;

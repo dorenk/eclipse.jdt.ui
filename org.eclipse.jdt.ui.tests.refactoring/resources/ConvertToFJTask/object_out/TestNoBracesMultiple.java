@@ -1,7 +1,7 @@
 package object_out;
 
 import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.RecursiveAction;
+import java.util.concurrent.RecursiveTask;
 
 public class TestNoBracesMultiple {
 	
@@ -9,33 +9,31 @@ public class TestNoBracesMultiple {
 		int processorCount = Runtime.getRuntime().availableProcessors();
 		ForkJoinPool pool = new ForkJoinPool(processorCount);
 		MethodImpl aMethodImpl = new MethodImpl(end);
-		pool.invoke(aMethodImpl);
-		return aMethodImpl.result;
+		return pool.invoke(aMethodImpl);
 	}
-	public class MethodImpl extends RecursiveAction {
+	public class MethodImpl extends RecursiveTask<Integer> {
 		private int end;
-		private int result;
 		private MethodImpl(int end) {
 			this.end = end;
 		}
-		protected void compute() {
+		protected Integer compute() {
 			if (end < 10) {
-				result = method(end);
-				return;
+				return method_sequential(end);
 			} else {
 				MethodImpl task1 = new MethodImpl(end - 1);
 				MethodImpl task2 = new MethodImpl(end - 2);
 				MethodImpl task3 = new MethodImpl(end - 3);
 				invokeAll(task1, task2, task3);
-				result = otherMethod(task1.result, task2.result, task3.result);
+				return otherMethod(task1.getRawResult(), task2.getRawResult(),
+						task3.getRawResult());
 			}
 		}
-		public int method(int end) {
+		public int method_sequential(int end) {
 			if (end <= 0)
 				return 1;
 			else
-				return otherMethod(method(end - 1), method(end - 2),
-						method(end - 3));
+				return otherMethod(method_sequential(end - 1),
+						method_sequential(end - 2), method_sequential(end - 3));
 		}
 	}
 	public int otherMethod(int x, int y, int z) {

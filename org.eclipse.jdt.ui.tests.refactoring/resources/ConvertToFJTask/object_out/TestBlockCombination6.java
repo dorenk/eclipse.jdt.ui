@@ -1,7 +1,7 @@
 package object_out;
 
 import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.RecursiveAction;
+import java.util.concurrent.RecursiveTask;
 
 public class TestBlockCombination6 {
 	
@@ -9,45 +9,45 @@ public class TestBlockCombination6 {
 		int processorCount = Runtime.getRuntime().availableProcessors();
 		ForkJoinPool pool = new ForkJoinPool(processorCount);
 		TryThisImpl aTryThisImpl = new TryThisImpl(x);
-		pool.invoke(aTryThisImpl);
-		return aTryThisImpl.result;
+		return pool.invoke(aTryThisImpl);
 	}
-	public class TryThisImpl extends RecursiveAction {
+	public class TryThisImpl extends RecursiveTask<Integer> {
 		private int x;
-		private int result;
 		private TryThisImpl(int x) {
 			this.x = x;
 		}
-		protected void compute() {
+		protected Integer compute() {
 			if (x < 10) {
-				result = tryThis(x);
-				return;
+				return tryThis_sequential(x);
 			} else {
 				if (x < 15) {
 					TryThisImpl task1 = new TryThisImpl(x - 12);
 					TryThisImpl task2 = new TryThisImpl(x - 15);
 					invokeAll(task1, task2);
-					result = method(1, task1.result, task2.result);
+					return method(1, task1.getRawResult(), task2.getRawResult());
 				} else {
 					TryThisImpl task3 = new TryThisImpl(x - 1);
 					TryThisImpl task4 = new TryThisImpl(x - 2);
 					TryThisImpl task5 = new TryThisImpl(x - 3);
 					TryThisImpl task6 = new TryThisImpl(x - 4);
 					invokeAll(task3, task4, task5, task6);
-					result = method(task3.result, task4.result, task5.result)
-							+ task6.result;
+					return method(task3.getRawResult(), task4.getRawResult(),
+							task5.getRawResult()) + task6.getRawResult();
 				}
 			}
 		}
-		public int tryThis(int x) {
+		public int tryThis_sequential(int x) {
 			if (x < 0)
 				return 0;
 			else {
 				if (x < 15)
-					return method(1, tryThis(x - 12), tryThis(x - 15));
+					return method(1, tryThis_sequential(x - 12),
+							tryThis_sequential(x - 15));
 				else
-					return method(tryThis(x - 1), tryThis(x - 2),
-							tryThis(x - 3)) + tryThis(x - 4);
+					return method(tryThis_sequential(x - 1),
+							tryThis_sequential(x - 2),
+							tryThis_sequential(x - 3))
+							+ tryThis_sequential(x - 4);
 			}
 		}
 	}

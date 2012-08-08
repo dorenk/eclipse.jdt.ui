@@ -150,32 +150,32 @@ public class ConvertToFJTaskTests extends AbstractSelectionTestCase {
 		objectTest("fibonacci", "end < 10");
 	}
 	
-	public void testFibonacciCombination() throws Exception {
-		objectTest("fibonacciCombination", "end < 10");
+	public void testFibonacciWithCombinationOfRecursiveCalls() throws Exception {
+		objectTest("fibonacciWithCombinationOfRecursiveCalls", "end < 10");
 	}
 	
-	public void testSum() throws Exception {
-		objectTest("recursionSum", "end < 5");
+	public void testReturnWithRecursionAsArgumentsInMethodInvocation() throws Exception {
+		objectTest("recursion", "end < 5");
 	}
 	
-	public void testSumCombination() throws Exception {
-		objectTest("recursionSumCombination", "end < 5");
+	public void testSumWithCombinationOfRecursiveCalls() throws Exception {
+		objectTest("recursionSumWithCombinationOfRecursiveCalls", "end < 5");
 	}
 	
-	public void testCreateMultipleTasks() throws Exception {
-		objectTest("method", "num < 10");
+	public void testMultipleVariableDeclarationStatementsWithReturn() throws Exception {
+		objectTest("coordinates", "num < 10");
 	}
 	
-	public void testReturnMultipleTasks() throws Exception {
-		objectTest("method", "num < 10");
+	public void testReturnWithRecursionAsInfixExpression() throws Exception {
+		objectTest("bar", "num < 10");
 	}
 	
-	public void testMethodMultipleTasks() throws Exception {
-		objectTest("method", "num < 10");
-	}
+//	public void testMethodMultipleTasks() throws Exception {
+//		objectTest("method", "num < 10");
+//	}
 	
-	public void testNoBraces() throws Exception {
-		objectTest("method", "end < 10");
+	public void testElseStatementWithoutBlock() throws Exception {
+		objectTest("count", "end < 10");
 	}
 	
 	public void testNoBracesMultiple() throws Exception {
@@ -186,21 +186,21 @@ public class ConvertToFJTaskTests extends AbstractSelectionTestCase {
 		objectTest("grayCheckHierarchy", "treeElement.length() < 10");
 	}
 	
-	public void testIfception() throws Exception {
-		objectTest("method", "end < 10");
+	public void testMultipleIfStatementsWithoutBlocks() throws Exception {
+		objectTest("foo", "end < 10");
 	}
 	
-	public void testMultiple0() throws Exception {
-		objectTest("test0", "x < 10");
+	public void testMultipleVariableDeclarationAndReturnInSeparateBlocks() throws Exception {
+		objectTest("distance", "vertex < 100");
 	}
 	
-	public void testMultiple1() throws Exception {
-		objectTest("test1", "x < 10");
+	public void testMultipleExpressionStatementAndReturnWithMethodInvocationInSeparateBlocks() throws Exception {
+		objectTest("calculateMiles", "data < 100");
 	}
 	
-	public void testMultiple2() throws Exception {
-		objectTest("test2", "x < 10");
-	}
+//	public void testMultiple2() throws Exception {
+//		objectTest("test2", "x < 10");
+//	}
 	
 	public void testBlockCombination0() throws Exception {
 		objectTest("tryThis", "x < 10");
@@ -231,6 +231,10 @@ public class ConvertToFJTaskTests extends AbstractSelectionTestCase {
 	}
 	
 	public void testBlockCombination7() throws Exception {
+		objectTest("tryThis", "x < 10");
+	}
+	
+	public void testBlockCombination8() throws Exception {
 		objectTest("tryThis", "x < 10");
 	}
 	
@@ -292,5 +296,9 @@ public class ConvertToFJTaskTests extends AbstractSelectionTestCase {
 	
 	public void testUnavailableOperation() throws Exception {
 		invalidTest("threeDaysIntoFuture");
+	}
+	
+	public void testThrowsException() throws Exception {
+		invalidTest("run");
 	}
 }

@@ -1,7 +1,7 @@
 package object_out;
 
 import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.RecursiveAction;
+import java.util.concurrent.RecursiveTask;
 
 public class TestSequentialMergeSort {
 
@@ -39,20 +39,17 @@ public class TestSequentialMergeSort {
 		int processorCount = Runtime.getRuntime().availableProcessors();
 		ForkJoinPool pool = new ForkJoinPool(processorCount);
 		SortImpl aSortImpl = new SortImpl(whole);
-		pool.invoke(aSortImpl);
-		return aSortImpl.result;
+		return pool.invoke(aSortImpl);
 	}
 
-	private class SortImpl extends RecursiveAction {
+	private class SortImpl extends RecursiveTask<int[]> {
 		private int[] whole;
-		private int[] result;
 		private SortImpl(int[] whole) {
 			this.whole = whole;
 		}
-		protected void compute() {
+		protected int[] compute() {
 			if (whole.length < 10) {
-				result = sort(whole);
-				return;
+				return sort_sequential(whole);
 			} else {
 				int[] left = new int[whole.length / 2];
 				System.arraycopy(whole, 0, left, 0, left.length);
@@ -61,13 +58,13 @@ public class TestSequentialMergeSort {
 				SortImpl task1 = new SortImpl(left);
 				SortImpl task2 = new SortImpl(right);
 				invokeAll(task1, task2);
-				left = task1.result;
-				right = task2.result;
+				left = task1.getRawResult();
+				right = task2.getRawResult();
 				merge(left, right, whole);
-				result = whole;
+				return whole;
 			}
 		}
-		private int[] sort(int[] whole) {
+		private int[] sort_sequential(int[] whole) {
 			if (whole.length == 1) {
 				return whole;
 			} else {
@@ -75,8 +72,8 @@ public class TestSequentialMergeSort {
 				System.arraycopy(whole, 0, left, 0, left.length);
 				int[] right = new int[whole.length - left.length];
 				System.arraycopy(whole, left.length, right, 0, right.length);
-				left = sort(left);
-				right = sort(right);
+				left = sort_sequential(left);
+				right = sort_sequential(right);
 				merge(left, right, whole);
 				return whole;
 			}
