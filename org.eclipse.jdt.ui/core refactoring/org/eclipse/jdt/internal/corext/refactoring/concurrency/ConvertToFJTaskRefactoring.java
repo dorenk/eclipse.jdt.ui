@@ -787,47 +787,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		final Statement[] baseCase= new Statement[] {null};
 		final int[] counter= new int[] {0};
 		final boolean[] isFirst= new boolean[] {true};
-		computeBodyBlock.accept(new ASTVisitor() {
-			@Override
-			public boolean visit(IfStatement ifStatement) {
-				Statement thenStatement= ifStatement.getThenStatement();
-				if (statementIsBaseCase(thenStatement)) {
-					if (counter[0] == 0) {
-						baseCase[0]= thenStatement;
-						counter[0]= 1;
-					}
-				} else {
-					if (isFirst[0] && counter[0] != 1) {
-						isFirst[0]= false;
-						counter[0]= 2;
-					}
-				}
-				return false;
-			}
-
-			private boolean statementIsBaseCase(Statement statement) {
-				
-				return statementEndsWithReturn(statement) && !statementContainsRecursiveCall(statement);
-			}
-
-			private boolean statementEndsWithReturn(Statement statement) {
-				
-				if (statement instanceof Block) {
-					Block blockStatement= (Block) statement;
-					List<ASTNode> statements= blockStatement.statements();
-					if (statements.size() == 0) {
-						return false;
-					}
-					ASTNode lastStatement= statements.get(statements.size() - 1);
-					if ((lastStatement instanceof ReturnStatement)) {
-						return true;
-					}
-				} else if (statement instanceof ReturnStatement) {
-					return true;
-				}
-				return false;
-			}
-		});
+		computeBodyBlock.accept(new FindBaseCaseVisitor(baseCase, counter, isFirst));
 		if (counter[0] == 1 && isFirst[0]) {
 			return baseCase[0];
 		} else {
@@ -1193,7 +1153,58 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 	
 	private final class ConvertMethodCallToTask extends ASTVisitor {
 		private final List<Integer> fTaskList;
+	
+	private final class FindBaseCaseVisitor extends ASTVisitor {
+		private final Statement[] fBaseCase;
+		private final int[] fCounter;
+		private final boolean[] fIsFirst;
 
+		private FindBaseCaseVisitor(Statement[] baseCase, int[] counter, boolean[] isFirst) {
+			fBaseCase= baseCase;
+			fCounter= counter;
+			fIsFirst= isFirst;
+		}
+
+		@Override
+		public boolean visit(IfStatement ifStatement) {
+			Statement thenStatement= ifStatement.getThenStatement();
+			if (statementIsBaseCase(thenStatement)) {
+				if (fCounter[0] == 0) {
+					fBaseCase[0]= thenStatement;
+					fCounter[0]= 1;
+				}
+			} else {
+				if (fIsFirst[0] && fCounter[0] != 1) {
+					fIsFirst[0]= false;
+					fCounter[0]= 2;
+				}
+			}
+			return false;
+		}
+
+		private boolean statementIsBaseCase(Statement statement) {
+			
+			return statementEndsWithReturn(statement) && !statementContainsRecursiveCall(statement);
+		}
+
+		private boolean statementEndsWithReturn(Statement statement) {
+			
+			if (statement instanceof Block) {
+				Block blockStatement= (Block) statement;
+				List<ASTNode> statements= blockStatement.statements();
+				if (statements.size() == 0) {
+					return false;
+				}
+				ASTNode lastStatement= statements.get(statements.size() - 1);
+				if ((lastStatement instanceof ReturnStatement)) {
+					return true;
+				}
+			} else if (statement instanceof ReturnStatement) {
+				return true;
+			}
+			return false;
+		}
+	}
 		private final AST fAst;
 
 		private final int[] fTaskNum;
