@@ -501,11 +501,6 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				refactorReturnStatement(ast, editGroup, scratchRewriter, listRewriteForBlock, lastStatementWithRecursiveCall, isNotNewBlock, statementsToTasks.get(lastStatementWithRecursiveCall));
 			}
 			if (statementsToAdd.size() > 0) {
-				for (int i= 0; i < statementsToAdd.size(); i++) {
-					if (!(lastStatementWithRecursiveCall instanceof ReturnStatement)) {
-						listRewriteForBlock.insertAfter(statementsToAdd.get(i), lastStatementWithRecursiveCall, editGroup);
-					}
-				}
 			}
 			if (isNotNewBlock) {
 				if (lastStatementWithRecursiveCall instanceof ReturnStatement) {
@@ -559,7 +554,14 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 					}
 				});
 				scratchRewriter.replace(blockWithoutBraces.get(currBlock), newStatement, editGroup);
+	private void addSavedStatementsAfterLastStatement(final TextEditGroup editGroup, ListRewrite listRewriteForBlock, Statement lastStatementWithRecursiveCall, List<ASTNode> statementsToAdd) {
+		for (int i= 0; i < statementsToAdd.size(); i++) {
+			if (!(lastStatementWithRecursiveCall instanceof ReturnStatement)) {
+				listRewriteForBlock.insertAfter(statementsToAdd.get(i), lastStatementWithRecursiveCall, editGroup);
 			}
+		}
+	}
+
 	private void processRefactoringForAllStatementsInBlock(final AST ast, final TextEditGroup editGroup, final ASTRewrite scratchRewriter,
 			Map<Integer, VariableDeclarationStatement> allTaskDeclStatements, Map<Statement, List<Integer>> statementsToTasks, ListRewrite listRewriteForBlock, List<Expression> argumentsForkJoin,
 			List<Statement> recursiveList, boolean isNotNewBlock, List<ASTNode> statementsToAdd) {
