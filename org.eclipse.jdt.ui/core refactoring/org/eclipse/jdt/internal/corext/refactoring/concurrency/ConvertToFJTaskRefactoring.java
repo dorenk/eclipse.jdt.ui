@@ -501,6 +501,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				refactorReturnStatement(ast, editGroup, scratchRewriter, listRewriteForBlock, lastStatementWithRecursiveCall, isNotNewBlock, statementsToTasks.get(lastStatementWithRecursiveCall));
 			}
 			if (statementsToAdd.size() > 0) {
+				addSavedStatementsAfterLastStatement(editGroup, listRewriteForBlock, lastStatementWithRecursiveCall, statementsToAdd);
 			}
 			if (isNotNewBlock) {
 				if (lastStatementWithRecursiveCall instanceof ReturnStatement) {
