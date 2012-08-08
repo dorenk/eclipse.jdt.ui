@@ -822,6 +822,12 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		Block newConstructorBlock= ast.newBlock();
 		newConstructor.setBody(newConstructorBlock);
 		
+		createInitializationOfFields(ast, recursiveMethodParameters, newConstructorBlock);	
+		
+		recursiveActionSubtype.bodyDeclarations().add(newConstructor);
+	}
+
+	private void createInitializationOfFields(AST ast, List<ASTNode> recursiveMethodParameters, Block newConstructorBlock) {
 		List<ASTNode> newConstructorStatements= newConstructorBlock.statements();
 		for (Object par : recursiveMethodParameters) {
 			SingleVariableDeclaration parameter= (SingleVariableDeclaration) par;
@@ -835,8 +841,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			
 			ExpressionStatement newExpressionStatement= ast.newExpressionStatement(newAssignment);
 			newConstructorStatements.add(newExpressionStatement);
-		}	
-		recursiveActionSubtype.bodyDeclarations().add(newConstructor);
+		}
 	}
 
 	private List<ASTNode> initializeConstructorMethodSignature(AST ast, MethodDeclaration newConstructor) {
