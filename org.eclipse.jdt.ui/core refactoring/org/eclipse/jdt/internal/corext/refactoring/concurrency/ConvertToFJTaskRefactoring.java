@@ -492,7 +492,6 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			List<Statement> recursiveList= allStatementsWithRecursiveMethodInvocation.get(currBlock);
 			boolean isNotNewBlock= !isNewBlock;
 			Statement lastStatementWithRecursiveCall= recursiveList.get(recursiveList.size() - 1);
-			Statement currStatement= null;
 			List<ASTNode> statementsToAdd= new ArrayList<ASTNode>();
 			
 			processRefactoringForAllStatementsInBlock(ast, editGroup, scratchRewriter, allTaskDeclStatements, statementsToTasks, listRewriteForBlock, argumentsForkJoin, recursiveList, isNotNewBlock,
