@@ -398,7 +398,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		final Map<Block, Integer> numTasksPerBlock= new HashMap<Block, Integer>();  //Can determine how many tasks belong to this block easily
 		final Map<Block, Statement> blockWithoutBraces= new HashMap<Block, Statement>();  //Can determine if a block does not have braces so as to use when inserting things to it
 		final List<Block> allTheBlocks= new ArrayList<Block>();
-		final int[] switchStatementsFound= new int[] {0};
+		final boolean[] switchStatementsFound= new boolean[] {false};
 		fMethodDeclaration.accept(new MethodVisitor(allTaskDeclStatements, statementsToTasks, scratchRewriter, numTasksPerBlock, blockWithoutBraces, allStatementsWithRecursiveMethodInvocation,
 				allTheBlocks, switchStatementsFound, ast));
 		try {
@@ -434,8 +434,8 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		return false;
 	}
 
-	private boolean switchStatementError(RefactoringStatus result, final int[] switchStatementsFound) {
-		if (switchStatementsFound[0] > 0) {  //TODO update at all?
+	private boolean switchStatementError(RefactoringStatus result, final boolean[] switchStatementsFound) {
+		if (switchStatementsFound[0]) {
 			createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_switch_statement_error, new String[] {fMethod.getElementName()}));
 			return true;
 		}
@@ -912,7 +912,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 
 	@Override
 	public RefactoringStatus checkInitialConditions(IProgressMonitor pm)
-			throws CoreException, OperationCanceledException { //TODO extract?
+			throws CoreException, OperationCanceledException {
 		
 		RefactoringStatus result=  new RefactoringStatus();
 		result.merge(Checks.checkAvailability(fMethod));
@@ -1287,12 +1287,12 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		private final Map<Block, Statement> fBlockWithoutBraces;
 		private final Map<Block, List<Statement>> fAllStatementsWithRecursiveMethodInvocation;
 		private final List<Block> fAllTheBlocks;
-		private final int[] fSwitchStatementsFound;
+		private final boolean[] fSwitchStatementsFound;
 		private final AST fAst;
 
 		private MethodVisitor(Map<Integer, VariableDeclarationStatement> allTaskDeclStatements, Map<Statement, List<Integer>> statementsToTasks, ASTRewrite scratchRewriter,
 				Map<Block, Integer> numTasksPerBlock, Map<Block, Statement> blockWithoutBraces, Map<Block, List<Statement>> allStatementsWithRecursiveMethodInvocation, List<Block> allTheBlocks,
-				int[] switchStatementsFound, AST ast) {
+				boolean[] switchStatementsFound, AST ast) {
 			fAllTaskDeclStatements= allTaskDeclStatements;
 			fStatementsToTasks= statementsToTasks;
 			fScratchRewriter= scratchRewriter;
@@ -1318,8 +1318,8 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				if (parentOfMethodCall == null) {
 					return false;
 				} else if (SwitchStatement.class.isInstance(parentOfMethodCall.getParent())) {
-					fSwitchStatementsFound[0]++;  //TODO update
-					return true;
+					fSwitchStatementsFound[0]= true;
+					return false;
 				} else if (!recursiveMethodReturnsVoid()) {
 					if (parentOfMethodCall instanceof VariableDeclarationStatement) {
 						ASTNode tempNode= parentOfMethodCall.getParent();
@@ -1380,8 +1380,8 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 					if (tempNode == null) {
 						return false;
 					} else if (tempNode instanceof SwitchStatement) {
-						fSwitchStatementsFound[0]++;
-						return true;
+						fSwitchStatementsFound[0]= true;
+						return false;
 					} else {
 						myBlock= (Block) tempNode;
 					}
