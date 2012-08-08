@@ -1398,19 +1398,12 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		private void populateAllMaps(Block myBlock, Statement parentOfMethodCall, VariableDeclarationStatement taskDeclStatement) {
 			Integer taskNum= new Integer(fTaskNumber[0]);
 			fAllTaskDeclStatements.put(taskNum, taskDeclStatement);
-			if (fStatementsToTasks.containsKey(parentOfMethodCall)) {
-				List<Integer> taskList= fStatementsToTasks.get(parentOfMethodCall);
-				taskList.add(taskNum);
-			} else {
-				List<Integer> taskList= new ArrayList<Integer>();
-				taskList.add(taskNum);
-				fStatementsToTasks.put(parentOfMethodCall, taskList);
-			}
 			if (fNumTasksPerBlock.containsKey(myBlock)) {
 				Integer newValue= new Integer(fNumTasksPerBlock.get(myBlock).intValue() + 1);
 				fNumTasksPerBlock.put(myBlock, newValue);
 			} else {
 				fNumTasksPerBlock.put(myBlock, new Integer(1));
+			populateStatementsToTasks(parentOfMethodCall, taskNum);
 			}
 			if (fAllStatementsWithRecursiveMethodInvocation.containsKey(myBlock)) {
 				List<Statement> recursiveList= fAllStatementsWithRecursiveMethodInvocation.get(myBlock);
@@ -1424,6 +1417,16 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			}
 			if (!fAllTheBlocks.contains(myBlock)) {
 				fAllTheBlocks.add(myBlock);
+		}
+
+		private void populateStatementsToTasks(Statement parentOfMethodCall, Integer taskNum) {
+			if (fStatementsToTasks.containsKey(parentOfMethodCall)) {
+				List<Integer> taskList= fStatementsToTasks.get(parentOfMethodCall);
+				taskList.add(taskNum);
+			} else {
+				List<Integer> taskList= new ArrayList<Integer>();
+				taskList.add(taskNum);
+				fStatementsToTasks.put(parentOfMethodCall, taskList);
 			}
 		}
 
