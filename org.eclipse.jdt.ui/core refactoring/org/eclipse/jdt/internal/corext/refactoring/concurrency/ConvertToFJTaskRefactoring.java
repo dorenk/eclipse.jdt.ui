@@ -749,9 +749,9 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		for (Iterator<ASTNode> iterator= arguments.iterator(); iterator
 				.hasNext();) {
 			ASTNode argument= iterator.next();
-			methodArguments += argument.toString();
+			methodArguments+= argument.toString();
 			if (iterator.hasNext()) {
-				methodArguments += ", "; //$NON-NLS-1$
+				methodArguments+= ", "; //$NON-NLS-1$
 			}
 		}
 		
@@ -760,9 +760,9 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		for (Iterator<ASTNode> iterator= arguments.iterator(); iterator
 				.hasNext();) {
 			ASTNode argument= iterator.next();
-			methodArguments2 += argument.toString();
+			methodArguments2+= argument.toString();
 			if (iterator.hasNext()) {
-				methodArguments2 += ", "; //$NON-NLS-1$
+				methodArguments2+= ", "; //$NON-NLS-1$
 			}
 		}
 		return methodArguments.equals(methodArguments2);
@@ -952,7 +952,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			return result;
 		}
 		
-		ASTParser parser = ASTParser.newParser(AST.JLS4);
+		ASTParser parser= ASTParser.newParser(AST.JLS4);
 		parser.setResolveBindings(true);
 		parser.setStatementsRecovery(false);
 		parser.setBindingsRecovery(false);
@@ -1119,8 +1119,8 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		List<SingleVariableDeclaration> params= fMethodDeclaration.parameters();
 		String sugSeqThreshold= ConcurrencyRefactorings.ConcurrencyRefactorings_empty_string;
 		if (params != null && params.size() > 0) {
-			SingleVariableDeclaration parameter = params.get(0);
-			Type type = parameter.getType();
+			SingleVariableDeclaration parameter= params.get(0);
+			Type type= parameter.getType();
 			if (type.isPrimitiveType()) {
 				sugSeqThreshold= parameter.getName().getIdentifier() + " < 1000"; //$NON-NLS-1$
 			} else if (type.isArrayType()) {
@@ -1133,7 +1133,6 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				System.err.println(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_parameter_error);
 			}
 		}
-		
 		return sugSeqThreshold;
 	}
 
@@ -1153,9 +1152,9 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		for (Iterator<SingleVariableDeclaration> iterator= recursiveMethodParameters.iterator(); iterator
 				.hasNext();) {
 			SingleVariableDeclaration parameter= iterator.next();
-			nameAndSignature += parameter.getType() + " " + parameter.getName().getIdentifier(); //$NON-NLS-1$
+			nameAndSignature+= parameter.getType() + " " + parameter.getName().getIdentifier(); //$NON-NLS-1$
 			if (iterator.hasNext()) {
-				nameAndSignature +=", "; //$NON-NLS-1$
+				nameAndSignature+=", "; //$NON-NLS-1$
 			}
 		}
 		nameAndSignature += ")"; //$NON-NLS-1$
@@ -1167,7 +1166,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		if (c == null || c.size() == 0) {
 			return (List<T>) c;
 		} else {
-			List<T> tempList = new ArrayList<T>(c.size());
+			List<T> tempList= new ArrayList<T>(c.size());
 			for (Object objCast: c) {
 				tempList.add(toCastTo.cast(objCast));
 			}
@@ -1271,6 +1270,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				
 				Block myBlock= null;
 				Statement parentOfMethodCall= findParentStatement(methodCall);
+				
 				if (parentOfMethodCall == null) {
 					return false;
 				} else if (SwitchStatement.class.isInstance(parentOfMethodCall.getParent())) {
@@ -1433,12 +1433,12 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			for (Iterator<Expression> iterator= arguments.iterator(); iterator
 					.hasNext();) {
 				ASTNode argument= iterator.next();
-				methodArguments += argument.toString();
+				methodArguments+= argument.toString();
 				if (iterator.hasNext()) {
-					methodArguments += ", "; //$NON-NLS-1$
+					methodArguments+= ", "; //$NON-NLS-1$
 				}
 			}
-			codeForTaskDecl += methodArguments + ");"; //$NON-NLS-1$
+			codeForTaskDecl+= methodArguments + ");"; //$NON-NLS-1$
 			VariableDeclarationStatement taskDeclStatement= (VariableDeclarationStatement) fScratchRewriter.createStringPlaceholder(codeForTaskDecl , ASTNode.VARIABLE_DECLARATION_STATEMENT);
 			return taskDeclStatement;
 		}
