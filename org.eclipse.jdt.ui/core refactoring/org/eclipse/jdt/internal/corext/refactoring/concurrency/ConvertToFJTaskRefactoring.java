@@ -1321,7 +1321,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 					if (parentOfMethodCall instanceof VariableDeclarationStatement) {
 						ASTNode tempNode= parentOfMethodCall.getParent();
 						if (tempNode instanceof IfStatement) {
-							myBlock= ifStatementWork(myBlock, parentOfMethodCall, tempNode);
+							myBlock= createBlockAtIfStatement(myBlock, parentOfMethodCall, tempNode);
 							if (myBlock == null) {
 								return false;
 							}
@@ -1337,7 +1337,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 						if (expressionContainer instanceof Assignment) {
 							ASTNode tempNode= parentOfMethodCall.getParent();
 							if (tempNode instanceof IfStatement) {
-								myBlock= ifStatementWork(myBlock, parentOfMethodCall, tempNode);
+								myBlock= createBlockAtIfStatement(myBlock, parentOfMethodCall, tempNode);
 								if (myBlock == null) {
 									return false;
 								}
@@ -1354,7 +1354,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 					} else if (parentOfMethodCall instanceof ReturnStatement) {
 						ASTNode tempNode= parentOfMethodCall.getParent();
 						if (tempNode instanceof IfStatement) {
-							myBlock= ifStatementWork(myBlock, parentOfMethodCall, tempNode);
+							myBlock= createBlockAtIfStatement(myBlock, parentOfMethodCall, tempNode);
 							if (myBlock == null) {
 								return false;
 							}
@@ -1427,7 +1427,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			}
 		}
 
-		private Block ifStatementWork(Block myBlock, Statement parentOfMethodCall, ASTNode tempNode) {
+		private Block createBlockAtIfStatement(Block myBlock, Statement parentOfMethodCall, ASTNode tempNode) {
 			IfStatement ifStatement= (IfStatement) tempNode;
 			Statement elseStatement= ifStatement.getElseStatement();
 			if (elseStatement != null && ifStatement.getThenStatement() != null && !ifStatement.getThenStatement().equals(parentOfMethodCall)) {
