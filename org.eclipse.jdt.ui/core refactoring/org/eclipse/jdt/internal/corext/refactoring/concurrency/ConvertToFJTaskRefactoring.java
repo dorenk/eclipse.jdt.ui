@@ -922,11 +922,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		}
 		
 		ASTParser parser= ASTParser.newParser(AST.JLS4);
-		parser.setResolveBindings(true);
-		parser.setStatementsRecovery(false);
-		parser.setBindingsRecovery(false);
-		parser.setSource(fMethod.getCompilationUnit());
-		parser.setCompilerOptions(getCompilerOptions(fMethod.getCompilationUnit()));
+		setPropertiesForParser(parser);
 		fRoot= (CompilationUnit) parser.createAST(pm);
 		ISourceRange sourceRange= fMethod.getNameRange();
 		ASTNode node= NodeFinder.perform(fRoot, sourceRange.getOffset(), sourceRange.getLength());
@@ -948,6 +944,14 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		}
 		fRewriter= ASTRewrite.create(fRoot.getAST());
 		return result;
+	}
+
+	private void setPropertiesForParser(ASTParser parser) {
+		parser.setResolveBindings(true);
+		parser.setStatementsRecovery(false);
+		parser.setBindingsRecovery(false);
+		parser.setSource(fMethod.getCompilationUnit());
+		parser.setCompilerOptions(getCompilerOptions(fMethod.getCompilationUnit()));
 	}
 	
 	private RefactoringStatus mappingErrorFound(RefactoringStatus result, ASTNode node) {
