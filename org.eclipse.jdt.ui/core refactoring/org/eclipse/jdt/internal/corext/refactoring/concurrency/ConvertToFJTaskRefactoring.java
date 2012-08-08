@@ -1378,7 +1378,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 						return false;
 					} else if (tempNode instanceof SwitchStatement) {
 						fSwitchStatementsFound[0]++;
-						return false;
+						return true;
 					} else {
 						myBlock= (Block) tempNode;
 					}
