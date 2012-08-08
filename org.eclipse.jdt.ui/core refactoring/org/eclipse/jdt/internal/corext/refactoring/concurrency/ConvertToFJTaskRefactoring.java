@@ -472,9 +472,9 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		return false;
 	}
 
-	private boolean attemptRefactoringOnBlock(final AST ast, final TextEditGroup editGroup, final ASTRewrite scratchRewriter,
-			Map<Integer, VariableDeclarationStatement> allTaskDeclStatements, Map<Statement, List<Integer>> statementsToTasks, final Map<Block, List<Statement>> allStatementsWithRecursiveMethodInvocation,
-			final Map<Block, Integer> numTasksPerBlock, final Map<Block, Statement> blockWithoutBraces, boolean atLeastOneBlockChanged, Block currBlock, ListRewrite listRewriteForBlock) {
+	private boolean attemptRefactoringOnBlock(final AST ast, final TextEditGroup editGroup, final ASTRewrite scratchRewriter, Map<Integer, VariableDeclarationStatement> allTaskDeclStatements,
+			Map<Statement, List<Integer>> statementsToTasks, final Map<Block, List<Statement>> allStatementsWithRecursiveMethodInvocation, final Map<Block, Integer> numTasksPerBlock,
+			final Map<Block, Statement> blockWithoutBraces, boolean atLeastOneBlockChanged, Block currBlock, ListRewrite listRewriteForBlock) {
 
 		boolean isNewBlock= blockWithoutBraces.containsKey(currBlock);
 		
@@ -488,6 +488,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			MethodInvocation forkJoinInvocation= ast.newMethodInvocation();
 			forkJoinInvocation.setName(ast.newSimpleName("invokeAll")); //$NON-NLS-1$
 			List<Expression> argumentsForkJoin= forkJoinInvocation.arguments();
+			
 			List<Statement> recursiveList= allStatementsWithRecursiveMethodInvocation.get(currBlock);
 			boolean isNotNewBlock= !isNewBlock;
 			Statement lastStatementWithRecursiveCall= recursiveList.get(recursiveList.size() - 1);
