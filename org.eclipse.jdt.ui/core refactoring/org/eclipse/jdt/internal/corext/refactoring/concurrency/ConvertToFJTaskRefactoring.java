@@ -1400,7 +1400,13 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			fAllTaskDeclStatements.put(taskNum, taskDeclStatement);
 			populateStatementsToTasks(parentOfMethodCall, taskNum);
 			populateNumTasksPerBlock(myBlock);
+			populateAllStatementsWithRecursiveMethodInvocation(myBlock, parentOfMethodCall);
+			if (!fAllTheBlocks.contains(myBlock)) {
+				fAllTheBlocks.add(myBlock);
 			}
+		}
+
+		private void populateAllStatementsWithRecursiveMethodInvocation(Block myBlock, Statement parentOfMethodCall) {
 			if (fAllStatementsWithRecursiveMethodInvocation.containsKey(myBlock)) {
 				List<Statement> recursiveList= fAllStatementsWithRecursiveMethodInvocation.get(myBlock);
 				if (!recursiveList.contains(parentOfMethodCall)) {
@@ -1411,8 +1417,6 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				recursiveList.add(parentOfMethodCall);
 				fAllStatementsWithRecursiveMethodInvocation.put(myBlock, recursiveList);
 			}
-			if (!fAllTheBlocks.contains(myBlock)) {
-				fAllTheBlocks.add(myBlock);
 		}
 
 		private void populateNumTasksPerBlock(Block myBlock) {
