@@ -1398,12 +1398,8 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		private void populateAllMaps(Block myBlock, Statement parentOfMethodCall, VariableDeclarationStatement taskDeclStatement) {
 			Integer taskNum= new Integer(fTaskNumber[0]);
 			fAllTaskDeclStatements.put(taskNum, taskDeclStatement);
-			if (fNumTasksPerBlock.containsKey(myBlock)) {
-				Integer newValue= new Integer(fNumTasksPerBlock.get(myBlock).intValue() + 1);
-				fNumTasksPerBlock.put(myBlock, newValue);
-			} else {
-				fNumTasksPerBlock.put(myBlock, new Integer(1));
 			populateStatementsToTasks(parentOfMethodCall, taskNum);
+			populateNumTasksPerBlock(myBlock);
 			}
 			if (fAllStatementsWithRecursiveMethodInvocation.containsKey(myBlock)) {
 				List<Statement> recursiveList= fAllStatementsWithRecursiveMethodInvocation.get(myBlock);
@@ -1417,6 +1413,15 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			}
 			if (!fAllTheBlocks.contains(myBlock)) {
 				fAllTheBlocks.add(myBlock);
+		}
+
+		private void populateNumTasksPerBlock(Block myBlock) {
+			if (fNumTasksPerBlock.containsKey(myBlock)) {
+				Integer newValue= new Integer(fNumTasksPerBlock.get(myBlock).intValue() + 1);
+				fNumTasksPerBlock.put(myBlock, newValue);
+			} else {
+				fNumTasksPerBlock.put(myBlock, new Integer(1));
+			}
 		}
 
 		private void populateStatementsToTasks(Statement parentOfMethodCall, Integer taskNum) {
