@@ -1166,8 +1166,13 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		return options;
 	}
 	
-	private final class ConvertMethodCallToTask extends ASTVisitor {
-		private final List<Integer> fTaskList;
+	private boolean isMethodDeclarationEqualTo(MethodInvocation methodCall) {
+		boolean namesMatch= methodCall.getName().getFullyQualifiedName().equals(fMethodDeclaration.getName().getFullyQualifiedName());
+		List<Expression> methodArgs= methodCall.arguments();
+		List<SingleVariableDeclaration> declArgs= fMethodDeclaration.parameters();
+		boolean paramSizesMatch= methodArgs.size() == declArgs.size();
+		return namesMatch && paramSizesMatch;  //TODO Add more logic to better check - make so overloaded methods don't get chosen
+	}
 	
 	private final class FindBaseCaseVisitor extends ASTVisitor {
 		private final Statement[] fBaseCase;
@@ -1220,12 +1225,29 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			return false;
 		}
 	}
+
+	private final class RecursiveToSequentialMethodCallVisitor extends ASTVisitor {
 		private final AST fAst;
 
+		private RecursiveToSequentialMethodCallVisitor(AST ast) {
+			fAst= ast;
+		}
+
+		@Override
+		public boolean visit(MethodInvocation methodCall){
+			if (isMethodDeclarationEqualTo(methodCall)) {
+				methodCall.setName(fAst.newSimpleName(methodCall.getName().getIdentifier() + "_sequential")); //$NON-NLS-1$
+				return false;
+			}
+			return true;
+		}
+	}
+
+	private final class ConvertMethodCallToTask extends ASTVisitor {
+		private final List<Integer> fTaskList;
+		private final AST fAst;
 		private final int[] fTaskNum;
-
 		private final ASTRewrite fScratchRewriter;
-
 		private final TextEditGroup fEditGroup;
 
 		private ConvertMethodCallToTask(List<Integer> taskList, AST ast, int[] taskNum, ASTRewrite scratchRewriter, TextEditGroup editGroup) {
@@ -1250,14 +1272,6 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		}
 		return true;
 		}
-
-		private boolean isMethodDeclarationEqualTo(MethodInvocation methodCall) {
-			boolean namesMatch= methodCall.getName().getFullyQualifiedName().equals(fMethodDeclaration.getName().getFullyQualifiedName());
-			List<Expression> methodArgs= methodCall.arguments();
-			List<SingleVariableDeclaration> declArgs= fMethodDeclaration.parameters();
-			boolean paramSizesMatch= methodArgs.size() == declArgs.size();
-			return namesMatch && paramSizesMatch;  //TODO Add more logic to better check - make so overloaded methods don't get chosen
-		}
 	}
 
 	private final class MethodVisitor extends ASTVisitor {
@@ -1274,7 +1288,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		private final AST fAst;
 
 		private MethodVisitor(Map<Integer, VariableDeclarationStatement> allTaskDeclStatements, Map<Statement, List<Integer>> statementsToTasks, ASTRewrite scratchRewriter,
-				Map<Block, Integer> numTasksPerBlock, Map<Block, Statement> blockWithoutBraces, Map<Block, List<Statement>> allStatementsWithRecursiveMethodInvocation, List<Block> allTheBlocks, int[] switchStatementsFound, AST ast) {
+				Map<Block, Integer> numTasksPerBlock, Map<Block, Statement> blockWithoutBraces, Map<Block, List<Statement>> allStatementsWithRecursiveMethodInvocation, List<Block> allTheBlocks,
 			fAllTaskDeclStatements= allTaskDeclStatements;
 			fStatementsToTasks= statementsToTasks;
 			fScratchRewriter= scratchRewriter;
