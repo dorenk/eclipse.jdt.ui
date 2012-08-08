@@ -1443,11 +1443,11 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			IfStatement ifStatement= (IfStatement) tempNode;
 			Statement elseStatement= ifStatement.getElseStatement();
 			if (elseStatement != null && ifStatement.getThenStatement() != null && !ifStatement.getThenStatement().equals(parentOfMethodCall)) {
-				myBlock= determineNewBlock(elseStatement);									
+				myBlock= getNewBlock(elseStatement);									
 			} else {
 				Statement thenStatement= ifStatement.getThenStatement();
 				if (thenStatement != null && thenStatement.equals(parentOfMethodCall)) {
-					myBlock= determineNewBlock(thenStatement);
+					myBlock= getNewBlock(thenStatement);
 				} else {
 					return null;
 				}
@@ -1459,14 +1459,14 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			ForStatement forStatement= (ForStatement) tempNode;
 			Statement bodyStatement= forStatement.getBody();
 			if (bodyStatement != null) {
-				myBlock= determineNewBlock(bodyStatement);									
+				myBlock= getNewBlock(bodyStatement);									
 			} else {
 				return null;
 			}
 			return myBlock;
 		}
 
-		private Block determineNewBlock(Statement targetStatement) {
+		private Block getNewBlock(Statement targetStatement) {
 			Block myBlock;
 			if (fLocationOfNewBlocks.containsKey(targetStatement)) {
 				myBlock= fLocationOfNewBlocks.get(targetStatement);
