@@ -603,6 +603,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		try {
 			edits.apply(scratchDocument);
 			
+			//TODO extract
 			ASTParser parser= ASTParser.newParser(AST.JLS4);
 			parser.setSource(scratchDocument.get().toCharArray());
 			CompilationUnit scratchCU= (CompilationUnit)parser.createAST(null);
@@ -645,7 +646,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		}
 	}
 
-	private void createPartialComputations(final AST ast, final TextEditGroup editGroup, final ASTRewrite scratchRewriter, ListRewrite listRewriteForBlock, Statement currStatement,
+	private void refactorStatement(final AST ast, final TextEditGroup editGroup, final ASTRewrite scratchRewriter, ListRewrite listRewriteForBlock, Statement currStatement,
 			boolean isNotNewBlock, final List<Integer> taskList, List<ASTNode> statementsToAdd) {
 		if (currStatement instanceof VariableDeclarationStatement) {	
 			VariableDeclarationFragment varFragment= ((VariableDeclarationFragment)(ASTNode.copySubtree(ast, ((VariableDeclarationFragment)(((VariableDeclarationStatement) currStatement).fragments().get(0))))));
