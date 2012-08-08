@@ -815,14 +815,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 	private void createConstructor(TypeDeclaration recursiveActionSubtype, AST ast) {
 		
 		MethodDeclaration newConstructor= ast.newMethodDeclaration();
-		newConstructor.setConstructor(true);
-		newConstructor.setName(ast.newSimpleName(nameForFJTaskSubtype));
-		List<ASTNode> constructorParameters= newConstructor.parameters();
-		List<ASTNode> recursiveMethodParameters= fMethodDeclaration.parameters();
-		for (Object par : recursiveMethodParameters) {
-			SingleVariableDeclaration parameter= (SingleVariableDeclaration) par;
-			constructorParameters.add(ASTNode.copySubtree(ast, parameter));
-		}
+		List<ASTNode> recursiveMethodParameters= initializeConstructorMethodSignature(ast, newConstructor);
 		
 		newConstructor.modifiers().add(ast.newModifier(ModifierKeyword.PRIVATE_KEYWORD));
 		
@@ -844,6 +837,18 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			newConstructorStatements.add(newExpressionStatement);
 		}	
 		recursiveActionSubtype.bodyDeclarations().add(newConstructor);
+	}
+
+	private List<ASTNode> initializeConstructorMethodSignature(AST ast, MethodDeclaration newConstructor) {
+		newConstructor.setConstructor(true);
+		newConstructor.setName(ast.newSimpleName(nameForFJTaskSubtype));
+		List<ASTNode> constructorParameters= newConstructor.parameters();
+		List<ASTNode> recursiveMethodParameters= fMethodDeclaration.parameters();
+		for (Object par : recursiveMethodParameters) {
+			SingleVariableDeclaration parameter= (SingleVariableDeclaration) par;
+			constructorParameters.add(ASTNode.copySubtree(ast, parameter));
+		}
+		return recursiveMethodParameters;
 	}
 
 	private void createFields(TypeDeclaration recursiveActionSubtype, AST ast) {
