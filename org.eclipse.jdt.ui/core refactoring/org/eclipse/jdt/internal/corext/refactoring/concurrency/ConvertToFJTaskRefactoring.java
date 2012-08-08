@@ -913,7 +913,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 
 	@Override
 	public RefactoringStatus checkInitialConditions(IProgressMonitor pm)
-			throws CoreException, OperationCanceledException {
+			throws CoreException, OperationCanceledException { //TODO extract?
 		
 		RefactoringStatus result=  new RefactoringStatus();
 		result.merge(Checks.checkAvailability(fMethod));
@@ -1119,15 +1119,20 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		
 		String nameAndSignature= fMethodDeclaration.getName().getIdentifier() + "("; //$NON-NLS-1$
 		List<SingleVariableDeclaration> recursiveMethodParameters= castList(SingleVariableDeclaration.class, fMethodDeclaration.parameters());
+		nameAndSignature= addParametersToSignature(nameAndSignature, recursiveMethodParameters);
+		nameAndSignature+= ")"; //$NON-NLS-1$
+		return nameAndSignature;
+	}
+
+	private String addParametersToSignature(String nameAndSignature, List<SingleVariableDeclaration> recursiveMethodParameters) {
 		for (Iterator<SingleVariableDeclaration> iterator= recursiveMethodParameters.iterator(); iterator
 				.hasNext();) {
 			SingleVariableDeclaration parameter= iterator.next();
 			nameAndSignature+= parameter.getType() + " " + parameter.getName().getIdentifier(); //$NON-NLS-1$
 			if (iterator.hasNext()) {
-				nameAndSignature+=", "; //$NON-NLS-1$
+				nameAndSignature+= ", "; //$NON-NLS-1$
 			}
 		}
-		nameAndSignature += ")"; //$NON-NLS-1$
 		return nameAndSignature;
 	}	
 	
