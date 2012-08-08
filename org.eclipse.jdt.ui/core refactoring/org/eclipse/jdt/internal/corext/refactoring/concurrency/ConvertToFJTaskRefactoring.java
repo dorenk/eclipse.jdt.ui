@@ -504,6 +504,8 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				addSavedStatementsAfterLastStatement(editGroup, listRewriteForBlock, lastStatementWithRecursiveCall, statementsToAdd);
 			}
 			writeForkJoinInvocationInBlock(ast, editGroup, numTasksPerBlock, currBlock, listRewriteForBlock, forkJoinInvocation, isNotNewBlock, lastStatementWithRecursiveCall);
+			if (statementsToAdd.size() > 0) { //TODO is this going to run twice or something?
+				addSavedStatementsBeforeLastStatement(editGroup, listRewriteForBlock, lastStatementWithRecursiveCall, statementsToAdd);
 			}
 		}
 		else if (!recursiveMethodReturnsVoid()) {
@@ -524,6 +526,14 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 					}
 				});
 				scratchRewriter.replace(currBlock, newBlock, editGroup);
+
+	private void addSavedStatementsBeforeLastStatement(final TextEditGroup editGroup, ListRewrite listRewriteForBlock, Statement lastStatementWithRecursiveCall, List<ASTNode> statementsToAdd) {
+		for (int i= 0; i < statementsToAdd.size(); i++) {
+			if (lastStatementWithRecursiveCall instanceof ReturnStatement) {
+				listRewriteForBlock.insertBefore(statementsToAdd.get(i), lastStatementWithRecursiveCall, editGroup);
+			}
+		}
+	}
 
 	private void writeForkJoinInvocationInBlock(final AST ast, final TextEditGroup editGroup, final Map<Block, Integer> numTasksPerBlock, Block currBlock, ListRewrite listRewriteForBlock,
 			MethodInvocation forkJoinInvocation, boolean isNotNewBlock, Statement lastStatementWithRecursiveCall) {
