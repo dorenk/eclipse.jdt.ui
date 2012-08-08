@@ -509,23 +509,23 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			}
 		}
 		else if (!recursiveMethodReturnsVoid()) {
-			if (!isNewBlock) {
-				Block newBlock= (Block) ASTNode.copySubtree(ast, currBlock);
-				newBlock.accept(new ASTVisitor() {
-					@Override
-					public boolean visit(MethodInvocation methodCall){
-						boolean namesMatch= methodCall.getName().getFullyQualifiedName().equals(fMethodDeclaration.getName().getFullyQualifiedName());
-						List<Expression> methodArgs= methodCall.arguments();
-						List<SingleVariableDeclaration> declArgs= fMethodDeclaration.parameters();
-						boolean paramSizesMatch= methodArgs.size() == declArgs.size();
-						if (namesMatch && paramSizesMatch) {
-							methodCall.setName(ast.newSimpleName(methodCall.getName().getIdentifier() + "_sequential")); //$NON-NLS-1$
-							return false;
-						}
-						return true;
-					}
-				});
-				scratchRewriter.replace(currBlock, newBlock, editGroup);
+			renameRecursiveCallsToSequentialInNonRefactoredBlock(ast, editGroup, scratchRewriter, blockWithoutBraces, currBlock, isNewBlock);
+		}
+		return atLeastOneBlockChanged;
+	}
+
+	private void renameRecursiveCallsToSequentialInNonRefactoredBlock(final AST ast, final TextEditGroup editGroup, final ASTRewrite scratchRewriter, final Map<Block, Statement> blockWithoutBraces,
+			Block currBlock, boolean isNewBlock) {
+		if (!isNewBlock) {
+			Block newBlock= (Block) ASTNode.copySubtree(ast, currBlock);
+			newBlock.accept(new RecursiveToSequentialMethodCallVisitor(ast));
+			scratchRewriter.replace(currBlock, newBlock, editGroup);
+		} else {
+			Statement newStatement= (Statement) ASTNode.copySubtree(ast, blockWithoutBraces.get(currBlock));
+			newStatement.accept(new RecursiveToSequentialMethodCallVisitor(ast));
+			scratchRewriter.replace(blockWithoutBraces.get(currBlock), newStatement, editGroup);
+		}
+	}
 
 	private void addSavedStatementsBeforeLastStatement(final TextEditGroup editGroup, ListRewrite listRewriteForBlock, Statement lastStatementWithRecursiveCall, List<ASTNode> statementsToAdd) {
 		for (int i= 0; i < statementsToAdd.size(); i++) {
