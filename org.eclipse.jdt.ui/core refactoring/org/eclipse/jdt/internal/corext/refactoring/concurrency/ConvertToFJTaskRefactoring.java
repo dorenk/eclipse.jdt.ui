@@ -1326,7 +1326,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 								return false;
 							}
 						} else if (tempNode instanceof ForStatement) {
-							myBlock= forStatementWork(myBlock, tempNode);
+							myBlock= createBlockAtForStatement(myBlock, tempNode);
 							if (myBlock == null) {
 								return false;
 							}
@@ -1342,7 +1342,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 									return false;
 								}
 							} else if (tempNode instanceof ForStatement) {
-								myBlock= forStatementWork(myBlock, tempNode);
+								myBlock= createBlockAtForStatement(myBlock, tempNode);
 								if (myBlock == null) {
 									return false;
 								}
@@ -1359,7 +1359,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 								return false;
 							}
 						} else if (tempNode instanceof ForStatement) {
-							myBlock= forStatementWork(myBlock, tempNode);
+							myBlock= createBlockAtForStatement(myBlock, tempNode);
 							if (myBlock == null) {
 								return false;
 							}
@@ -1443,7 +1443,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			return myBlock;
 		}
 		
-		private Block forStatementWork(Block myBlock, ASTNode tempNode) {
+		private Block createBlockAtForStatement(Block myBlock, ASTNode tempNode) {
 			ForStatement forStatement= (ForStatement) tempNode;
 			Statement bodyStatement= forStatement.getBody();
 			if (bodyStatement != null) {
