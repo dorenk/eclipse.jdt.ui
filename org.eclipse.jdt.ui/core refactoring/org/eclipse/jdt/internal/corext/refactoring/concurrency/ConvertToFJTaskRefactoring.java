@@ -503,21 +503,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			if (statementsToAdd.size() > 0) {
 				addSavedStatementsAfterLastStatement(editGroup, listRewriteForBlock, lastStatementWithRecursiveCall, statementsToAdd);
 			}
-			if (isNotNewBlock) {
-				if (lastStatementWithRecursiveCall instanceof ReturnStatement) {
-					listRewriteForBlock.insertBefore(ast.newExpressionStatement(forkJoinInvocation), lastStatementWithRecursiveCall, editGroup);
-				} else {
-					listRewriteForBlock.insertAfter(ast.newExpressionStatement(forkJoinInvocation), lastStatementWithRecursiveCall, editGroup);
-				}
-			} else {
-				listRewriteForBlock.insertAt(ast.newExpressionStatement(forkJoinInvocation), numTasksPerBlock.get(currBlock).intValue(), editGroup);
-			}
-			if (statementsToAdd.size() > 0) {
-				for (int i= 0; i < statementsToAdd.size(); i++) {
-					if (lastStatementWithRecursiveCall instanceof ReturnStatement) {
-						listRewriteForBlock.insertBefore(statementsToAdd.get(i), lastStatementWithRecursiveCall, editGroup);
-					}
-				}
+			writeForkJoinInvocationInBlock(ast, editGroup, numTasksPerBlock, currBlock, listRewriteForBlock, forkJoinInvocation, isNotNewBlock, lastStatementWithRecursiveCall);
 			}
 		}
 		else if (!recursiveMethodReturnsVoid()) {
@@ -538,23 +524,20 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 					}
 				});
 				scratchRewriter.replace(currBlock, newBlock, editGroup);
+
+	private void writeForkJoinInvocationInBlock(final AST ast, final TextEditGroup editGroup, final Map<Block, Integer> numTasksPerBlock, Block currBlock, ListRewrite listRewriteForBlock,
+			MethodInvocation forkJoinInvocation, boolean isNotNewBlock, Statement lastStatementWithRecursiveCall) {
+		if (isNotNewBlock) {
+			if (lastStatementWithRecursiveCall instanceof ReturnStatement) {
+				listRewriteForBlock.insertBefore(ast.newExpressionStatement(forkJoinInvocation), lastStatementWithRecursiveCall, editGroup);
 			} else {
-				Statement newStatement= (Statement) ASTNode.copySubtree(ast, blockWithoutBraces.get(currBlock));
-				newStatement.accept(new ASTVisitor() {
-					@Override
-					public boolean visit(MethodInvocation methodCall){
-						boolean namesMatch= methodCall.getName().getFullyQualifiedName().equals(fMethodDeclaration.getName().getFullyQualifiedName());
-						List<Expression> methodArgs= methodCall.arguments();
-						List<SingleVariableDeclaration> declArgs= fMethodDeclaration.parameters();
-						boolean paramSizesMatch= methodArgs.size() == declArgs.size();
-						if (namesMatch && paramSizesMatch) {
-							methodCall.setName(ast.newSimpleName(methodCall.getName().getIdentifier() + "_sequential")); //$NON-NLS-1$
-							return false;
-						}
-						return true;
-					}
-				});
-				scratchRewriter.replace(blockWithoutBraces.get(currBlock), newStatement, editGroup);
+				listRewriteForBlock.insertAfter(ast.newExpressionStatement(forkJoinInvocation), lastStatementWithRecursiveCall, editGroup);
+			}
+		} else {
+			listRewriteForBlock.insertAt(ast.newExpressionStatement(forkJoinInvocation), numTasksPerBlock.get(currBlock).intValue(), editGroup);
+		}
+	}
+
 	private void addSavedStatementsAfterLastStatement(final TextEditGroup editGroup, ListRewrite listRewriteForBlock, Statement lastStatementWithRecursiveCall, List<ASTNode> statementsToAdd) {
 		for (int i= 0; i < statementsToAdd.size(); i++) {
 			if (!(lastStatementWithRecursiveCall instanceof ReturnStatement)) {
