@@ -602,34 +602,39 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		try {
 			edits.apply(scratchDocument);
 			
-			//TODO extract
 			ASTParser parser= ASTParser.newParser(AST.JLS4);
 			parser.setSource(scratchDocument.get().toCharArray());
 			CompilationUnit scratchCU= (CompilationUnit)parser.createAST(null);
 			final TypeDeclaration[] declaringClass= new TypeDeclaration[1];
-			scratchCU.accept(new ASTVisitor() {
-				@Override
 				public boolean visit(TypeDeclaration typedecl){
-					if (typedecl.getName().getIdentifier().equals(fMethod.getDeclaringType().getElementName())) {
-						declaringClass[0]= typedecl;
 					}
-					return true;
-				}
-			});
-			MethodDeclaration[] methodsInRefactoredClass= declaringClass[0].getMethods();
-			for (MethodDeclaration methodDeclaration : methodsInRefactoredClass) {
-				if (methodDeclaration.getName().getIdentifier().equals(fMethodDeclaration.getName().getIdentifier())
-						&& methodsHaveSameSignature(methodDeclaration,fMethodDeclaration)) {
-					Block block= methodDeclaration.getBody();
-					Block copySubtree= (Block) ASTNode.copySubtree(ast, block);
-					computeMethod.setBody(copySubtree);
-					break;
-				}
-			}
+			copyBodyFromMethodDeclarationToComputeMethod(ast, computeMethod, scratchCU, declaringClass);
 		} catch (MalformedTreeException e) {
 			e.printStackTrace();
 		} catch (BadLocationException e) {
 			e.printStackTrace();
+		}
+	}
+
+	private void copyBodyFromMethodDeclarationToComputeMethod(AST ast, MethodDeclaration computeMethod, CompilationUnit scratchCU, final TypeDeclaration[] declaringClass) {  //TODO throw exception?
+		scratchCU.accept(new ASTVisitor() {
+			@Override
+			public boolean visit(TypeDeclaration typedecl){
+				if (typedecl.getName().getIdentifier().equals(fMethod.getDeclaringType().getElementName())) {
+					declaringClass[0]= typedecl;
+				}
+				return true;
+			}
+		});
+		MethodDeclaration[] methodsInRefactoredClass= declaringClass[0].getMethods();
+		for (MethodDeclaration methodDeclaration : methodsInRefactoredClass) {
+			if (methodDeclaration.getName().getIdentifier().equals(fMethodDeclaration.getName().getIdentifier())
+					&& methodsHaveSameSignature(methodDeclaration,fMethodDeclaration)) {
+				Block block= methodDeclaration.getBody();
+				Block copySubtree= (Block) ASTNode.copySubtree(ast, block);
+				computeMethod.setBody(copySubtree);
+				break;
+			}
 		}
 	}
 
