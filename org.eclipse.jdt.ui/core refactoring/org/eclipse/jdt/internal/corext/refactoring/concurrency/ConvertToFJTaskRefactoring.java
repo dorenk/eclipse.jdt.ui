@@ -606,8 +606,6 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			parser.setSource(scratchDocument.get().toCharArray());
 			CompilationUnit scratchCU= (CompilationUnit)parser.createAST(null);
 			final TypeDeclaration[] declaringClass= new TypeDeclaration[1];
-				public boolean visit(TypeDeclaration typedecl){
-					}
 			copyBodyFromMethodDeclarationToComputeMethod(ast, computeMethod, scratchCU, declaringClass);
 		} catch (MalformedTreeException e) {
 			e.printStackTrace();
