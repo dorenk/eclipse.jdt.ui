@@ -495,21 +495,8 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			Statement currStatement= null;
 			List<ASTNode> statementsToAdd= new ArrayList<ASTNode>();
 			
-			for (int listIndex= 0; listIndex < recursiveList.size(); listIndex++) {
-				currStatement= recursiveList.get(listIndex);
-				List<Integer> taskList= statementsToTasks.get(currStatement);
-				for (int i= 0; i < taskList.size(); i++) {
-					Integer taskNum= taskList.get(i);
-					argumentsForkJoin.add(ast.newSimpleName("task" + taskNum)); //$NON-NLS-1$
-					replaceWithTaskDeclStatement(allTaskDeclStatements.get(taskNum), currStatement, scratchRewriter, editGroup, listRewriteForBlock, isNotNewBlock, i == taskList.size() - 1);
-				}
-				
-				Statement reverseStatement= recursiveList.get(recursiveList.size() - listIndex - 1);
-				List<Integer> reverseTaskList= statementsToTasks.get(reverseStatement);
-				if (!(reverseStatement instanceof ReturnStatement) && !recursiveMethodReturnsVoid()) {
-					createPartialComputations(ast, editGroup, scratchRewriter, listRewriteForBlock, reverseStatement, isNotNewBlock, reverseTaskList, statementsToAdd);
-				}
-			}
+			processRefactoringForAllStatementsInBlock(ast, editGroup, scratchRewriter, allTaskDeclStatements, statementsToTasks, listRewriteForBlock, argumentsForkJoin, recursiveList, isNotNewBlock,
+					statementsToAdd);
 			if (!recursiveMethodReturnsVoid() && (lastStatementWithRecursiveCall instanceof ReturnStatement)) {
 				createLastReturnStatement(ast, editGroup, scratchRewriter, listRewriteForBlock, lastStatementWithRecursiveCall, isNotNewBlock, statementsToTasks.get(lastStatementWithRecursiveCall));
 			}
@@ -573,7 +560,24 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				});
 				scratchRewriter.replace(blockWithoutBraces.get(currBlock), newStatement, editGroup);
 			}
+	private void processRefactoringForAllStatementsInBlock(final AST ast, final TextEditGroup editGroup, final ASTRewrite scratchRewriter,
+			Map<Integer, VariableDeclarationStatement> allTaskDeclStatements, Map<Statement, List<Integer>> statementsToTasks, ListRewrite listRewriteForBlock, List<Expression> argumentsForkJoin,
+			List<Statement> recursiveList, boolean isNotNewBlock, List<ASTNode> statementsToAdd) {
+		Statement currStatement;
+		for (int listIndex= 0; listIndex < recursiveList.size(); listIndex++) {
+			currStatement= recursiveList.get(listIndex);
+			List<Integer> taskList= statementsToTasks.get(currStatement);
+			writeTaskDeclStatementsAndAddTaskToForkJoinArguments(ast, editGroup, scratchRewriter, allTaskDeclStatements, listRewriteForBlock, argumentsForkJoin, isNotNewBlock, currStatement,
+					taskList);
 			
+			Statement reverseStatement= recursiveList.get(recursiveList.size() - listIndex - 1);
+			List<Integer> reverseTaskList= statementsToTasks.get(reverseStatement);
+			if (!(reverseStatement instanceof ReturnStatement) && !recursiveMethodReturnsVoid()) {
+				refactorStatement(ast, editGroup, scratchRewriter, listRewriteForBlock, reverseStatement, isNotNewBlock, reverseTaskList, statementsToAdd);
+			}
+		}
+	}
+
 		}
 		return atLeastOneBlockChanged;
 	}
