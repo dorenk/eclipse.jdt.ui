@@ -574,8 +574,14 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		}
 	}
 
+	private void writeTaskDeclStatementsAndAddTaskToForkJoinArguments(final AST ast, final TextEditGroup editGroup, final ASTRewrite scratchRewriter,
+			Map<Integer, VariableDeclarationStatement> allTaskDeclStatements, ListRewrite listRewriteForBlock, List<Expression> argumentsForkJoin, boolean isNotNewBlock, Statement currStatement,
+			List<Integer> taskList) {
+		for (int i= 0; i < taskList.size(); i++) {
+			Integer taskNum= taskList.get(i);
+			argumentsForkJoin.add(ast.newSimpleName("task" + taskNum)); //$NON-NLS-1$
+			replaceWithTaskDeclStatement(allTaskDeclStatements.get(taskNum), currStatement, scratchRewriter, editGroup, listRewriteForBlock, isNotNewBlock, i == taskList.size() - 1);
 		}
-		return atLeastOneBlockChanged;
 	}
 
 	private void replaceWithTaskDeclStatement(VariableDeclarationStatement taskDeclStatement, ASTNode node, ASTRewrite scratchRewriter, TextEditGroup editGroup, ListRewrite listRewriteForBlock,
