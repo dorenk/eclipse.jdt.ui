@@ -426,52 +426,6 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		recursiveActionSubtype.bodyDeclarations().add(computeMethod);
 	}
 
-	private boolean tooFewStatementsToRefactor(RefactoringStatus result, final Map<Block, List<Statement>> allStatementsWithRecursiveMethodInvocation) {
-		if (allStatementsWithRecursiveMethodInvocation.size() == 0) {
-			createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_statement_error, new String[] {fMethod.getElementName()}));
-			return true;
-		}
-		return false;
-	}
-
-	private boolean switchStatementError(RefactoringStatus result, final boolean[] switchStatementsFound) {
-		if (switchStatementsFound[0]) {
-			createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_switch_statement_error, new String[] {fMethod.getElementName()}));
-			return true;
-		}
-		return false;
-	}
-
-	private void replaceBaseCaseCheckWithSequentialThreshold(final TextEditGroup editGroup, Statement recursionBaseCaseBranch, final ASTRewrite scratchRewriter, ASTNode sequentialThresholdCheck) {
-		IfStatement enclosingIf= (IfStatement) recursionBaseCaseBranch.getParent();
-		scratchRewriter.replace(enclosingIf.getExpression(), sequentialThresholdCheck, editGroup);
-	}
-
-	private boolean methodHasNoBody(RefactoringStatus result) {
-		if (fMethodDeclaration.getBody() == null) {
-			createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_method_body_error, new String[] {fMethod.getElementName()}));
-			return true;
-		}
-		return false;
-	}
-
-	private void initializeComputeMethod(final AST ast, MethodDeclaration computeMethod) {
-		computeMethod.setName(ast.newSimpleName("compute")); //$NON-NLS-1$
-		computeMethod.modifiers().add(ast.newModifier(ModifierKeyword.PROTECTED_KEYWORD));
-		if (!recursiveMethodReturnsVoid()) {
-			computeMethod.setReturnType2(getReturnType(ast));
-		}
-	}
-
-	private boolean methodThrowsExceptions(RefactoringStatus result) {
-		List<Name> exceptionList= fMethodDeclaration.thrownExceptions();
-		if (exceptionList.size() > 0) {
-			createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_thrown_exception_error, new String[] {fMethod.getElementName()}));
-			return true;
-		}
-		return false;
-	}
-
 	private boolean attemptRefactoringOnBlock(final AST ast, final TextEditGroup editGroup, final ASTRewrite scratchRewriter, Map<Integer, VariableDeclarationStatement> allTaskDeclStatements,
 			Map<Statement, List<Integer>> statementsToTasks, final Map<Block, List<Statement>> allStatementsWithRecursiveMethodInvocation, final Map<Block, Integer> numTasksPerBlock,
 			final Map<Block, Statement> blockWithoutBraces, boolean atLeastOneBlockChanged, Block currBlock, ListRewrite listRewriteForBlock) {
@@ -629,6 +583,52 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		} catch (BadLocationException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	private boolean tooFewStatementsToRefactor(RefactoringStatus result, final Map<Block, List<Statement>> allStatementsWithRecursiveMethodInvocation) {
+		if (allStatementsWithRecursiveMethodInvocation.size() == 0) {
+			createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_statement_error, new String[] {fMethod.getElementName()}));
+			return true;
+		}
+		return false;
+	}
+
+	private boolean switchStatementError(RefactoringStatus result, final boolean[] switchStatementsFound) {
+		if (switchStatementsFound[0]) {
+			createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_switch_statement_error, new String[] {fMethod.getElementName()}));
+			return true;
+		}
+		return false;
+	}
+
+	private void replaceBaseCaseCheckWithSequentialThreshold(final TextEditGroup editGroup, Statement recursionBaseCaseBranch, final ASTRewrite scratchRewriter, ASTNode sequentialThresholdCheck) {
+		IfStatement enclosingIf= (IfStatement) recursionBaseCaseBranch.getParent();
+		scratchRewriter.replace(enclosingIf.getExpression(), sequentialThresholdCheck, editGroup);
+	}
+
+	private boolean methodHasNoBody(RefactoringStatus result) {
+		if (fMethodDeclaration.getBody() == null) {
+			createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_method_body_error, new String[] {fMethod.getElementName()}));
+			return true;
+		}
+		return false;
+	}
+
+	private void initializeComputeMethod(final AST ast, MethodDeclaration computeMethod) {
+		computeMethod.setName(ast.newSimpleName("compute")); //$NON-NLS-1$
+		computeMethod.modifiers().add(ast.newModifier(ModifierKeyword.PROTECTED_KEYWORD));
+		if (!recursiveMethodReturnsVoid()) {
+			computeMethod.setReturnType2(getReturnType(ast));
+		}
+	}
+
+	private boolean methodThrowsExceptions(RefactoringStatus result) {
+		List<Name> exceptionList= fMethodDeclaration.thrownExceptions();
+		if (exceptionList.size() > 0) {
+			createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_thrown_exception_error, new String[] {fMethod.getElementName()}));
+			return true;
+		}
+		return false;
 	}
 
 	private void copyBodyFromMethodDeclarationToComputeMethod(AST ast, MethodDeclaration computeMethod, CompilationUnit scratchCU, final TypeDeclaration[] declaringClass) {  //TODO throw exception?
