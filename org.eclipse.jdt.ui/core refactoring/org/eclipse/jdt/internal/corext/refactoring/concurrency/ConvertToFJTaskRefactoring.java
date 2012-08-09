@@ -1200,17 +1200,17 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 
 		@Override
 		public boolean visit(MethodInvocation methodCall) {
-		if	(isRecursiveMethod(methodCall)) {
-			MethodInvocation replacement= fAst.newMethodInvocation();
-			replacement.setExpression(fAst.newSimpleName("task" + fTaskList.get(fTaskNum[0]))); //$NON-NLS-1$
-			replacement.setName(fAst.newSimpleName("getRawResult"));  //$NON-NLS-1$
-			fScratchRewriter.replace(methodCall, replacement, fEditGroup);
-			fTaskNum[0]++;
-		}
-		if (fTaskNum[0] == fTaskList.size()) {
-			return false;
-		}
-		return true;
+			if (isRecursiveMethod(methodCall)) {
+				MethodInvocation replacement= fAst.newMethodInvocation();
+				replacement.setExpression(fAst.newSimpleName("task" + fTaskList.get(fTaskNum[0]))); //$NON-NLS-1$
+				replacement.setName(fAst.newSimpleName("getRawResult"));  //$NON-NLS-1$
+				fScratchRewriter.replace(methodCall, replacement, fEditGroup);
+				fTaskNum[0]++;
+			}
+			if (fTaskNum[0] == fTaskList.size()) {
+				return false;
+			}
+			return true;
 		}
 	}
 
