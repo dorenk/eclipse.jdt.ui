@@ -536,13 +536,11 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 	private void renameRecursiveCallsToSequentialInNonRefactoredBlock(final AST ast, final TextEditGroup editGroup, final ASTRewrite scratchRewriter, final Map<Block, Statement> blockWithoutBraces,
 			Block currBlock, boolean isNewBlock) {
 		if (!isNewBlock) {
-			Block newBlock= (Block) ASTNode.copySubtree(ast, currBlock);
-			newBlock.accept(new RecursiveToSequentialMethodCallVisitor(ast));
-			scratchRewriter.replace(currBlock, newBlock, editGroup);
+			Block newBlock= currBlock;
+			newBlock.accept(new RecursiveToSequentialMethodCallVisitor(ast, scratchRewriter, editGroup));
 		} else {
-			Statement newStatement= (Statement) ASTNode.copySubtree(ast, blockWithoutBraces.get(currBlock));
-			newStatement.accept(new RecursiveToSequentialMethodCallVisitor(ast));
-			scratchRewriter.replace(blockWithoutBraces.get(currBlock), newStatement, editGroup);
+			Statement newStatement= blockWithoutBraces.get(currBlock);
+			newStatement.accept(new RecursiveToSequentialMethodCallVisitor(ast, scratchRewriter, editGroup));
 		}
 	}
 
@@ -1179,18 +1177,33 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 
 	private final class RecursiveToSequentialMethodCallVisitor extends ASTVisitor {
 		private final AST fAst;
+		private final ASTRewrite fScratchRewriter;
+		private final TextEditGroup fEditGroup;
 
-		private RecursiveToSequentialMethodCallVisitor(AST ast) {
+		private RecursiveToSequentialMethodCallVisitor(AST ast, ASTRewrite scratchRewriter, TextEditGroup editGroup) {
 			fAst= ast;
+			fScratchRewriter= scratchRewriter;
+			fEditGroup= editGroup;
 		}
 
 		@Override
 		public boolean visit(MethodInvocation methodCall){
-			if (isMethodDeclarationEqualTo(methodCall)) {
-				methodCall.setName(fAst.newSimpleName(methodCall.getName().getIdentifier() + "_sequential")); //$NON-NLS-1$
+			if (isRecursiveMethod(methodCall)) {
+				MethodInvocation replacement= fAst.newMethodInvocation();
+				replacement.setName(fAst.newSimpleName(methodCall.getName().getIdentifier() + "_sequential")); //$NON-NLS-1$
+				copyArguments(replacement, methodCall);
+				fScratchRewriter.replace(methodCall, replacement, fEditGroup);
 				return false;
 			}
 			return true;
+		}
+
+		private void copyArguments(MethodInvocation replacement, MethodInvocation methodCall) {
+			List<Expression> replacementArgs= replacement.arguments();
+			List<Expression> oldArgs= methodCall.arguments();
+			for (Expression expr : oldArgs) {
+				replacementArgs.add((Expression) ASTNode.copySubtree(fAst, expr));
+			}
 		}
 	}
 
