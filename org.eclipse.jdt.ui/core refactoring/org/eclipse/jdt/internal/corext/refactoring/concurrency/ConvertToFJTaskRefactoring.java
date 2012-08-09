@@ -308,6 +308,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 	}
 
 	private Type getNewUnionTypeCopy(AST ast, Type returnType) {
+		
 		UnionType tempUnion= ast.newUnionType();
 		List<Type> oldTypes= ((UnionType) returnType).types();
 		List<Type> newTypes= tempUnion.types();
