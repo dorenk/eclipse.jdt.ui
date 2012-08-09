@@ -154,7 +154,6 @@ public class ConvertToFJTaskInputPage extends UserInputWizardPage {
 	
 	void handleSequentialInputChanged() {
 		sequentialThreshold.setText(sequentialThreshold.getMessage());
-//		handleInputChanged();
 	}
 	
 	void handleButtonPressed() {
