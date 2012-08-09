@@ -772,9 +772,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		statement.accept(new ASTVisitor() {
 			@Override
 			public boolean visit(MethodInvocation methodCall) {
-				IMethodBinding bindingForMethodCall= methodCall.resolveMethodBinding();
-				IMethodBinding bindingForMethodDeclaration= fMethodDeclaration.resolveBinding();
-				if (bindingForMethodCall.isEqualTo(bindingForMethodDeclaration)) {
+				if (isRecursiveMethod(methodCall)) {
 					result[0]= true;
 				}
 				return true;
@@ -1234,7 +1232,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 
 		@Override
 		public boolean visit(MethodInvocation methodCall) {
-		if	(isMethodDeclarationEqualTo(methodCall)) {
+		if	(isRecursiveMethod(methodCall)) {
 			MethodInvocation replacement= fAst.newMethodInvocation();
 			replacement.setExpression(fAst.newSimpleName("task" + fTaskList.get(fTaskNum[0]))); //$NON-NLS-1$
 			replacement.setName(fAst.newSimpleName("getRawResult"));  //$NON-NLS-1$
