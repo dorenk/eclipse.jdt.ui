@@ -588,6 +588,18 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		}
 	}
 	
+	private void refactorReturnStatement(final AST ast, final TextEditGroup editGroup, final ASTRewrite scratchRewriter, ListRewrite listRewriteForBlock, Statement lastStatementInBlock, boolean isNotNewBlock, final List<Integer> taskList) {
+		ReturnStatement returnStatement= ((ReturnStatement)(ASTNode.copySubtree(ast, lastStatementInBlock)));
+		final int[] taskNum= {0};
+		returnStatement.accept(new ConvertMethodCallToTask(taskList, ast, taskNum, scratchRewriter, editGroup));
+			
+		if (isNotNewBlock) {
+			scratchRewriter.replace(lastStatementInBlock, returnStatement, editGroup);
+		} else {
+			listRewriteForBlock.insertLast(returnStatement, editGroup);
+		}
+	}
+	
 	private void renameRecursiveCallsToSequentialInNonRefactoredBlock(final AST ast, final TextEditGroup editGroup, final ASTRewrite scratchRewriter, final Map<Block, Statement> blockWithoutBraces,
 			Block currBlock, boolean isNewBlock) {
 		if (!isNewBlock) {
@@ -638,18 +650,6 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				computeMethod.setBody(copySubtree);
 				break;
 			}
-		}
-	}
-
-	private void refactorReturnStatement(final AST ast, final TextEditGroup editGroup, final ASTRewrite scratchRewriter, ListRewrite listRewriteForBlock, Statement lastStatementInBlock, boolean isNotNewBlock, final List<Integer> taskList) {
-		ReturnStatement returnStatement= ((ReturnStatement)(ASTNode.copySubtree(ast, lastStatementInBlock)));
-		final int[] taskNum= {0};
-		returnStatement.accept(new ConvertMethodCallToTask(taskList, ast, taskNum, scratchRewriter, editGroup));
-			
-		if (isNotNewBlock) {
-			scratchRewriter.replace(lastStatementInBlock, returnStatement, editGroup);
-		} else {
-			listRewriteForBlock.insertLast(returnStatement, editGroup);
 		}
 	}
 
