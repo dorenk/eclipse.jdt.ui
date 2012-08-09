@@ -525,6 +525,24 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		}
 	}
 	
+	private void writeTaskDeclStatementsAndAddTaskToForkJoinArguments(final AST ast, final TextEditGroup editGroup, Map<Integer, VariableDeclarationStatement> allTaskDeclStatements,
+			ListRewrite listRewriteForBlock, List<Expression> argumentsForkJoin, boolean isNotNewBlock, List<Integer> taskList, Statement firstStatementWithRecursiveCall) {
+		for (int i= 0; i < taskList.size(); i++) {
+			Integer taskNum= taskList.get(i);
+			argumentsForkJoin.add(ast.newSimpleName("task" + taskNum)); //$NON-NLS-1$
+			insertTaskDeclStatementBeforeStatement(allTaskDeclStatements.get(taskNum), firstStatementWithRecursiveCall, editGroup, listRewriteForBlock, isNotNewBlock);
+		}
+	}
+
+	private void insertTaskDeclStatementBeforeStatement(VariableDeclarationStatement taskDeclStatement, ASTNode node, TextEditGroup editGroup, ListRewrite listRewriteForBlock,
+			boolean isNotNewBlock) {
+		if(isNotNewBlock) {
+			listRewriteForBlock.insertBefore(taskDeclStatement, node, editGroup);
+		} else {
+			listRewriteForBlock.insertLast(taskDeclStatement, editGroup);
+		}
+	}
+	
 	private void renameRecursiveCallsToSequentialInNonRefactoredBlock(final AST ast, final TextEditGroup editGroup, final ASTRewrite scratchRewriter, final Map<Block, Statement> blockWithoutBraces,
 			Block currBlock, boolean isNewBlock) {
 		if (!isNewBlock) {
@@ -544,24 +562,6 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			listRewriteForBlock.insertBefore(ast.newExpressionStatement(forkJoinInvocation), firstStatementWithRecursiveCall, editGroup);
 		} else {
 			listRewriteForBlock.insertAt(ast.newExpressionStatement(forkJoinInvocation), numTasksPerBlock.get(currBlock).intValue(), editGroup);
-		}
-	}
-
-	private void writeTaskDeclStatementsAndAddTaskToForkJoinArguments(final AST ast, final TextEditGroup editGroup, Map<Integer, VariableDeclarationStatement> allTaskDeclStatements,
-			ListRewrite listRewriteForBlock, List<Expression> argumentsForkJoin, boolean isNotNewBlock, List<Integer> taskList, Statement firstStatementWithRecursiveCall) {
-		for (int i= 0; i < taskList.size(); i++) {
-			Integer taskNum= taskList.get(i);
-			argumentsForkJoin.add(ast.newSimpleName("task" + taskNum)); //$NON-NLS-1$
-			insertTaskDeclStatementBeforeStatement(allTaskDeclStatements.get(taskNum), firstStatementWithRecursiveCall, editGroup, listRewriteForBlock, isNotNewBlock);
-		}
-	}
-
-	private void insertTaskDeclStatementBeforeStatement(VariableDeclarationStatement taskDeclStatement, ASTNode node, TextEditGroup editGroup, ListRewrite listRewriteForBlock,
-			boolean isNotNewBlock) {
-		if(isNotNewBlock) {
-			listRewriteForBlock.insertBefore(taskDeclStatement, node, editGroup);
-		} else {
-			listRewriteForBlock.insertLast(taskDeclStatement, editGroup);
 		}
 	}
 
