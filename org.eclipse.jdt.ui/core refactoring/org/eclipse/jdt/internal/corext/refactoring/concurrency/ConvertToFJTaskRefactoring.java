@@ -524,13 +524,11 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 	}
 	
 	private void refactorReturnStatement(final AST ast, final TextEditGroup editGroup, final ASTRewrite scratchRewriter, ListRewrite listRewriteForBlock, Statement lastStatementInBlock, boolean isNotNewBlock, final List<Integer> taskList) {
-		ReturnStatement returnStatement= ((ReturnStatement)(ASTNode.copySubtree(ast, lastStatementInBlock)));
 		final int[] taskNum= {0};
+		ReturnStatement returnStatement= (ReturnStatement) lastStatementInBlock;
 		returnStatement.accept(new ConvertMethodCallToTask(taskList, ast, taskNum, scratchRewriter, editGroup));
 			
-		if (isNotNewBlock) {
-			scratchRewriter.replace(lastStatementInBlock, returnStatement, editGroup);
-		} else {
+		if (!isNotNewBlock) {
 			listRewriteForBlock.insertLast(returnStatement, editGroup);
 		}
 	}
