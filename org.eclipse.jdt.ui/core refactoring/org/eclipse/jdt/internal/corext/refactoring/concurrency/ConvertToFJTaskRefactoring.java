@@ -557,6 +557,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 	}
 
 	private void insertTaskDeclStatementBeforeStatement(VariableDeclarationStatement taskDeclStatement, ASTNode node, TextEditGroup editGroup, ListRewrite listRewriteForBlock,
+			boolean isNotNewBlock) {
 		if(isNotNewBlock) {
 			listRewriteForBlock.insertBefore(taskDeclStatement, node, editGroup);
 		} else {
