@@ -329,7 +329,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			checkIfCommentWarning(result);
 		}
 		
-		ASTNode copyRecursiveMethod= ASTNode.copySubtree(ast, fMethodDeclaration);
+		ASTNode copyRecursiveMethod= ASTNode.copySubtree(ast, fMethodDeclaration); //TODO use bindings instead - wait to copy
 		changeMethodCallsToSequential(copyRecursiveMethod);
 		recursiveActionSubtype.bodyDeclarations().add(copyRecursiveMethod);
 		
