@@ -655,30 +655,30 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			final int[] taskNum= {0};
 			varFragment.accept(new ConvertMethodCallToTask(taskList, ast, taskNum, scratchRewriter, editGroup));
 				
-			addVariableDeclarationStatement(ast, editGroup, listRewriteForBlock, isNotNewBlock, statementsToAdd, varFragment);
+			addVariableDeclarationStatement(ast, editGroup, listRewriteForBlock, isNotNewBlock, varFragment, scratchRewriter, currStatement);
 		} else if (currStatement instanceof ExpressionStatement) {
 			Expression expr= ((Expression) (ASTNode.copySubtree(ast, ((ExpressionStatement) currStatement).getExpression())));
 			final int[] taskNum= {0};
 			expr.accept(new ConvertMethodCallToTask(taskList, ast, taskNum, scratchRewriter, editGroup));
 				
-			addExpressionStatement(ast, editGroup, listRewriteForBlock, isNotNewBlock, statementsToAdd, expr);
+			addExpressionStatement(ast, editGroup, listRewriteForBlock, isNotNewBlock, expr, scratchRewriter, currStatement);
 		}
 	}
 
-	private void addVariableDeclarationStatement(final AST ast, final TextEditGroup editGroup, ListRewrite listRewriteForBlock, boolean isNotNewBlock, List<ASTNode> statementsToAdd,
-			VariableDeclarationFragment varFragment) {
+	private void addVariableDeclarationStatement(final AST ast, final TextEditGroup editGroup, ListRewrite listRewriteForBlock, boolean isNotNewBlock, VariableDeclarationFragment varFragment,
+			ASTRewrite scratchRewriter, Statement currStatement) {
 		VariableDeclarationStatement assignToResult= ast.newVariableDeclarationStatement(varFragment);
 		if (isNotNewBlock) {
-			statementsToAdd.add(assignToResult);
+			scratchRewriter.replace(currStatement, assignToResult, editGroup);
 		} else {
 			listRewriteForBlock.insertLast(assignToResult, editGroup);
 		}
 	}
 
-	private void addExpressionStatement(final AST ast, final TextEditGroup editGroup, ListRewrite listRewriteForBlock, boolean isNotNewBlock, List<ASTNode> statementsToAdd, Expression expr) {
+	private void addExpressionStatement(final AST ast, final TextEditGroup editGroup, ListRewrite listRewriteForBlock, boolean isNotNewBlock, Expression expr, ASTRewrite scratchRewriter, Statement currStatement) {
 		ExpressionStatement assignToResult= ast.newExpressionStatement(expr);
 		if (isNotNewBlock) {
-			statementsToAdd.add(assignToResult);
+			scratchRewriter.replace(currStatement, assignToResult, editGroup);
 		} else {
 			listRewriteForBlock.insertLast(assignToResult, editGroup);
 		}
