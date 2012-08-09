@@ -329,26 +329,24 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			checkIfCommentWarning(result);
 		}
 		
-		ASTNode copyRecursiveMethod= ASTNode.copySubtree(ast, fMethodDeclaration); //TODO use bindings instead - wait to copy
+		MethodDeclaration copyRecursiveMethod= fMethodDeclaration;
 		changeMethodCallsToSequential(copyRecursiveMethod);
-		recursiveActionSubtype.bodyDeclarations().add(copyRecursiveMethod);
-		
+		recursiveActionSubtype.bodyDeclarations().add(ASTNode.copySubtree(ast, copyRecursiveMethod));
 	}
 
-	private void changeMethodCallsToSequential(ASTNode copyRecursiveMethod) {
-		final SimpleName methodName= ((MethodDeclaration) copyRecursiveMethod).getName();
-		final String newIdentifier= methodName.getIdentifier() + "_sequential"; //$NON-NLS-1$
+	private void changeMethodCallsToSequential(MethodDeclaration copyRecursiveMethod) {
+		
+		final String newIdentifier= copyRecursiveMethod.getName().getIdentifier() + "_sequential"; //$NON-NLS-1$
 		copyRecursiveMethod.accept(new ASTVisitor() {
 			@Override
 			public boolean visit(MethodInvocation methodCall) {
-				SimpleName methodCallName= methodCall.getName();
-				if (methodName.getIdentifier().equals(methodCallName.getIdentifier())) {
-					methodCallName.setIdentifier(newIdentifier);
+				if (isRecursiveMethod(methodCall)) {
+					methodCall.getName().setIdentifier(newIdentifier);
 				}
 				return true;
 			}
 		});
-		methodName.setIdentifier(newIdentifier);
+		copyRecursiveMethod.getName().setIdentifier(newIdentifier);
 	}
 
 	private void checkIfCommentWarning(RefactoringStatus result) {
