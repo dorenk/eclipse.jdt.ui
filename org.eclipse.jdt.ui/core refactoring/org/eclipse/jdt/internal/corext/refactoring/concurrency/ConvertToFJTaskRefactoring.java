@@ -1175,7 +1175,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			if (isRecursiveMethod(methodCall)) {
 				MethodInvocation replacement= fAst.newMethodInvocation();
 				replacement.setName(fAst.newSimpleName(methodCall.getName().getIdentifier() + "_sequential")); //$NON-NLS-1$
-				copyArguments(replacement, methodCall);
+				copyArguments(replacement, methodCall, fAst);
 				fScratchRewriter.replace(methodCall, replacement, fEditGroup);
 				return false;
 			}
