@@ -1141,12 +1141,11 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		return options;
 	}
 	
-	private boolean isMethodDeclarationEqualTo(MethodInvocation methodCall) {
-		boolean namesMatch= methodCall.getName().getFullyQualifiedName().equals(fMethodDeclaration.getName().getFullyQualifiedName());
-		List<Expression> methodArgs= methodCall.arguments();
-		List<SingleVariableDeclaration> declArgs= fMethodDeclaration.parameters();
-		boolean paramSizesMatch= methodArgs.size() == declArgs.size();
-		return namesMatch && paramSizesMatch;  //TODO Add more logic to better check - make so overloaded methods don't get chosen
+	private boolean isRecursiveMethod(MethodInvocation methodCall) {
+		IMethodBinding bindingForMethodCall= methodCall.resolveMethodBinding();
+		IMethodBinding bindingForMethodDeclaration= fMethodDeclaration.resolveBinding();
+		boolean isRecursiveMethod= bindingForMethodCall.isEqualTo(bindingForMethodDeclaration);
+		return isRecursiveMethod;
 	}
 	
 	private final class FindBaseCaseVisitor extends ASTVisitor {
@@ -1361,13 +1360,6 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				populateAllMaps(myBlock, parentOfMethodCall, taskDeclStatement);
 			}
 			return true;
-		}
-
-		private boolean isRecursiveMethod(MethodInvocation methodCall) {
-			IMethodBinding bindingForMethodCall= methodCall.resolveMethodBinding();
-			IMethodBinding bindingForMethodDeclaration= fMethodDeclaration.resolveBinding();
-			boolean isRecursiveMethod= bindingForMethodCall.isEqualTo(bindingForMethodDeclaration);
-			return isRecursiveMethod;
 		}
 
 		private void populateAllMaps(Block myBlock, Statement parentOfMethodCall, VariableDeclarationStatement taskDeclStatement) {
