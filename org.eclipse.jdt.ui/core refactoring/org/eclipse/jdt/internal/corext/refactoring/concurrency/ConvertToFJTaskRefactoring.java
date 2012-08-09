@@ -1098,6 +1098,15 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		return isRecursiveMethod;
 	}
 	
+	private void copyArguments(MethodInvocation replacement, MethodInvocation methodCall, AST ast) {
+		
+		List<Expression> replacementArgs= replacement.arguments();
+		List<Expression> oldArgs= methodCall.arguments();
+		for (Expression expr : oldArgs) {
+			replacementArgs.add((Expression) ASTNode.copySubtree(ast, expr));
+		}
+	}
+	
 	private final class FindBaseCaseVisitor extends ASTVisitor {
 		private final Statement[] fBaseCase;
 		private final int[] fCounter;
@@ -1171,14 +1180,6 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				return false;
 			}
 			return true;
-		}
-
-		private void copyArguments(MethodInvocation replacement, MethodInvocation methodCall) {
-			List<Expression> replacementArgs= replacement.arguments();
-			List<Expression> oldArgs= methodCall.arguments();
-			for (Expression expr : oldArgs) {
-				replacementArgs.add((Expression) ASTNode.copySubtree(fAst, expr));
-			}
 		}
 	}
 
