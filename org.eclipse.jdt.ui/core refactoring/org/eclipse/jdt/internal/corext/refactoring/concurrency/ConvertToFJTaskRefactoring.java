@@ -496,6 +496,9 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			
 			processRefactoringForAllStatementsInBlock(ast, editGroup, scratchRewriter, allTaskDeclStatements, statementsToTasks, listRewriteForBlock, argumentsForkJoin, recursiveList, isNotNewBlock,
 					firstStatementWithRecursiveCall);
+			
+			writeForkJoinInvocationInBlock(ast, editGroup, numTasksPerBlock, currBlock, listRewriteForBlock, forkJoinInvocation, isNotNewBlock, firstStatementWithRecursiveCall);
+			
 			if (!recursiveMethodReturnsVoid() && (lastStatementWithRecursiveCall instanceof ReturnStatement)) {
 				refactorReturnStatement(ast, editGroup, scratchRewriter, listRewriteForBlock, lastStatementWithRecursiveCall, isNotNewBlock, statementsToTasks.get(lastStatementWithRecursiveCall));
 			}
@@ -551,13 +554,9 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 	}
 
 	private void writeForkJoinInvocationInBlock(final AST ast, final TextEditGroup editGroup, final Map<Block, Integer> numTasksPerBlock, Block currBlock, ListRewrite listRewriteForBlock,
-			MethodInvocation forkJoinInvocation, boolean isNotNewBlock, Statement lastStatementWithRecursiveCall) {
+			MethodInvocation forkJoinInvocation, boolean isNotNewBlock, Statement firstStatementWithRecursiveCall) {
 		if (isNotNewBlock) {
-			if (lastStatementWithRecursiveCall instanceof ReturnStatement) {
-				listRewriteForBlock.insertBefore(ast.newExpressionStatement(forkJoinInvocation), lastStatementWithRecursiveCall, editGroup);
-			} else {
-				listRewriteForBlock.insertAfter(ast.newExpressionStatement(forkJoinInvocation), lastStatementWithRecursiveCall, editGroup);
-			}
+			listRewriteForBlock.insertBefore(ast.newExpressionStatement(forkJoinInvocation), firstStatementWithRecursiveCall, editGroup);
 		} else {
 			listRewriteForBlock.insertAt(ast.newExpressionStatement(forkJoinInvocation), numTasksPerBlock.get(currBlock).intValue(), editGroup);
 		}
