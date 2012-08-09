@@ -641,7 +641,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		List<Statement> baseCaseStatements= baseCaseBlock.statements();
 		if (recursiveMethodReturnsVoid()) {
 			ExpressionStatement sequentialMethodInvocation= ast.newExpressionStatement(createSequentialMethodInvocation(ast));
-			if (isBlock) { //TODO do i clear the whole block?
+			if (isBlock) {
 				ListRewrite listRewriteForBaseBlock= scratchRewriter.getListRewrite(baseCaseBlock, Block.STATEMENTS_PROPERTY);
 				listRewriteForBaseBlock.insertBefore(sequentialMethodInvocation, baseCaseStatements.get(baseCaseStatements.size() - 1), editGroup);
 			} else {
