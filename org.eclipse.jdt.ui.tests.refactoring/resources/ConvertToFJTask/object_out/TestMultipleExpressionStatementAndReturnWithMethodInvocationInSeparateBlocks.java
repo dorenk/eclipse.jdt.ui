@@ -23,10 +23,10 @@ public class TestMultipleExpressionStatementAndReturnWithMethodInvocationInSepar
 				if (data < 5) {
 					int gas;
 					CalculateMilesImpl task1 = new CalculateMilesImpl(data - 1);
-					int mpg;
 					CalculateMilesImpl task2 = new CalculateMilesImpl(data - 2);
 					invokeAll(task1, task2);
 					gas = task1.getRawResult();
+					int mpg;
 					mpg = task2.getRawResult();
 					return gas * mpg;
 				} else {
