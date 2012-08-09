@@ -77,6 +77,7 @@ import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.SwitchStatement;
 import org.eclipse.jdt.core.dom.Type;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
+import org.eclipse.jdt.core.dom.UnionType;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
@@ -300,12 +301,20 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		} else if (returnType.isSimpleType()) {
 			return ast.newSimpleType(ast.newName(returnTypeName));  //TODO check
 		} else if (returnType.isUnionType()) {
-			return ast.newUnionType();  //TODO check
-		} else if (returnType.isWildcardType()) {
-			return ast.newWildcardType();  //TODO check
+			return getNewUnionTypeCopy(ast, returnType);
 		} else {
 			return null;
 		}
+	}
+
+	private Type getNewUnionTypeCopy(AST ast, Type returnType) {
+		UnionType tempUnion= ast.newUnionType();
+		List<Type> oldTypes= ((UnionType) returnType).types();
+		List<Type> newTypes= tempUnion.types();
+		for(Type type : oldTypes) {
+			newTypes.add((Type) ASTNode.copySubtree(ast, type));
+		}
+		return tempUnion;
 	}
 
 	private Type getNewParameterizedTypeCopy(AST ast, Type returnType) {
