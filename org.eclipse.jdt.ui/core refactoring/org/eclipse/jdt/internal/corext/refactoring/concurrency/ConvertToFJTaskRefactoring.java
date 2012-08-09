@@ -294,7 +294,14 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			Type tempComponent= (Type) ASTNode.copySubtree(ast, ((ArrayType) returnType).getComponentType());
 			return ast.newArrayType(tempComponent);
 		} else if (returnType.isParameterizedType()) {
-			return ast.newParameterizedType(returnType);
+			ParameterizedType tempType= (ParameterizedType) returnType;
+			ParameterizedType newType= ast.newParameterizedType((Type) ASTNode.copySubtree(ast, tempType.getType()));
+			List<Type> typeArgs= newType.typeArguments();
+			List<Type> oldArgs= tempType.typeArguments();
+			for (Type type : oldArgs) {
+				typeArgs.add((Type) ASTNode.copySubtree(ast, type));
+			}
+			return newType;
 		} else if (returnType.isQualifiedType()) {
 			return ast.newQualifiedType(returnType, ast.newSimpleName(returnTypeName));  //TODO check these below
 		} else if (returnType.isSimpleType()) {
