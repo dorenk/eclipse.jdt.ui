@@ -294,25 +294,30 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			Type tempComponent= (Type) ASTNode.copySubtree(ast, ((ArrayType) returnType).getComponentType());
 			return ast.newArrayType(tempComponent);
 		} else if (returnType.isParameterizedType()) {
-			ParameterizedType tempType= (ParameterizedType) returnType;
-			ParameterizedType newType= ast.newParameterizedType((Type) ASTNode.copySubtree(ast, tempType.getType()));
-			List<Type> typeArgs= newType.typeArguments();
-			List<Type> oldArgs= tempType.typeArguments();
-			for (Type type : oldArgs) {
-				typeArgs.add((Type) ASTNode.copySubtree(ast, type));
-			}
-			return newType;
+			return getNewParameterizedTypeCopy(ast, returnType);
 		} else if (returnType.isQualifiedType()) {
-			return ast.newQualifiedType(returnType, ast.newSimpleName(returnTypeName));  //TODO check these below
+			return ast.newQualifiedType(returnType, ast.newSimpleName(returnTypeName));
 		} else if (returnType.isSimpleType()) {
-			return ast.newSimpleType(ast.newName(returnTypeName));
+			return ast.newSimpleType(ast.newName(returnTypeName));  //TODO check
 		} else if (returnType.isUnionType()) {
-			return ast.newUnionType(); 
+			return ast.newUnionType();  //TODO check
 		} else if (returnType.isWildcardType()) {
-			return ast.newWildcardType();
+			return ast.newWildcardType();  //TODO check
 		} else {
 			return null;
 		}
+	}
+
+	private Type getNewParameterizedTypeCopy(AST ast, Type returnType) {
+		
+		ParameterizedType tempType= (ParameterizedType) returnType;
+		ParameterizedType newType= ast.newParameterizedType((Type) ASTNode.copySubtree(ast, tempType.getType()));
+		List<Type> typeArgs= newType.typeArguments();
+		List<Type> oldArgs= tempType.typeArguments();
+		for (Type type : oldArgs) {
+			typeArgs.add((Type) ASTNode.copySubtree(ast, type));
+		}
+		return newType;
 	}
 
 	private String primitiveTypeToWrapper(String typeName) {
@@ -1144,6 +1149,8 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			replacementArgs.add((Expression) ASTNode.copySubtree(ast, expr));
 		}
 	}
+	
+	// ----------------------------------- Visitors -------------------------------
 	
 	private final class FindBaseCaseVisitor extends ASTVisitor {
 		private final Statement[] fBaseCase;
