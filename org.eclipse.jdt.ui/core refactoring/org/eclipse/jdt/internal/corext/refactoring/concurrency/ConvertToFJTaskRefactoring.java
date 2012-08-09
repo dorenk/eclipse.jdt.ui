@@ -435,9 +435,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 				return;
 			}
 			boolean atLeastOneBlockChanged= false;
-			Iterator<Block> blockIter= allTheBlocks.iterator();
-			while (blockIter.hasNext()) {
-				Block currBlock= blockIter.next();
+			for (Block currBlock : allTheBlocks) {
 				ListRewrite listRewriteForBlock= scratchRewriter.getListRewrite(currBlock, Block.STATEMENTS_PROPERTY);
 				atLeastOneBlockChanged= (attemptRefactoringOnBlock(ast, editGroup, scratchRewriter, allTaskDeclStatements, statementsToTasks,
 						allStatementsWithRecursiveMethodInvocation, numTasksPerBlock, blockWithoutBraces, atLeastOneBlockChanged, currBlock, listRewriteForBlock) || atLeastOneBlockChanged);
@@ -877,8 +875,8 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		TextChangeCompatibility.addTextEdit(fChangeManager.get(unit), ConcurrencyRefactorings.ConcurrencyRefactorings_update_imports, importEdit);
 		
 		root.addChild(rewriter.rewriteAST());
-		for (Iterator<TextEditGroup> iter= groups.iterator(); iter.hasNext();) {
-			change.addTextEditGroup(iter.next());
+		for (TextEditGroup edit : groups) {
+			change.addTextEditGroup(edit);
 		}
 	}
 
