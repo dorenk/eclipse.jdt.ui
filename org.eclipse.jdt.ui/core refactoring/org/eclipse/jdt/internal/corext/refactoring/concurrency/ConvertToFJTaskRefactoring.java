@@ -419,7 +419,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		
 		replaceBaseCaseCheckWithSequentialThreshold(editGroup, recursionBaseCaseBranch, scratchRewriter, sequentialThresholdCheck);
 		
-		computeBaseCaseStatements(ast, editGroup, recursionBaseCaseBranch, scratchRewriter);
+		createSequentialMethodInvocation(ast, editGroup, recursionBaseCaseBranch, scratchRewriter);  //TODO rename and change to clear block
 		
 		final Map<Statement, List<Integer> > statementsToTasks= new HashMap<Statement, List<Integer> >();
 		final Map<Block, List<Statement> > allStatementsWithRecursiveMethodInvocation= new HashMap<Block, List<Statement> >();
@@ -648,7 +648,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		}
 	}
 
-	private void computeBaseCaseStatements(AST ast, TextEditGroup editGroup, Statement recursionBaseCaseBranch, ASTRewrite scratchRewriter) {
+	private void createSequentialMethodInvocation(AST ast, TextEditGroup editGroup, Statement recursionBaseCaseBranch, ASTRewrite scratchRewriter) {
 		
 		Block baseCaseBlock;
 		boolean isBlock= false;
