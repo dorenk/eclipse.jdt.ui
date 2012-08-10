@@ -1055,7 +1055,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 	public String suggestTaskName() {
 		
 		String methodName= fMethod.getElementName();
-		return methodName.substring(0, 1).toUpperCase() + methodName.substring(1, methodName.length()) + "Impl"; //$NON-NLS-1$
+		return methodName.substring(0, 1).toUpperCase() + methodName.substring(1, methodName.length()) + "Task"; //$NON-NLS-1$
 	}
 	
 	public String suggestSequentialThreshold() {
