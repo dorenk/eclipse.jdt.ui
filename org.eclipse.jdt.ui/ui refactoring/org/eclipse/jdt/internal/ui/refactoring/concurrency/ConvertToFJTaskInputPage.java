@@ -119,8 +119,8 @@ public class ConvertToFJTaskInputPage extends UserInputWizardPage {
 		MySelectionListener selectionListener= new MySelectionListener();
 		helpButton.addSelectionListener(selectionListener);
 		
-		helpDialog= new MessageBox(getShell());
-		helpDialog.setMessage("The sequential threshold is a bound which determines when the sequential algorithm should be called.  This is an optimization left up to the programmer."); //$NON-NLS-1$
+		helpDialog= new MessageBox(getShell(), SWT.ICON_INFORMATION);
+		helpDialog.setMessage("The sequential threshold is an expression that determines when the algorithm reverts to sequential execution.  We provide an example for this expression but the programmer should experiment with different values."); //$NON-NLS-1$
 		helpDialog.setText("Sequential Threshold Help"); //$NON-NLS-1$
 		
 		handleInputChanged();
