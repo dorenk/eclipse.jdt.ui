@@ -1061,23 +1061,23 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 	public String suggestSequentialThreshold() {
 		
 		List<SingleVariableDeclaration> params= fMethodDeclaration.parameters();
-		String sugSeqThreshold= ConcurrencyRefactorings.ConcurrencyRefactorings_empty_string;
+		String suggestSeqThreshold= ConcurrencyRefactorings.ConcurrencyRefactorings_empty_string;
 		if (params != null && params.size() > 0) {
 			SingleVariableDeclaration parameter= params.get(0);
 			Type type= parameter.getType();
 			if (type.isPrimitiveType()) {
-				sugSeqThreshold= parameter.getName().getIdentifier() + " < 1000"; //$NON-NLS-1$
+				suggestSeqThreshold= parameter.getName().getIdentifier() + " < 1000"; //$NON-NLS-1$
 			} else if (type.isArrayType()) {
-				sugSeqThreshold= parameter.getName().getIdentifier() + ".length < 1000"; //$NON-NLS-1$
-			} else if (type.isParameterizedType()) {
-				sugSeqThreshold= parameter.getName().getIdentifier() + ".size() < 1000"; //$NON-NLS-1$
+				suggestSeqThreshold= parameter.getName().getIdentifier() + ".length < 1000"; //$NON-NLS-1$
+			} else if (type.isParameterizedType()) {  //TODO if Collection then do .size() otherwise - maybe
+				suggestSeqThreshold= parameter.getName().getIdentifier() + ".size() < 1000"; //$NON-NLS-1$
 			} else if (type.isSimpleType()) {
-				sugSeqThreshold= parameter.getName().getIdentifier() + ".length() < 1000"; //$NON-NLS-1$
+				suggestSeqThreshold= parameter.getName().getIdentifier() + ".length() < 1000"; //$NON-NLS-1$
 			} else {
-				System.err.println(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_parameter_error);
+				suggestSeqThreshold= "a boolean expression";  //$NON-NLS-1$  //UnionType or QualifiedType or WildcardType
 			}
 		}
-		return sugSeqThreshold;
+		return suggestSeqThreshold;
 	}
 
 	public RefactoringStatus setSequentialThreshold(String text) {
