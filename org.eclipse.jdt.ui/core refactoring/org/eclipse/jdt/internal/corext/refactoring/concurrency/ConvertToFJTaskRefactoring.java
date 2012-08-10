@@ -573,7 +573,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		}
 	}
 	
-	private boolean tooFewStatementsToRefactor(RefactoringStatus result, final Map<Block, List<Statement>> allStatementsWithRecursiveMethodInvocation) {
+	private boolean hasNoRecursiveCall(RefactoringStatus result, final Map<Block, List<Statement>> allStatementsWithRecursiveMethodInvocation) {
 		
 		if (allStatementsWithRecursiveMethodInvocation.size() == 0) {
 			createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_statement_error, new String[] {fMethod.getElementName()}));
