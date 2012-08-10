@@ -582,7 +582,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		return false;
 	}
 
-	private boolean switchStatementError(RefactoringStatus result, final boolean[] switchStatementsFound) {
+	private boolean hasSwitchStatements(RefactoringStatus result, final boolean[] switchStatementsFound) {
 		
 		if (switchStatementsFound[0]) {
 			createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_switch_statement_error, new String[] {fMethod.getElementName()}));
