@@ -290,7 +290,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		Type returnType= fMethodDeclaration.getReturnType2();
 		String returnTypeName= returnType.resolveBinding().getName();
 		if (returnType.isPrimitiveType()) {
-			return ast.newSimpleType(ast.newSimpleName(primitiveTypeToWrapper(returnTypeName)));
+			return ast.newSimpleType(ast.newSimpleName(primitiveTypeToWrapper(returnTypeName)));  //TODO Check if ASTNode util or something contains wrapper / boxing helper?
 		} else if (returnType.isArrayType()) {
 			Type tempComponent= (Type) ASTNode.copySubtree(ast, ((ArrayType) returnType).getComponentType());
 			return ast.newArrayType(tempComponent);
@@ -303,7 +303,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		} else if (returnType.isUnionType()) {
 			return getNewUnionTypeCopy(ast, returnType);
 		} else {
-			return null;
+			return ast.newSimpleType(ast.newSimpleName("ChangeMe")); //$NON-NLS-1$
 		}
 	}
 
