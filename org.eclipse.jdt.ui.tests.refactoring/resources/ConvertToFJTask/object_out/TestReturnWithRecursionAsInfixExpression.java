@@ -8,22 +8,22 @@ public class TestReturnWithRecursionAsInfixExpression {
 	public int bar(int num) {
 		int processorCount = Runtime.getRuntime().availableProcessors();
 		ForkJoinPool pool = new ForkJoinPool(processorCount);
-		BarImpl aBarImpl = new BarImpl(num);
-		return pool.invoke(aBarImpl);
+		BarTask aBarTask = new BarTask(num);
+		return pool.invoke(aBarTask);
 	}
 
-	public class BarImpl extends RecursiveTask<Integer> {
+	public class BarTask extends RecursiveTask<Integer> {
 		private int num;
-		private BarImpl(int num) {
+		private BarTask(int num) {
 			this.num = num;
 		}
 		protected Integer compute() {
 			if (num < 10) {
 				return bar_sequential(num);
 			} else {
-				BarImpl task1 = new BarImpl(num - 1);
-				BarImpl task2 = new BarImpl(num - 2);
-				BarImpl task3 = new BarImpl(num - 3);
+				BarTask task1 = new BarTask(num - 1);
+				BarTask task2 = new BarTask(num - 2);
+				BarTask task3 = new BarTask(num - 3);
 				invokeAll(task1, task2, task3);
 				return task1.getRawResult() + task2.getRawResult()
 						+ task3.getRawResult();

@@ -38,13 +38,13 @@ public class TestSequentialMergeSort {
 	private int[] sort(int[] whole) {
 		int processorCount = Runtime.getRuntime().availableProcessors();
 		ForkJoinPool pool = new ForkJoinPool(processorCount);
-		SortImpl aSortImpl = new SortImpl(whole);
-		return pool.invoke(aSortImpl);
+		SortTask aSortTask = new SortTask(whole);
+		return pool.invoke(aSortTask);
 	}
 
-	private class SortImpl extends RecursiveTask<int[]> {
+	private class SortTask extends RecursiveTask<int[]> {
 		private int[] whole;
-		private SortImpl(int[] whole) {
+		private SortTask(int[] whole) {
 			this.whole = whole;
 		}
 		protected int[] compute() {
@@ -55,8 +55,8 @@ public class TestSequentialMergeSort {
 				System.arraycopy(whole, 0, left, 0, left.length);
 				int[] right = new int[whole.length - left.length];
 				System.arraycopy(whole, left.length, right, 0, right.length);
-				SortImpl task1 = new SortImpl(left);
-				SortImpl task2 = new SortImpl(right);
+				SortTask task1 = new SortTask(left);
+				SortTask task2 = new SortTask(right);
 				invokeAll(task1, task2);
 				left = task1.getRawResult();
 				right = task2.getRawResult();

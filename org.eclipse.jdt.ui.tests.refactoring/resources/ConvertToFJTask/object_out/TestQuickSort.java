@@ -17,15 +17,15 @@ public class TestQuickSort {
 	public void quicksort(double[] a, int left, int right) {
 		int processorCount = Runtime.getRuntime().availableProcessors();
 		ForkJoinPool pool = new ForkJoinPool(processorCount);
-		QuicksortImpl aQuicksortImpl = new QuicksortImpl(a, left, right);
-		pool.invoke(aQuicksortImpl);
+		QuicksortTask aQuicksortTask = new QuicksortTask(a, left, right);
+		pool.invoke(aQuicksortTask);
 	}
 
-	public class QuicksortImpl extends RecursiveAction {
+	public class QuicksortTask extends RecursiveAction {
 		private double[] a;
 		private int left;
 		private int right;
-		private QuicksortImpl(double[] a, int left, int right) {
+		private QuicksortTask(double[] a, int left, int right) {
 			this.a = a;
 			this.left = left;
 			this.right = right;
@@ -36,8 +36,8 @@ public class TestQuickSort {
 				return;
 			}
 			int i = partition(a, left, right);
-			QuicksortImpl task1 = new QuicksortImpl(a, left, i - 1);
-			QuicksortImpl task2 = new QuicksortImpl(a, i + 1, right);
+			QuicksortTask task1 = new QuicksortTask(a, left, i - 1);
+			QuicksortTask task2 = new QuicksortTask(a, i + 1, right);
 			invokeAll(task1, task2);
 		}
 		public void quicksort_sequential(double[] a, int left, int right) {

@@ -8,13 +8,13 @@ public class TestMultipleIfStatementsWithoutBlocks {
 	public int foo(int end) {
 		int processorCount = Runtime.getRuntime().availableProcessors();
 		ForkJoinPool pool = new ForkJoinPool(processorCount);
-		FooImpl aFooImpl = new FooImpl(end);
-		return pool.invoke(aFooImpl);
+		FooTask aFooTask = new FooTask(end);
+		return pool.invoke(aFooTask);
 	}
 
-	public class FooImpl extends RecursiveTask<Integer> {
+	public class FooTask extends RecursiveTask<Integer> {
 		private int end;
-		private FooImpl(int end) {
+		private FooTask(int end) {
 			this.end = end;
 		}
 		protected Integer compute() {
@@ -22,25 +22,25 @@ public class TestMultipleIfStatementsWithoutBlocks {
 				return foo_sequential(end);
 			} else if (end < 10) {
 				if (end < 5) {
-					FooImpl task1 = new FooImpl(end - 1);
-					FooImpl task2 = new FooImpl(end - 2);
+					FooTask task1 = new FooTask(end - 1);
+					FooTask task2 = new FooTask(end - 2);
 					invokeAll(task1, task2);
 					return task1.getRawResult() + task2.getRawResult();
 				} else {
-					FooImpl task3 = new FooImpl(end - 5);
-					FooImpl task4 = new FooImpl(end - 6);
+					FooTask task3 = new FooTask(end - 5);
+					FooTask task4 = new FooTask(end - 6);
 					invokeAll(task3, task4);
 					return task3.getRawResult() + task4.getRawResult();
 				}
 			} else {
 				if (end > 25) {
-					FooImpl task5 = new FooImpl(end - 12);
-					FooImpl task6 = new FooImpl(end - 16);
+					FooTask task5 = new FooTask(end - 12);
+					FooTask task6 = new FooTask(end - 16);
 					invokeAll(task5, task6);
 					return task5.getRawResult() + task6.getRawResult();
 				} else {
-					FooImpl task7 = new FooImpl(end - 8);
-					FooImpl task8 = new FooImpl(end - 10);
+					FooTask task7 = new FooTask(end - 8);
+					FooTask task8 = new FooTask(end - 10);
 					invokeAll(task7, task8);
 					return task7.getRawResult() + task8.getRawResult();
 				}

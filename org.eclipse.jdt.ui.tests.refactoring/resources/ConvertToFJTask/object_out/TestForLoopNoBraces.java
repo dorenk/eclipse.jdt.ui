@@ -8,13 +8,13 @@ public class TestForLoopNoBraces {
 	public int method(int end) {
 		int processorCount = Runtime.getRuntime().availableProcessors();
 		ForkJoinPool pool = new ForkJoinPool(processorCount);
-		MethodImpl aMethodImpl = new MethodImpl(end);
-		return pool.invoke(aMethodImpl);
+		MethodTask aMethodTask = new MethodTask(end);
+		return pool.invoke(aMethodTask);
 	}
 
-	public class MethodImpl extends RecursiveTask<Integer> {
+	public class MethodTask extends RecursiveTask<Integer> {
 		private int end;
-		private MethodImpl(int end) {
+		private MethodTask(int end) {
 			this.end = end;
 		}
 		protected Integer compute() {
@@ -23,8 +23,8 @@ public class TestForLoopNoBraces {
 			} else {
 				int total = 0;
 				for (int i = 0; i < 10; i++) {
-					MethodImpl task1 = new MethodImpl(end - i);
-					MethodImpl task2 = new MethodImpl(end - i * 2);
+					MethodTask task1 = new MethodTask(end - i);
+					MethodTask task2 = new MethodTask(end - i * 2);
 					invokeAll(task1, task2);
 					total += task1.getRawResult() + task2.getRawResult();
 				}

@@ -8,21 +8,21 @@ public class TestFibonacci {
 	public int fibonacci(int end) {
 		int processorCount = Runtime.getRuntime().availableProcessors();
 		ForkJoinPool pool = new ForkJoinPool(processorCount);
-		FibonacciImpl aFibonacciImpl = new FibonacciImpl(end);
-		return pool.invoke(aFibonacciImpl);
+		FibonacciTask aFibonacciTask = new FibonacciTask(end);
+		return pool.invoke(aFibonacciTask);
 	}
 
-	public class FibonacciImpl extends RecursiveTask<Integer> {
+	public class FibonacciTask extends RecursiveTask<Integer> {
 		private int end;
-		private FibonacciImpl(int end) {
+		private FibonacciTask(int end) {
 			this.end = end;
 		}
 		protected Integer compute() {
 			if (end < 10) {
 				return fibonacci_sequential(end);
 			} else {
-				FibonacciImpl task1 = new FibonacciImpl(end - 1);
-				FibonacciImpl task2 = new FibonacciImpl(end - 2);
+				FibonacciTask task1 = new FibonacciTask(end - 1);
+				FibonacciTask task2 = new FibonacciTask(end - 2);
 				invokeAll(task1, task2);
 				return task1.getRawResult() + task2.getRawResult();
 			}

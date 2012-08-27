@@ -44,15 +44,15 @@ public class TestMaxConsecutiveSum {
     {
 		int processorCount = Runtime.getRuntime().availableProcessors();
 		ForkJoinPool pool = new ForkJoinPool(processorCount);
-		MaxSumRecImpl aMaxSumRecImpl = new MaxSumRecImpl(a, left, right);
-		return pool.invoke(aMaxSumRecImpl);
+		MaxSumRecTask aMaxSumRecTask = new MaxSumRecTask(a, left, right);
+		return pool.invoke(aMaxSumRecTask);
 	}
 
-	private static class MaxSumRecImpl extends RecursiveTask<Integer> {
+	private static class MaxSumRecTask extends RecursiveTask<Integer> {
 		private int[] a;
 		private int left;
 		private int right;
-		private MaxSumRecImpl(int[] a, int left, int right) {
+		private MaxSumRecTask(int[] a, int left, int right) {
 			this.a = a;
 			this.left = left;
 			this.right = right;
@@ -64,8 +64,8 @@ public class TestMaxConsecutiveSum {
 			if (right - left < 4) {
 				return maxSumRec_sequential(a, left, right);
 			}
-			MaxSumRecImpl task1 = new MaxSumRecImpl(a, left, center);
-			MaxSumRecImpl task2 = new MaxSumRecImpl(a, center + 1, right);
+			MaxSumRecTask task1 = new MaxSumRecTask(a, left, center);
+			MaxSumRecTask task2 = new MaxSumRecTask(a, center + 1, right);
 			invokeAll(task1, task2);
 			int maxLeftSum = task1.getRawResult();
 			int maxRightSum = task2.getRawResult();

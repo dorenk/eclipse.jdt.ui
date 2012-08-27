@@ -8,14 +8,14 @@ public class TestMethodMultipleTasks {
 	public int method(int num) {
 		int processorCount = Runtime.getRuntime().availableProcessors();
 		ForkJoinPool pool = new ForkJoinPool(processorCount);
-		MethodImpl aMethodImpl = new MethodImpl(num);
-		pool.invoke(aMethodImpl);
-		return aMethodImpl.result;
+		MethodTask aMethodTask = new MethodTask(num);
+		pool.invoke(aMethodTask);
+		return aMethodTask.result;
 	}
-	public class MethodImpl extends RecursiveAction {
+	public class MethodTask extends RecursiveAction {
 		private int num;
 		private int result;
-		private MethodImpl(int num) {
+		private MethodTask(int num) {
 			this.num = num;
 		}
 		protected void compute() {
@@ -23,9 +23,9 @@ public class TestMethodMultipleTasks {
 				result = method(num);
 				return;
 			} else {
-				MethodImpl task1 = new MethodImpl(num - 1);
-				MethodImpl task2 = new MethodImpl(num - 2);
-				MethodImpl task3 = new MethodImpl(num - 3);
+				MethodTask task1 = new MethodTask(num - 1);
+				MethodTask task2 = new MethodTask(num - 2);
+				MethodTask task3 = new MethodTask(num - 3);
 				invokeAll(task1, task2, task3);
 				result = sum(task1.result, task2.result, task3.result);
 			}

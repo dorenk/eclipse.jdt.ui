@@ -8,21 +8,21 @@ public class TestElseStatementWithoutBlock {
 	public int count(int end) {
 		int processorCount = Runtime.getRuntime().availableProcessors();
 		ForkJoinPool pool = new ForkJoinPool(processorCount);
-		CountImpl aCountImpl = new CountImpl(end);
-		return pool.invoke(aCountImpl);
+		CountTask aCountTask = new CountTask(end);
+		return pool.invoke(aCountTask);
 	}
 
-	public class CountImpl extends RecursiveTask<Integer> {
+	public class CountTask extends RecursiveTask<Integer> {
 		private int end;
-		private CountImpl(int end) {
+		private CountTask(int end) {
 			this.end = end;
 		}
 		protected Integer compute() {
 			if (end < 10) {
 				return count_sequential(end);
 			} else {
-				CountImpl task1 = new CountImpl(end - 1);
-				CountImpl task2 = new CountImpl(end - 2);
+				CountTask task1 = new CountTask(end - 1);
+				CountTask task2 = new CountTask(end - 2);
 				invokeAll(task1, task2);
 				return task1.getRawResult() + task2.getRawResult();
 			}

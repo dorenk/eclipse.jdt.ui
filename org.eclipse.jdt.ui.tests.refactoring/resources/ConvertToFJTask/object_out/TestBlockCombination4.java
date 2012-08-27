@@ -8,13 +8,13 @@ public class TestBlockCombination4 {
 	public int tryThis(int x) {
 		int processorCount = Runtime.getRuntime().availableProcessors();
 		ForkJoinPool pool = new ForkJoinPool(processorCount);
-		TryThisImpl aTryThisImpl = new TryThisImpl(x);
-		return pool.invoke(aTryThisImpl);
+		TryThisTask aTryThisTask = new TryThisTask(x);
+		return pool.invoke(aTryThisTask);
 	}
 
-	public class TryThisImpl extends RecursiveTask<Integer> {
+	public class TryThisTask extends RecursiveTask<Integer> {
 		private int x;
-		private TryThisImpl(int x) {
+		private TryThisTask(int x) {
 			this.x = x;
 		}
 		protected Integer compute() {
@@ -23,8 +23,8 @@ public class TestBlockCombination4 {
 			} else {
 				if (x < 15) {
 					int x12;
-					TryThisImpl task1 = new TryThisImpl(x - 12);
-					TryThisImpl task2 = new TryThisImpl(x - 15);
+					TryThisTask task1 = new TryThisTask(x - 12);
+					TryThisTask task2 = new TryThisTask(x - 15);
 					invokeAll(task1, task2);
 					x12 = task1.getRawResult() + task2.getRawResult();
 					return x12;

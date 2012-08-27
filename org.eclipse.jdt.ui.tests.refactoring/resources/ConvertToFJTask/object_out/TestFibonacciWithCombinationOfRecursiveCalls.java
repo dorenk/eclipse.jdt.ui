@@ -8,25 +8,25 @@ public class TestFibonacciWithCombinationOfRecursiveCalls {
 	public int fibonacciWithCombinationOfRecursiveCalls(int end) {
 		int processorCount = Runtime.getRuntime().availableProcessors();
 		ForkJoinPool pool = new ForkJoinPool(processorCount);
-		FibonacciWithCombinationOfRecursiveCallsImpl aFibonacciWithCombinationOfRecursiveCallsImpl = new FibonacciWithCombinationOfRecursiveCallsImpl(
+		FibonacciWithCombinationOfRecursiveCallsTask aFibonacciWithCombinationOfRecursiveCallsTask = new FibonacciWithCombinationOfRecursiveCallsTask(
 				end);
-		return pool.invoke(aFibonacciWithCombinationOfRecursiveCallsImpl);
+		return pool.invoke(aFibonacciWithCombinationOfRecursiveCallsTask);
 	}
 
-	public class FibonacciWithCombinationOfRecursiveCallsImpl
+	public class FibonacciWithCombinationOfRecursiveCallsTask
 			extends
 				RecursiveTask<Integer> {
 		private int end;
-		private FibonacciWithCombinationOfRecursiveCallsImpl(int end) {
+		private FibonacciWithCombinationOfRecursiveCallsTask(int end) {
 			this.end = end;
 		}
 		protected Integer compute() {
 			if (end < 10) {
 				return fibonacciWithCombinationOfRecursiveCalls_sequential(end);
 			} else {
-				FibonacciWithCombinationOfRecursiveCallsImpl task1 = new FibonacciWithCombinationOfRecursiveCallsImpl(
+				FibonacciWithCombinationOfRecursiveCallsTask task1 = new FibonacciWithCombinationOfRecursiveCallsTask(
 						end - 1);
-				FibonacciWithCombinationOfRecursiveCallsImpl task2 = new FibonacciWithCombinationOfRecursiveCallsImpl(
+				FibonacciWithCombinationOfRecursiveCallsTask task2 = new FibonacciWithCombinationOfRecursiveCallsTask(
 						end - 2);
 				invokeAll(task1, task2);
 				int i = task1.getRawResult();

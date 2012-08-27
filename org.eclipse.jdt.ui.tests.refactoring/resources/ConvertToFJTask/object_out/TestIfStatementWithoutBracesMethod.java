@@ -8,14 +8,14 @@ public class TestIfStatementWithoutBracesMethod {
 	protected String grayCheckHierarchy(String treeElement) {
 		int processorCount = Runtime.getRuntime().availableProcessors();
 		ForkJoinPool pool = new ForkJoinPool(processorCount);
-		GrayCheckHierarchyImpl aGrayCheckHierarchyImpl = new GrayCheckHierarchyImpl(
+		GrayCheckHierarchyTask aGrayCheckHierarchyTask = new GrayCheckHierarchyTask(
 				treeElement);
-		return pool.invoke(aGrayCheckHierarchyImpl);
+		return pool.invoke(aGrayCheckHierarchyTask);
 	}
 
-	protected class GrayCheckHierarchyImpl extends RecursiveTask<String> {
+	protected class GrayCheckHierarchyTask extends RecursiveTask<String> {
 		private String treeElement;
-		private GrayCheckHierarchyImpl(String treeElement) {
+		private GrayCheckHierarchyTask(String treeElement) {
 			this.treeElement = treeElement;
 		}
 		protected String compute() {
@@ -27,9 +27,9 @@ public class TestIfStatementWithoutBracesMethod {
 			}
 			String parent = treeElement.toUpperCase();
 			if (parent != null) {
-				GrayCheckHierarchyImpl task1 = new GrayCheckHierarchyImpl(
+				GrayCheckHierarchyTask task1 = new GrayCheckHierarchyTask(
 						parent);
-				GrayCheckHierarchyImpl task2 = new GrayCheckHierarchyImpl(
+				GrayCheckHierarchyTask task2 = new GrayCheckHierarchyTask(
 						parent.toLowerCase());
 				invokeAll(task1, task2);
 				return task1.getRawResult() + task2.getRawResult();

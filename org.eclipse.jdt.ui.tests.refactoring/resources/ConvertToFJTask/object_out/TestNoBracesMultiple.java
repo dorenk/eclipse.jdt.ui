@@ -8,21 +8,21 @@ public class TestNoBracesMultiple {
 	public int method(int end) {
 		int processorCount = Runtime.getRuntime().availableProcessors();
 		ForkJoinPool pool = new ForkJoinPool(processorCount);
-		MethodImpl aMethodImpl = new MethodImpl(end);
-		return pool.invoke(aMethodImpl);
+		MethodTask aMethodTask = new MethodTask(end);
+		return pool.invoke(aMethodTask);
 	}
-	public class MethodImpl extends RecursiveTask<Integer> {
+	public class MethodTask extends RecursiveTask<Integer> {
 		private int end;
-		private MethodImpl(int end) {
+		private MethodTask(int end) {
 			this.end = end;
 		}
 		protected Integer compute() {
 			if (end < 10) {
 				return method_sequential(end);
 			} else {
-				MethodImpl task1 = new MethodImpl(end - 1);
-				MethodImpl task2 = new MethodImpl(end - 2);
-				MethodImpl task3 = new MethodImpl(end - 3);
+				MethodTask task1 = new MethodTask(end - 1);
+				MethodTask task2 = new MethodTask(end - 2);
+				MethodTask task3 = new MethodTask(end - 3);
 				invokeAll(task1, task2, task3);
 				return otherMethod(task1.getRawResult(), task2.getRawResult(),
 						task3.getRawResult());

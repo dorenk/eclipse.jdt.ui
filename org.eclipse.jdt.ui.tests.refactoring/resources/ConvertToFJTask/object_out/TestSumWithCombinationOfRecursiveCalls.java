@@ -8,24 +8,24 @@ public class TestSumWithCombinationOfRecursiveCalls {
 	public int recursionSumWithCombinationOfRecursiveCalls(int end) {
 		int processorCount = Runtime.getRuntime().availableProcessors();
 		ForkJoinPool pool = new ForkJoinPool(processorCount);
-		RecursionSumWithCombinationOfRecursiveCallsImpl aRecursionSumWithCombinationOfRecursiveCallsImpl = new RecursionSumWithCombinationOfRecursiveCallsImpl(
+		RecursionSumWithCombinationOfRecursiveCallsTask aRecursionSumWithCombinationOfRecursiveCallsTask = new RecursionSumWithCombinationOfRecursiveCallsTask(
 				end);
-		return pool.invoke(aRecursionSumWithCombinationOfRecursiveCallsImpl);
+		return pool.invoke(aRecursionSumWithCombinationOfRecursiveCallsTask);
 	}
-	public class RecursionSumWithCombinationOfRecursiveCallsImpl
+	public class RecursionSumWithCombinationOfRecursiveCallsTask
 			extends
 				RecursiveTask<Integer> {
 		private int end;
-		private RecursionSumWithCombinationOfRecursiveCallsImpl(int end) {
+		private RecursionSumWithCombinationOfRecursiveCallsTask(int end) {
 			this.end = end;
 		}
 		protected Integer compute() {
 			if (end < 5) {
 				return recursionSumWithCombinationOfRecursiveCalls_sequential(end);
 			} else {
-				RecursionSumWithCombinationOfRecursiveCallsImpl task1 = new RecursionSumWithCombinationOfRecursiveCallsImpl(
+				RecursionSumWithCombinationOfRecursiveCallsTask task1 = new RecursionSumWithCombinationOfRecursiveCallsTask(
 						end - 1);
-				RecursionSumWithCombinationOfRecursiveCallsImpl task2 = new RecursionSumWithCombinationOfRecursiveCallsImpl(
+				RecursionSumWithCombinationOfRecursiveCallsTask task2 = new RecursionSumWithCombinationOfRecursiveCallsTask(
 						end - 2);
 				invokeAll(task1, task2);
 				int i = task1.getRawResult();

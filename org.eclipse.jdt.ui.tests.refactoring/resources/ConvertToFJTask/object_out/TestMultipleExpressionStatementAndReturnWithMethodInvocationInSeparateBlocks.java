@@ -8,12 +8,12 @@ public class TestMultipleExpressionStatementAndReturnWithMethodInvocationInSepar
 	public int calculateMiles(int data) {
 		int processorCount = Runtime.getRuntime().availableProcessors();
 		ForkJoinPool pool = new ForkJoinPool(processorCount);
-		CalculateMilesImpl aCalculateMilesImpl = new CalculateMilesImpl(data);
-		return pool.invoke(aCalculateMilesImpl);
+		CalculateMilesTask aCalculateMilesTask = new CalculateMilesTask(data);
+		return pool.invoke(aCalculateMilesTask);
 	}
-	public class CalculateMilesImpl extends RecursiveTask<Integer> {
+	public class CalculateMilesTask extends RecursiveTask<Integer> {
 		private int data;
-		private CalculateMilesImpl(int data) {
+		private CalculateMilesTask(int data) {
 			this.data = data;
 		}
 		protected Integer compute() {
@@ -22,16 +22,16 @@ public class TestMultipleExpressionStatementAndReturnWithMethodInvocationInSepar
 			} else {
 				if (data < 5) {
 					int gas;
-					CalculateMilesImpl task1 = new CalculateMilesImpl(data - 1);
-					CalculateMilesImpl task2 = new CalculateMilesImpl(data - 2);
+					CalculateMilesTask task1 = new CalculateMilesTask(data - 1);
+					CalculateMilesTask task2 = new CalculateMilesTask(data - 2);
 					invokeAll(task1, task2);
 					gas = task1.getRawResult();
 					int mpg;
 					mpg = task2.getRawResult();
 					return gas * mpg;
 				} else {
-					CalculateMilesImpl task3 = new CalculateMilesImpl(data - 4);
-					CalculateMilesImpl task4 = new CalculateMilesImpl(data - 3);
+					CalculateMilesTask task3 = new CalculateMilesTask(data - 4);
+					CalculateMilesTask task4 = new CalculateMilesTask(data - 3);
 					invokeAll(task3, task4);
 					return electric(task3.getRawResult(), task4.getRawResult());
 				}

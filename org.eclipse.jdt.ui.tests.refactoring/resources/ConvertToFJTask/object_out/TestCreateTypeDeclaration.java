@@ -8,15 +8,15 @@ public class TestCreateTypeDeclaration {
 	public void method(int[] array, int start, int end) {
 		int processorCount = Runtime.getRuntime().availableProcessors();
 		ForkJoinPool pool = new ForkJoinPool(processorCount);
-		MethodImpl aMethodImpl = new MethodImpl(array, start, end);
-		pool.invoke(aMethodImpl);
+		MethodTask aMethodTask = new MethodTask(array, start, end);
+		pool.invoke(aMethodTask);
 	}
 
-	public class MethodImpl extends RecursiveAction {
+	public class MethodTask extends RecursiveAction {
 		private int[] array;
 		private int start;
 		private int end;
-		private MethodImpl(int[] array, int start, int end) {
+		private MethodTask(int[] array, int start, int end) {
 			this.array = array;
 			this.start = start;
 			this.end = end;
@@ -26,8 +26,8 @@ public class TestCreateTypeDeclaration {
 				method_sequential(array, start, end);
 				return;
 			} else {
-				MethodImpl task1 = new MethodImpl(array, 0, 1);
-				MethodImpl task2 = new MethodImpl(new int[]{1, 2, 3}, 0, 3);
+				MethodTask task1 = new MethodTask(array, 0, 1);
+				MethodTask task2 = new MethodTask(new int[]{1, 2, 3}, 0, 3);
 				invokeAll(task1, task2);
 			}
 		}
