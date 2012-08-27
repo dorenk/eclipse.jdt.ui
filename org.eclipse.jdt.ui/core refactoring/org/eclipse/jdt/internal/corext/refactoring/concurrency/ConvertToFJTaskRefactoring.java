@@ -427,10 +427,10 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		final Map<Block, List<Statement> > blockToRecursiveInvocations= new HashMap<Block, List<Statement> >();
 		final Map<Block, Integer> numTasksPerBlock= new HashMap<Block, Integer>(); //TODO get rid of - use other to get info  //Can determine how many tasks belong to this block easily
 		final Map<Block, Statement> newlyCreatedBlockToReplacementLocation= new HashMap<Block, Statement>();
-		final List<Block> allTheBlocks= new ArrayList<Block>();  //TODO rename to allBlocksWithRecursiveMethods
+		final List<Block> allBlocksWithRecursiveMethods= new ArrayList<Block>();
 		final boolean[] switchStatementsFound= new boolean[] {false};
 		fMethodDeclaration.accept(new MethodVisitor(taskNumberToTaskDeclStatement, statementsToTasks, scratchRewriter, numTasksPerBlock, newlyCreatedBlockToReplacementLocation, blockToRecursiveInvocations,
-				allTheBlocks, switchStatementsFound, ast));  //TODO rename to FindRecursiveCallsVisitor
+				allBlocksWithRecursiveMethods, switchStatementsFound, ast));  //TODO rename to FindRecursiveCallsVisitor
 		
 		if (hasSwitchStatements(result, switchStatementsFound) || hasNoRecursiveCall(result, blockToRecursiveInvocations)) {
 			return;
@@ -438,7 +438,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		
 		//TODO extract to method - if(!hasParallelRecursiveCallsInAtLeastOneBlock()) return;
 		boolean atLeastOneBlockChanged= false;
-		for (Block currBlock : allTheBlocks) {
+		for (Block currBlock : allBlocksWithRecursiveMethods) {
 			ListRewrite listRewriteForBlock= scratchRewriter.getListRewrite(currBlock, Block.STATEMENTS_PROPERTY);
 			atLeastOneBlockChanged= (attemptRefactoringOnBlock(ast, editGroup, scratchRewriter, taskNumberToTaskDeclStatement, statementsToTasks,
 					blockToRecursiveInvocations, numTasksPerBlock, newlyCreatedBlockToReplacementLocation, atLeastOneBlockChanged, currBlock, listRewriteForBlock) || atLeastOneBlockChanged);
@@ -1269,12 +1269,12 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		private final int[] fTaskNumber;
 		private final Map<Block, Statement> fNewlyCreatedBlockToReplacementLocation;
 		private final Map<Block, List<Statement>> fBlockToRecursiveInvocations;
-		private final List<Block> fAllTheBlocks;
+		private final List<Block> fAllBlocksWithRecursiveMethods;
 		private final boolean[] fSwitchStatementsFound;
 		private final AST fAst;
 
 		private MethodVisitor(Map<Integer, VariableDeclarationStatement> taskNumberToTaskDeclStatement, Map<Statement, List<Integer>> statementsToTasks, ASTRewrite scratchRewriter,
-				Map<Block, Integer> numTasksPerBlock, Map<Block, Statement> newlyCreatedBlockToReplacementLocation, Map<Block, List<Statement>> blockToRecursiveInvocations, List<Block> allTheBlocks,
+				Map<Block, Integer> numTasksPerBlock, Map<Block, Statement> newlyCreatedBlockToReplacementLocation, Map<Block, List<Statement>> blockToRecursiveInvocations, List<Block> allBlocksWithRecursiveMethods,
 				boolean[] switchStatementsFound, AST ast) {
 			
 			fTaskNumberToTaskDeclStatement= taskNumberToTaskDeclStatement;
@@ -1283,7 +1283,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			fNumTasksPerBlock= numTasksPerBlock;
 			fNewlyCreatedBlockToReplacementLocation= newlyCreatedBlockToReplacementLocation;
 			fBlockToRecursiveInvocations= blockToRecursiveInvocations;
-			fAllTheBlocks= allTheBlocks;
+			fAllBlocksWithRecursiveMethods= allBlocksWithRecursiveMethods;
 			fSwitchStatementsFound= switchStatementsFound;
 			fAst= ast;
 			fLocationOfNewBlocks= new HashMap<ASTNode, Block>();
@@ -1382,8 +1382,8 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 			populateStatementsToTasks(parentOfMethodCall, taskNum);
 			populateNumTasksPerBlock(myBlock);
 			populateAllStatementsWithRecursiveMethodInvocation(myBlock, parentOfMethodCall);
-			if (!fAllTheBlocks.contains(myBlock)) {
-				fAllTheBlocks.add(myBlock);
+			if (!fAllBlocksWithRecursiveMethods.contains(myBlock)) {
+				fAllBlocksWithRecursiveMethods.add(myBlock);
 			}
 		}
 
