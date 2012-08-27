@@ -419,7 +419,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		
 		replaceBaseCaseCheckWithSequentialThreshold(editGroup, recursionBaseCaseBranch, scratchRewriter, sequentialThresholdCheck);
 		
-		createSequentialMethodInvocation(ast, editGroup, recursionBaseCaseBranch, scratchRewriter);  //TODO rename and change to clear block
+		replaceBaseCaseBlockWithSequentialMethodInvocation(ast, editGroup, recursionBaseCaseBranch, scratchRewriter);
 		
 		//TODO extract to createParallelCase or something
 		final Map<Integer, VariableDeclarationStatement> taskNumberToTaskDeclStatement= new HashMap<Integer, VariableDeclarationStatement>();
@@ -654,38 +654,20 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		}
 	}
 
-	private void createSequentialMethodInvocation(AST ast, TextEditGroup editGroup, Statement recursionBaseCaseBranch, ASTRewrite scratchRewriter) {
+	private void replaceBaseCaseBlockWithSequentialMethodInvocation(AST ast, TextEditGroup editGroup, Statement recursionBaseCaseBranch, ASTRewrite scratchRewriter) {
 		
-		Block baseCaseBlock;
-		boolean isBlock= false;
-		if (recursionBaseCaseBranch instanceof Block) {
-			baseCaseBlock= (Block) recursionBaseCaseBranch;
-			isBlock= true;
-		} else {
-			baseCaseBlock= ast.newBlock();
-		}
+		Block baseCaseBlock= ast.newBlock();
 		List<Statement> baseCaseStatements= baseCaseBlock.statements();
 		if (recursiveMethodReturnsVoid()) {
 			ExpressionStatement sequentialMethodInvocation= ast.newExpressionStatement(createSequentialMethodInvocation(ast));
-			if (isBlock) {
-				ListRewrite listRewriteForBaseBlock= scratchRewriter.getListRewrite(baseCaseBlock, Block.STATEMENTS_PROPERTY);
-				listRewriteForBaseBlock.insertBefore(sequentialMethodInvocation, baseCaseStatements.get(baseCaseStatements.size() - 1), editGroup);
-			} else {
-				baseCaseStatements.add(sequentialMethodInvocation);
-				baseCaseStatements.add(ast.newReturnStatement());
-			}
+			baseCaseStatements.add(sequentialMethodInvocation);
+			baseCaseStatements.add(ast.newReturnStatement());
 		} else {
 			ReturnStatement newReturnResult= ast.newReturnStatement();
 			newReturnResult.setExpression(createSequentialMethodInvocation(ast));
-			if (isBlock) {
-				scratchRewriter.replace(baseCaseStatements.get(baseCaseStatements.size() - 1), newReturnResult, editGroup);
-			} else {
-				baseCaseStatements.add(newReturnResult);
-			}
+			baseCaseStatements.add(newReturnResult);
 		}
-		if (!isBlock) {
-			scratchRewriter.replace(recursionBaseCaseBranch, baseCaseBlock, editGroup);
-		}
+		scratchRewriter.replace(recursionBaseCaseBranch, baseCaseBlock, editGroup);
 	}
 
 	private void createFatalError(RefactoringStatus result, String message) {
