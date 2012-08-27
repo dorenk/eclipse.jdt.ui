@@ -429,8 +429,8 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		final Map<Block, Statement> newlyCreatedBlockToReplacementLocation= new HashMap<Block, Statement>();
 		final List<Block> allBlocksWithRecursiveMethods= new ArrayList<Block>();
 		final boolean[] switchStatementsFound= new boolean[] {false};
-		fMethodDeclaration.accept(new MethodVisitor(taskNumberToTaskDeclStatement, statementsToTasks, scratchRewriter, numTasksPerBlock, newlyCreatedBlockToReplacementLocation, blockToRecursiveInvocations,
-				allBlocksWithRecursiveMethods, switchStatementsFound, ast));  //TODO rename to FindRecursiveCallsVisitor
+		fMethodDeclaration.accept(new FindRecursiveCallsVisitor(taskNumberToTaskDeclStatement, statementsToTasks, scratchRewriter, numTasksPerBlock, newlyCreatedBlockToReplacementLocation, blockToRecursiveInvocations,
+				allBlocksWithRecursiveMethods, switchStatementsFound, ast));
 		
 		if (hasSwitchStatements(result, switchStatementsFound) || hasNoRecursiveCall(result, blockToRecursiveInvocations)) {
 			return;
@@ -1260,7 +1260,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		}
 	}
 
-	private final class MethodVisitor extends ASTVisitor {
+	private final class FindRecursiveCallsVisitor extends ASTVisitor {
 		private final Map<Integer, VariableDeclarationStatement> fTaskNumberToTaskDeclStatement;
 		private final Map<Statement, List<Integer> > fStatementsToTasks;
 		private final Map<ASTNode, Block> fLocationOfNewBlocks;
@@ -1273,7 +1273,7 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		private final boolean[] fSwitchStatementsFound;
 		private final AST fAst;
 
-		private MethodVisitor(Map<Integer, VariableDeclarationStatement> taskNumberToTaskDeclStatement, Map<Statement, List<Integer>> statementsToTasks, ASTRewrite scratchRewriter,
+		private FindRecursiveCallsVisitor(Map<Integer, VariableDeclarationStatement> taskNumberToTaskDeclStatement, Map<Statement, List<Integer>> statementsToTasks, ASTRewrite scratchRewriter,
 				Map<Block, Integer> numTasksPerBlock, Map<Block, Statement> newlyCreatedBlockToReplacementLocation, Map<Block, List<Statement>> blockToRecursiveInvocations, List<Block> allBlocksWithRecursiveMethods,
 				boolean[] switchStatementsFound, AST ast) {
 			
