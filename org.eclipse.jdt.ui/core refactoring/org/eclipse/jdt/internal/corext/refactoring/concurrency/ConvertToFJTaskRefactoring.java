@@ -421,33 +421,9 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		
 		replaceBaseCaseBlockWithSequentialMethodInvocation(ast, editGroup, recursionBaseCaseBranch, scratchRewriter);
 		
-		//TODO extract to createParallelCase or something
-		final Map<Integer, VariableDeclarationStatement> taskNumberToTaskDeclStatement= new HashMap<Integer, VariableDeclarationStatement>();
-		final Map<Statement, List<Integer> > statementsToTasks= new HashMap<Statement, List<Integer> >();  //dont need?
-		final Map<Block, List<Statement> > blockToRecursiveInvocations= new HashMap<Block, List<Statement> >();
-		final Map<Block, Integer> numTasksPerBlock= new HashMap<Block, Integer>(); //TODO get rid of - use other to get info  //Can determine how many tasks belong to this block easily
-		final Map<Block, Statement> newlyCreatedBlockToReplacementLocation= new HashMap<Block, Statement>();
-		final List<Block> allBlocksWithRecursiveMethods= new ArrayList<Block>();
-		final boolean[] switchStatementsFound= new boolean[] {false};
-		fMethodDeclaration.accept(new FindRecursiveCallsVisitor(taskNumberToTaskDeclStatement, statementsToTasks, scratchRewriter, numTasksPerBlock, newlyCreatedBlockToReplacementLocation, blockToRecursiveInvocations,
-				allBlocksWithRecursiveMethods, switchStatementsFound, ast));
-		
-		if (hasSwitchStatements(result, switchStatementsFound) || hasNoRecursiveCall(result, blockToRecursiveInvocations)) {
+		if(!createParallelCase(ast, result, editGroup, scratchRewriter)) {
 			return;
 		}
-		
-		//TODO extract to method - if(!hasParallelRecursiveCallsInAtLeastOneBlock()) return;
-		boolean atLeastOneBlockChanged= false;
-		for (Block currBlock : allBlocksWithRecursiveMethods) {
-			ListRewrite listRewriteForBlock= scratchRewriter.getListRewrite(currBlock, Block.STATEMENTS_PROPERTY);
-			atLeastOneBlockChanged= (attemptRefactoringOnBlock(ast, editGroup, scratchRewriter, taskNumberToTaskDeclStatement, statementsToTasks,
-					blockToRecursiveInvocations, numTasksPerBlock, newlyCreatedBlockToReplacementLocation, atLeastOneBlockChanged, currBlock, listRewriteForBlock) || atLeastOneBlockChanged);
-		}
-		if (!atLeastOneBlockChanged) {
-			createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_no_change_error, new String[] { fMethod.getElementName() }));
-			return;
-		}
-		
 		
 		try {
 			tryApplyEdits(ast, computeMethod, scratchRewriter);
@@ -459,13 +435,53 @@ public class ConvertToFJTaskRefactoring extends Refactoring {
 		recursiveActionSubtype.bodyDeclarations().add(computeMethod);
 	}
 
+	private boolean createParallelCase(final AST ast, RefactoringStatus result, final TextEditGroup editGroup, final ASTRewrite scratchRewriter) {
+		final Map<Integer, VariableDeclarationStatement> taskNumberToTaskDeclStatement= new HashMap<Integer, VariableDeclarationStatement>();
+		final Map<Statement, List<Integer> > statementsToTasks= new HashMap<Statement, List<Integer> >();
+		final Map<Block, List<Statement> > blockToRecursiveInvocations= new HashMap<Block, List<Statement> >();
+		final Map<Block, Integer> numTasksPerBlock= new HashMap<Block, Integer>(); //Can determine how many tasks belong to this block easily
+		final Map<Block, Statement> newlyCreatedBlockToReplacementLocation= new HashMap<Block, Statement>();
+		final List<Block> allBlocksWithRecursiveMethods= new ArrayList<Block>();
+		final boolean[] switchStatementsFound= new boolean[] {false};
+		fMethodDeclaration.accept(new FindRecursiveCallsVisitor(taskNumberToTaskDeclStatement, statementsToTasks, scratchRewriter, numTasksPerBlock, newlyCreatedBlockToReplacementLocation, blockToRecursiveInvocations,
+				allBlocksWithRecursiveMethods, switchStatementsFound, ast));
+		
+		if (hasSwitchStatements(result, switchStatementsFound) || hasNoRecursiveCall(result, blockToRecursiveInvocations)) {
+			return false;
+		}
+		
+		if(!hasParallelRecursiveCallsInAtLeastOneBlock(ast, result, editGroup, scratchRewriter, taskNumberToTaskDeclStatement, statementsToTasks, blockToRecursiveInvocations, numTasksPerBlock,
+				newlyCreatedBlockToReplacementLocation, allBlocksWithRecursiveMethods)) {
+			return false;
+		}
+		return true;
+	}
+
+	private boolean hasParallelRecursiveCallsInAtLeastOneBlock(final AST ast, RefactoringStatus result, final TextEditGroup editGroup, final ASTRewrite scratchRewriter,
+			final Map<Integer, VariableDeclarationStatement> taskNumberToTaskDeclStatement, final Map<Statement, List<Integer>> statementsToTasks,
+			final Map<Block, List<Statement>> blockToRecursiveInvocations, final Map<Block, Integer> numTasksPerBlock, final Map<Block, Statement> newlyCreatedBlockToReplacementLocation,
+			final List<Block> allBlocksWithRecursiveMethods) {
+		boolean atLeastOneBlockChanged= false;
+		for (Block currBlock : allBlocksWithRecursiveMethods) {
+			ListRewrite listRewriteForBlock= scratchRewriter.getListRewrite(currBlock, Block.STATEMENTS_PROPERTY);
+			atLeastOneBlockChanged= (attemptRefactoringOnBlock(ast, editGroup, scratchRewriter, taskNumberToTaskDeclStatement, statementsToTasks,
+					blockToRecursiveInvocations, numTasksPerBlock, newlyCreatedBlockToReplacementLocation, atLeastOneBlockChanged, currBlock, listRewriteForBlock) || atLeastOneBlockChanged);
+		}
+		if (!atLeastOneBlockChanged) {
+			createFatalError(result, Messages.format(ConcurrencyRefactorings.ConvertToFJTaskRefactoring_no_change_error, new String[] { fMethod.getElementName() }));
+			return false;
+		}
+		return true;
+	}
+
 	private boolean attemptRefactoringOnBlock(final AST ast, final TextEditGroup editGroup, final ASTRewrite scratchRewriter, Map<Integer, VariableDeclarationStatement> taskNumberToTaskDeclStatement,
 			Map<Statement, List<Integer>> statementsToTasks, final Map<Block, List<Statement>> blockToRecursiveInvocations, final Map<Block, Integer> numTasksPerBlock,
 			final Map<Block, Statement> newlyCreatedBlockToReplacementLocation, boolean atLeastOneBlockChanged, Block currBlock, ListRewrite listRewriteForBlock) {
 
 		boolean isNewBlock= newlyCreatedBlockToReplacementLocation.containsKey(currBlock);
 		
-		if (blockToRecursiveInvocations.get(currBlock).size() >= 1 && !numTasksPerBlock.get(currBlock).equals(Integer.valueOf(1))) {  //TODO extract conditional to local var  - hasParallelRecursiveMethods
+		boolean hasParallelRecursiveMethods= blockToRecursiveInvocations.get(currBlock).size() >= 1 && !numTasksPerBlock.get(currBlock).equals(Integer.valueOf(1));
+		if (hasParallelRecursiveMethods) {
 			atLeastOneBlockChanged=  true;
 			
 			if (isNewBlock) {
